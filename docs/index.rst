@@ -1,7 +1,7 @@
-<PROJECT_NAME>
+py-ssz
 ==============================
 
-<SHORT_DESCRIPTION>
+Python implementation of the Simple Serialization encoding and decoding
 
 Contents
 --------
@@ -9,7 +9,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    <MODULE_NAME>
+    ssz
     releases
 
 
