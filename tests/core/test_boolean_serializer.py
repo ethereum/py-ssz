@@ -3,6 +3,8 @@ import pytest
 from ssz import (
     DeserializationError,
     SerializationError,
+    decode,
+    encode,
 )
 from ssz.sedes import (
     Boolean,
@@ -76,3 +78,15 @@ def test_boolean_deserialization_bad_value(value):
 def test_boolean_round_trip(value, expected):
     sedes = Boolean()
     assert sedes.deserialize(sedes.serialize(value)) == expected
+
+
+@pytest.mark.parametrize(
+    'value,expected',
+    (
+        (True, True),
+        (False, False),
+    ),
+)
+def test_boolean_round_trip_codec(value, expected):
+    sedes = Boolean()
+    assert decode(encode(value), sedes) == expected
