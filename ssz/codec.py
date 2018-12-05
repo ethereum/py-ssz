@@ -10,11 +10,13 @@ from ssz.utils import (
 )
 
 
-def encode(obj):
+def encode(obj, serializer_type=None):
     """
     Encode object in SSZ format.
+    `serializer_type` needs to be explicitly mentioned for encode/decode
+    of integers(as of now)
     """
-    serialized_obj = infer_sedes(obj).serialize(obj)
+    serialized_obj = infer_sedes(obj, serializer_type).serialize(obj)
     return serialized_obj
 
 
