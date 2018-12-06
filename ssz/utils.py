@@ -1,3 +1,7 @@
+from ssz.exceptions import (
+    InvalidSedesError,
+    SerializationError,
+)
 from ssz.sedes import (
     Integer,
     boolean,
@@ -13,26 +17,47 @@ def is_sedes(obj):
     return hasattr(obj, 'serialize') and hasattr(obj, 'deserialize')
 
 
-def get_integer_serializer(serializer_type):
-    '''
-    Given serializer_type as 'int<N>' or 'uint<N>', this function
-    returns the corresponding serializer object.
-    '''
-    integer_serializer = Integer(serializer_type)
-    return integer_serializer
+def get_sedes_from_string(sedes_type):
+    """
+    Given the sedes type in string format, this function returns
+    the corresponding serializer object.
+
+    sedes_type can be 'boolean', 'uint<N>' etc.
+    """
+    if sedes_type == 'boolean':
+        return boolean
+    elif sedes_type[:4] == 'uint':
+        # Try to get the number of bits
+        try:
+            num_bits = int(sedes_type[4:])
+        except:
+            raise InvalidSedesError(
+                "Invalid uint sedes object: Number of bits should be an integer",
+                sedes_type
+            )
+
+        # Make sure the number of bits are multiple of 8
+        if num_bits % 8 != 0:
+            raise InvalidSedesError(
+                "Invalid uint sedes object: Number of bits should be multiple of 8",
+                sedes_type
+            )
+
+        num_bytes = num_bits // 8
+        return Integer(num_bytes)
 
 
-def infer_sedes(obj, serializer_type=None):
+def infer_sedes(obj):
     """
     Try to find a sedes objects suitable for a given Python object.
-    :param serializer_type: str
-    The serializer_type parameter is optional and can be only
-    of the format 'int<N>' or 'uint<N>'(as of now)
     """
     if isinstance(obj, bool):
         return boolean
     elif isinstance(obj, int):
-        return get_integer_serializer(serializer_type)
+        raise SerializationError(
+            'uint sedes object or uint string needs to be specified for ints',
+            obj
+        )
 
     msg = 'Did not find sedes handling type {}'.format(type(obj).__name__)
     raise TypeError(msg)

@@ -7,10 +7,6 @@ from ssz import (
     encode,
 )
 from ssz.sedes import (
-    Integer,
-    int8,
-    int16,
-    int32,
     uint8,
     uint16,
     uint32,
@@ -19,181 +15,151 @@ from ssz.sedes import (
 
 
 @pytest.mark.parametrize(
-    'value,serializer,expected',
+    'value,sedes,expected',
     (
-        (0, 'int8', b'\x00'),
-        (1, 'int8', b'\x01'),
-        (5, 'int8', b'\x05'),
-        (5, 'int16', b'\x00\x05'),
-        (5, 'int32', b'\x00\x00\x00\x05'),
-        (127, 'int8', b'\x7f'),
-        (127, 'int16', b'\x00\x7f'),
-        (-127, 'int8', b'\x81'),
-        (-128, 'int8', b'\x80'),
-        (256, 'int16', b'\x01\x00'),
-        (1024, 'int16', b'\x04\x00'),
+        (0, uint8, b'\x00'),
+        (5, uint8, b'\x05'),
+        (127, uint8, b'\x7f'),
+        (255, uint8, b'\xff'),
+
+        (0, uint16, b'\x00\x00'),
+        (5, uint16, b'\x00\x05'),
+        (127, uint16, b'\x00\x7f'),
+        (256, uint16, b'\x01\x00'),
+        (1024, uint16, b'\x04\x00'),
+        (65535, uint16, b'\xff\xff'),
+
+        (0, uint32, b'\x00\x00\x00\x00'),
+        (5, uint32, b'\x00\x00\x00\x05'),
+        (65536, uint32, b'\x00\x01\x00\x00'),
+        (4294967295, uint32, b'\xff\xff\xff\xff'),
+
+        (0, uint64, b'\x00\x00\x00\x00\x00\x00\x00\x00'),
+        (18446744073709551615, uint64, b'\xff\xff\xff\xff\xff\xff\xff\xff'),
     ),
 )
-def test_integer_serialize_values(value, serializer, expected):
-    sedes = Integer(serializer)
+def test_integer_serialize_values(value, sedes, expected):
     assert sedes.serialize(value) == expected
 
 
 @pytest.mark.parametrize(
-    'value,serializer,expected',
+    'value,sedes',
     (
-        (5, 'uint8', b'\x05'),
-        (5, 'uint16', b'\x00\x05'),
-        (5, 'uint32', b'\x00\x00\x00\x05'),
-        (127, 'uint8', b'\x7f'),
-        (255, 'uint8', b'\xff'),
-        (65535, 'uint16', b'\xff\xff'),
+        # Wrong input types
+        (1.0, uint32),
+        (True, uint32),
+        (False, uint32),
+        ('123', uint32),
+        ('123.0', uint32),
+        (b'123', uint32),
+        ([1, 2, 3], uint32),
+        # Negative values to be serialized
+        (-5, uint32),
+        # Input Overflow by sedes object
+        (256, uint8),
+        (65536, uint16),
+        (4294967296, uint32),
+        (18446744073709551616, uint64),
     ),
 )
-def test_unsigned_integer_serialize_values(value, serializer, expected):
-    sedes = Integer(serializer)
-    assert sedes.serialize(value) == expected
-
-
-@pytest.mark.parametrize(
-    'value,serializer',
-    (
-        (5, None),
-        (5, ' '),
-        (5, int32),
-        (5, b'int32'),
-        ('123', 'int32'),
-        ('123', int32),
-        (b'123', int32),
-    ),
-)
-def test_any_integer_serialize_bad_values(value, serializer):
+def test_integer_serialize_bad_values(value, sedes):
     with pytest.raises(SerializationError):
-        sedes = Integer(serializer)
         sedes.serialize(value)
 
 
 @pytest.mark.parametrize(
-    'value,serializer',
+    'value',
     (
-        (True, 'int32'),
-        (False, 'int32'),
+        5,
+        10,
+        128,
+        256,
     ),
 )
-def test_rejects_bool(value, serializer):
+def test_ssz_encode_integer_serialize_bad_values(value):
     with pytest.raises(SerializationError):
-        sedes = Integer(serializer)
-        sedes.serialize(value)
+        encode(value)
 
 
 @pytest.mark.parametrize(
-    'deserializer,value,expected',
+    'value,sedes,expected',
     (
-        (int8, b'\x00', 0),
-        (int8, b'\x01', 1),
-        (int8, b'\x05', 5),
-        (int16, b'\x00\x05', 5),
-        (int32, b'\x00\x00\x00\x05', 5),
-        (int8, b'\x7f', 127),
-        (int16, b'\x00\x7f', 127),
-        (int8, b'\x81', -127),
-        (int8, b'\x80', -128),
-        (int16, b'\x01\x00', 256),
-        (int16, b'\x04\x00', 1024),
+        (b'\x05', uint8, 5),
+        (b'\x00\x05', uint16, 5),
+        (b'\x00\x00\x00\x05', uint32, 5),
+        (b'\x7f', uint8, 127),
+        (b'\xff', uint8, 255),
+        (b'\xff\xff', uint16, 65535),
     ),
 )
-def test_integer_deserialization(deserializer, value, expected):
-    assert deserializer.deserialize(value) == expected
+def test_integer_deserialize_values(value, sedes, expected):
+    assert sedes.deserialize(value) == expected
 
 
 @pytest.mark.parametrize(
-    'deserializer,value,expected',
+    'value,sedes',
     (
-        (uint8, b'\x05', 5),
-        (uint16, b'\x00\x05', 5),
-        (uint32, b'\x00\x00\x00\x05', 5),
-        (uint8, b'\x7f', 127),
-        (uint8, b'\xff', 255),
-        (uint16, b'\xff\xff', 65535),
+        (b'\x05', uint16),
+        (b'\x7f', uint16),
+        (b'\x00\x05', uint32),
+        (b'\x00\x00\x00\x05', uint64),
     ),
 )
-def test_unsigned_integer_deserialization(deserializer, value, expected):
-    assert deserializer.deserialize(value) == expected
-
-
-@pytest.mark.parametrize(
-    'deserializer,value',
-    (
-        (uint16, b'\x05'),
-        (uint32, b'\x00\x05'),
-        (uint64, b'\x00\x00\x00\x05'),
-        (uint16, b'\x7f'),
-    ),
-)
-def test_any_integer_deserialization_bad_value(deserializer, value):
+def test_integer_deserialize_bad_values(value, sedes):
     with pytest.raises(DeserializationError):
-        deserializer.deserialize(value)
+        sedes.deserialize(value)
 
 
 @pytest.mark.parametrize(
-    'serializer_type,value',
+    'value,sedes',
     (
-        ('int8', -128),
-        ('int8', 127),
-        ('int16', -128),
-        ('int16', 127),
+        (0, uint8),
+        (1, uint8),
+        (0, uint16),
+        (1, uint16),
 
-        ('int16', 32767),
-        ('int16', -32768),
-        ('int32', 32767),
-        ('int32', -32768),
-
-        ('uint8', 0),
-        ('uint8', 1),
-        ('uint16', 0),
-        ('uint16', 1),
-
-        ('uint8', 127),
-        ('uint8', 255),
-        ('uint16', 127),
-        ('uint16', 255),
+        (127, uint8),
+        (255, uint8),
+        (127, uint16),
+        (255, uint16),
     ),
 )
-def test_integer_round_trip(serializer_type, value):
-    sedes = Integer(serializer_type)
+def test_integer_round_trip(value, sedes):
     assert sedes.deserialize(sedes.serialize(value)) == value
 
 
 @pytest.mark.parametrize(
-    'serializer_type,value',
+    'value,sedes',
     (
-        ('int8', -128),
-        ('int8', 127),
-        ('int16', -128),
-        ('int16', 127),
+        (0, 'uint8'),
+        (1, 'uint8'),
+        (0, 'uint16'),
+        (1, 'uint16'),
 
-        ('int16', 32767),
-        ('int16', -32768),
-        ('int32', 32767),
-        ('int32', -32768),
+        (0, uint8),
+        (1, uint8),
+        (0, uint16),
+        (1, uint16),
 
-        ('uint8', 0),
-        ('uint8', 1),
-        ('uint16', 0),
-        ('uint16', 1),
+        (127, 'uint8'),
+        (255, 'uint8'),
+        (127, 'uint16'),
+        (255, 'uint16'),
 
-        ('uint8', 127),
-        ('uint8', 255),
-        ('uint16', 127),
-        ('uint16', 255),
+        (127, uint8),
+        (255, uint8),
+        (127, uint16),
+        (255, uint16),
     ),
 )
-def test_boolean_round_trip_codec(serializer_type, value):
-    sedes = Integer(serializer_type)
-    assert decode(encode(value, serializer_type), sedes) == value
+def test_integer_round_trip_codec(value, sedes):
+    if isinstance(sedes, str):
+        sedes_obj = eval(sedes)
+    else:
+        sedes_obj = sedes
+    assert decode(encode(value, sedes), sedes_obj) == value
 
 
 def test_fixed_length():
-    s = Integer('uint32')
-    for i in (0, 1, 255, 256, 256**3, 256**4 - 1):
-        assert len(s.serialize(i)) == 4
+    for i in (0, 1, 255, 256**2, 256**3, 256**4 - 1):
+        assert len(uint32.serialize(i)) == 4
