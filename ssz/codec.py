@@ -6,8 +6,10 @@ from ssz.exceptions import (
     DecodingError,
     InvalidSedesError,
 )
+from ssz.sedes import (
+    sedes_by_name,
+)
 from ssz.utils import (
-    get_sedes_from_string,
     infer_sedes,
     is_sedes,
 )
@@ -22,9 +24,9 @@ def encode(obj, sedes=None):
     actual sedes object itself.
     """
     if sedes:
-        if isinstance(sedes, str):
+        if sedes in sedes_by_name:
             # Get the actual sedes object from string representation
-            sedes_obj = get_sedes_from_string(sedes)
+            sedes_obj = sedes_by_name[sedes]
         else:
             sedes_obj = sedes
 

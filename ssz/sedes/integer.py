@@ -4,14 +4,23 @@ from ssz.exceptions import (
 )
 
 
-class Integer:
+class UnsignedInteger:
     """
     A sedes for integers (uint<N>).
     """
     num_bytes = 0
 
-    def __init__(self, num_bytes):
-        self.num_bytes = num_bytes
+    def __init__(self, num_bits):
+        # Make sure the number of bits are multiple of 8
+        if num_bits % 8 != 0:
+            raise ValueError(
+                "Number of bits should be multiple of 8"
+            )
+        if num_bits <= 0:
+            raise ValueError(
+                "Number of bits should be greater than 0"
+            )
+        self.num_bytes = num_bits // 8
 
     def serialize(self, val):
         if isinstance(val, bool) or not isinstance(val, int):
@@ -19,7 +28,6 @@ class Integer:
                 'As per specified sedes object, can only serialize non-negative integer values',
                 val
             )
-
         if val < 0:
             raise SerializationError(
                 'As per specified sedes object, can only serialize non-negative integer values',
@@ -33,7 +41,7 @@ class Integer:
 
         return serialized_obj
 
-    def deserialize_from(self, data, start_index):
+    def deserialize_segment(self, data, start_index):
         """
         Deserialize the data from the given start_index
         """
@@ -47,10 +55,14 @@ class Integer:
         return int.from_bytes(data[start_index:end_index], 'big'), end_index
 
     def deserialize(self, data):
-        return self.deserialize_from(data, 0)[0]
+        return self.deserialize_segment(data, 0)[0]
 
 
-uint8 = Integer(1)
-uint16 = Integer(2)
-uint32 = Integer(4)
-uint64 = Integer(8)
+uint8 = UnsignedInteger(8)
+uint16 = UnsignedInteger(16)
+uint24 = UnsignedInteger(24)
+uint32 = UnsignedInteger(32)
+uint40 = UnsignedInteger(40)
+uint48 = UnsignedInteger(48)
+uint56 = UnsignedInteger(56)
+uint64 = UnsignedInteger(64)
