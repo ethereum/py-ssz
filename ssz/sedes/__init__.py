@@ -3,6 +3,12 @@ from .boolean import (  # noqa: F401
     Boolean,
 )
 
+from .hash import (  # noqa: F401
+    address,
+    hash32,
+    Hash,
+)
+
 from .integer import (  # noqa: F401
     uint8,
     uint16,
@@ -17,7 +23,9 @@ from .integer import (  # noqa: F401
 
 
 sedes_by_name = {
+    "address": address,
     "boolean": boolean,
+    "hash32": hash32,
     "uint8": uint8,
     "uint16": uint16,
     "uint24": uint24,
