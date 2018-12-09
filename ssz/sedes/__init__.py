@@ -18,6 +18,10 @@ from .integer import (  # noqa: F401
     uint48,
     uint56,
     uint64,
+    uint128,
+    uint256,
+    uint384,
+    uint512,
     UnsignedInteger,
 )
 
