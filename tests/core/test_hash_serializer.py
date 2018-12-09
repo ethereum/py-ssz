@@ -13,6 +13,19 @@ from ssz.sedes import (
 )
 
 
+@pytest.mark.parametrize(
+    'num_bytes',
+    (
+        0,
+        -10,
+        -100,
+    ),
+)
+def test_reject_hash_object_negative_bytes(num_bytes):
+    with pytest.raises(ValueError):
+        Hash(num_bytes)
+
+
 def test_hash_serialize_values():
     for num_bytes in range(1, 33):
         value = b'\x01' * num_bytes
