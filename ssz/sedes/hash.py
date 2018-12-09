@@ -41,7 +41,14 @@ class Hash:
         return data[start_index:end_index], end_index
 
     def deserialize(self, data):
-        return self.deserialize_segment(data, 0)[0]
+        deserialized_data, end_index = self.deserialize_segment(data, 0)
+        if end_index != len(data):
+            raise DeserializationError(
+                'Data to be deserialized is too long',
+                data
+            )
+
+        return deserialized_data
 
 
 hash32 = Hash(32)

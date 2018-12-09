@@ -43,11 +43,17 @@ def test_hash_deserialize_values():
 @pytest.mark.parametrize(
     'value,sedes',
     (
+        # Values too short
         (b'\x01' * 15, Hash(16)),
         (b'\x01' * 16, Hash(20)),
         (b'\x01' * 10, Hash(20)),
         (b'\x01' * 5, Hash(20)),
         (b'\x01' * 16, Hash(32)),
+
+        # Values too long
+        (b'\x01' * 20, Hash(16)),
+        (b'\x01' * 25, Hash(20)),
+        (b'\x01' * 40, Hash(32)),
     ),
 )
 def test_hash_deserialize_bad_values(value, sedes):

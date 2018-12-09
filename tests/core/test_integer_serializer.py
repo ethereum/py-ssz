@@ -99,10 +99,17 @@ def test_integer_deserialize_values(value, sedes, expected):
 @pytest.mark.parametrize(
     'value,sedes',
     (
+        # Values too short
         (b'\x05', uint16),
         (b'\x7f', uint16),
         (b'\x00\x05', uint32),
         (b'\x00\x00\x00\x05', uint64),
+
+        # Values too long
+        (b'\x05\x00\x05', uint16),
+        (b'\x7f\x00\x7f', uint16),
+        (b'\x00\x05\x00\x05\x00\x05', uint32),
+        (b'\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00\x05', uint64),
     ),
 )
 def test_integer_deserialize_bad_values(value, sedes):
