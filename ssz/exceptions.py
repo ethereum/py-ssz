@@ -5,6 +5,16 @@ class SSZException(Exception):
     pass
 
 
+class InvalidSedesError(SSZException):
+    """
+    Exception raised if encoding fails.
+    """
+
+    def __init__(self, message, sedes):
+        super(InvalidSedesError, self).__init__(message)
+        self.sedes = sedes
+
+
 class EncodingError(SSZException):
     """
     Exception raised if encoding fails.

@@ -4,17 +4,39 @@ from eth_utils import (
 
 from ssz.exceptions import (
     DecodingError,
+    InvalidSedesError,
+)
+from ssz.sedes import (
+    sedes_by_name,
 )
 from ssz.utils import (
     infer_sedes,
+    is_sedes,
 )
 
 
-def encode(obj):
+def encode(obj, sedes=None):
     """
     Encode object in SSZ format.
+    `sedes` needs to be explicitly mentioned for encode/decode
+    of integers(as of now).
+    `sedes` parameter could be given as a string or as the
+    actual sedes object itself.
     """
-    serialized_obj = infer_sedes(obj).serialize(obj)
+    if sedes:
+        if sedes in sedes_by_name:
+            # Get the actual sedes object from string representation
+            sedes_obj = sedes_by_name[sedes]
+        else:
+            sedes_obj = sedes
+
+        if not is_sedes(sedes_obj):
+            raise InvalidSedesError("Invalid sedes object", sedes)
+
+    else:
+        sedes_obj = infer_sedes(obj)
+
+    serialized_obj = sedes_obj.serialize(obj)
     return serialized_obj
 
 

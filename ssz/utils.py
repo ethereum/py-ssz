@@ -1,3 +1,6 @@
+from ssz.exceptions import (
+    SerializationError,
+)
 from ssz.sedes import (
     boolean,
 )
@@ -18,6 +21,11 @@ def infer_sedes(obj):
     """
     if isinstance(obj, bool):
         return boolean
+    elif isinstance(obj, int):
+        raise SerializationError(
+            'uint sedes object or uint string needs to be specified for ints',
+            obj
+        )
 
     msg = 'Did not find sedes handling type {}'.format(type(obj).__name__)
     raise TypeError(msg)
