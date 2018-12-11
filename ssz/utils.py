@@ -26,6 +26,11 @@ def infer_sedes(obj):
             'uint sedes object or uint string needs to be specified for ints',
             obj
         )
+    elif isinstance(obj, list):
+        raise SerializationError(
+            'List sedes object or equivalent string needs to be specified for lists',
+            obj
+        )
 
     msg = 'Did not find sedes handling type {}'.format(type(obj).__name__)
     raise TypeError(msg)
