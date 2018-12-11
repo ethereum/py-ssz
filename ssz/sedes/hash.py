@@ -19,6 +19,8 @@ class Hash:
         self.num_bytes = num_bytes
 
     def serialize(self, val):
+        if not isinstance(val, bytes):
+            raise SerializationError('Hash should be of type bytes', val)
         if len(val) != self.num_bytes:
             raise SerializationError(
                 "Can only serialize values of {} bytes".format(self.num_bytes),
