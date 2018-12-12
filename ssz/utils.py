@@ -1,3 +1,7 @@
+from collections.abc import (
+    Iterable,
+)
+
 from ssz.exceptions import (
     SerializationError,
 )
@@ -26,9 +30,9 @@ def infer_sedes(obj):
             'uint sedes object or uint string needs to be specified for ints',
             obj
         )
-    elif isinstance(obj, list):
+    elif isinstance(obj, Iterable):
         raise SerializationError(
-            'List sedes object or equivalent string needs to be specified for lists',
+            'Iterable sedes object or equivalent string needs to be specified for Iterables',
             obj
         )
 

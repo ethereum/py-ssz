@@ -26,21 +26,22 @@ from .integer import (  # noqa: F401
 )
 
 from .list import (  # noqa: F401
-    addr_list,
-    bool_list,
-    hash_list,
-    int_list,
+    address_list,
+    boolean_list,
+    hash32_list,
+    uint32_list,
+    List,
 )
 
 
 sedes_by_name = {
-    "addr_list": addr_list,
+    "address_list": address_list,
     "address": address,
     "boolean": boolean,
-    "bool_list": bool_list,
+    "boolean_list": boolean_list,
     "hash32": hash32,
-    "hash_list": hash_list,
-    "int_list": int_list,
+    "hash32_list": hash32_list,
+    "uint32_list": uint32_list,
     "uint8": uint8,
     "uint16": uint16,
     "uint24": uint24,

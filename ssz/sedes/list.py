@@ -1,3 +1,8 @@
+from collections.abc import (
+    Iterable,
+    Mapping,
+)
+
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -16,28 +21,42 @@ class List:
     """
     LENGTH_BYTES = 4
 
-    def __init__(self, sedes):
-        # This sedes object corresponds to each item of the list
-        self.sedes = sedes
+    def __init__(self, element_sedes):
+        # This sedes object corresponds to each element of the iterable
+        self.element_sedes = element_sedes
 
     def serialize(self, val):
-        if not isinstance(val, list):
-            raise SerializationError('Can only serialize lists', val)
-        # Make sure all items in list are of same type
-        if not all((type(item)) == (type(val[0])) for item in val):
-            raise SerializationError('Can only serialize lists having elements of same type', val)
+        if not isinstance(val, Iterable) or isinstance(val, Mapping):
+            raise SerializationError(
+                'Can only serialize Iterable objects, except Dictionaries',
+                val
+            )
 
-        serialized_list_string = b''
+        serialized_iterable_string = b''
+        element_type = None
         for item in val:
-            serialized_list_string += self.sedes.serialize(item)
-        if len(serialized_list_string) >= 2 ** (self.LENGTH_BYTES * 8):
+            # Make sure the items in the iterable are of same type
+            if element_type is None:
+                # First update the element_type if None
+                element_type = type(item)
+            else:
+                if type(item) != element_type:
+                    raise SerializationError(
+                        'Can only serialize lists having elements of same type',
+                        val
+                    )
+
+            # Serialization after checking the consistency of list item
+            serialized_iterable_string += self.element_sedes.serialize(item)
+
+        if len(serialized_iterable_string) >= 2 ** (self.LENGTH_BYTES * 8):
             raise SerializationError(
                 'List too long to fit into {} bytes after serialization'.format(self.LENGTH_BYTES),
                 val
             )
-        serialized_len = len(serialized_list_string).to_bytes(self.LENGTH_BYTES, 'big')
+        serialized_len = len(serialized_iterable_string).to_bytes(self.LENGTH_BYTES, 'big')
 
-        return serialized_len + serialized_list_string
+        return serialized_len + serialized_iterable_string
 
     def deserialize_segment(self, data, start_index):
         """
@@ -61,10 +80,11 @@ class List:
             )
 
         deserialized_list = []
-        item_index = start_index + self.LENGTH_BYTES
-        while item_index < list_end_index:
-            object, item_index = self.sedes.deserialize_segment(data, item_index)
-            deserialized_list.append(object)
+        # element_start_index is the start index of an element in the serialized bytes string
+        element_start_index = start_index + self.LENGTH_BYTES
+        while element_start_index < list_end_index:
+            element, element_start_index = self.element_sedes.deserialize_segment(data, element_start_index)  # noqa: E501
+            deserialized_list.append(element)
 
         return deserialized_list, list_end_index
 
@@ -79,7 +99,7 @@ class List:
         return deserialized_data
 
 
-addr_list = List(address)
-bool_list = List(boolean)
-hash_list = List(hash32)
-int_list = List(uint32)
+address_list = List(address)
+boolean_list = List(boolean)
+hash32_list = List(hash32)
+uint32_list = List(uint32)
