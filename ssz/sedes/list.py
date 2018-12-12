@@ -18,6 +18,9 @@ from ssz.sedes import (
 class List:
     """
     A sedes for lists.
+
+    WARNING: Avoid sets if possible, may not always lead to expected results
+    (This is because iteration in sets doesn't always happen in the same order)
     """
     LENGTH_BYTES = 4
 
