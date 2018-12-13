@@ -9,6 +9,7 @@ from toolz import (
 from ssz.sedes import (
     List,
     boolean,
+    uint32_list,
 )
 
 
@@ -25,8 +26,9 @@ def infer_list_sedes(obj):
     try:
         first_element, iterator = peek(obj)
     except StopIteration:
-        # For empty lists we can use any element sedes
-        pass
+        # For empty lists we can use any element sedes.
+        # Using uint32_list here as the default
+        return uint32_list
     else:
         try:
             element_sedes = infer_sedes(first_element)
