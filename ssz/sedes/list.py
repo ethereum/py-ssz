@@ -1,6 +1,5 @@
 from collections.abc import (
     Iterable,
-    Mapping,
 )
 
 from ssz.exceptions import (
@@ -29,28 +28,15 @@ class List:
         self.element_sedes = element_sedes
 
     def serialize(self, val):
-        if not isinstance(val, Iterable) or isinstance(val, Mapping):
+        if not isinstance(val, Iterable):
             raise SerializationError(
                 'Can only serialize Iterable objects, except Dictionaries',
                 val
             )
 
-        serialized_iterable_string = b''
-        element_type = None
-        for item in val:
-            # Make sure the items in the iterable are of same type
-            if element_type is None:
-                # First update the element_type if None
-                element_type = type(item)
-            else:
-                if type(item) != element_type:
-                    raise SerializationError(
-                        'Can only serialize lists having elements of same type',
-                        val
-                    )
-
-            # Serialization after checking the consistency of list item
-            serialized_iterable_string += self.element_sedes.serialize(item)
+        serialized_iterable_string = b"".join(
+            self.element_sedes.serialize(element) for element in val
+        )
 
         if len(serialized_iterable_string) >= 2 ** (self.LENGTH_BYTES * 8):
             raise SerializationError(
@@ -86,7 +72,9 @@ class List:
         # element_start_index is the start index of an element in the serialized bytes string
         element_start_index = start_index + self.LENGTH_BYTES
         while element_start_index < list_end_index:
-            element, element_start_index = self.element_sedes.deserialize_segment(data, element_start_index)  # noqa: E501
+            element, element_start_index = self.element_sedes.deserialize_segment(
+                data, element_start_index
+            )
             deserialized_list.append(element)
 
         return deserialized_list, list_end_index
