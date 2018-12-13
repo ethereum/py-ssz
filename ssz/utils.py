@@ -2,7 +2,7 @@ from collections.abc import (
     Iterable,
 )
 
-from toolz import (
+from eth_utils.toolz import (
     peek,
 )
 
