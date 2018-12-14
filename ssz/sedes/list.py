@@ -28,7 +28,12 @@ class List:
         self.element_sedes = element_sedes
 
     def serialize(self, val):
-        if not isinstance(val, Iterable):
+        if (
+                not isinstance(val, Iterable) or
+                isinstance(val, bytes) or
+                isinstance(val, bytes) or
+                isinstance(val, str)
+        ):
             raise SerializationError(
                 'Can only serialize Iterable objects, except Dictionaries',
                 val
@@ -92,5 +97,6 @@ class List:
 
 address_list = List(address)
 boolean_list = List(boolean)
+empty_list = List(None)
 hash32_list = List(hash32)
 uint32_list = List(uint32)
