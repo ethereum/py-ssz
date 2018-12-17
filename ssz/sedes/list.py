@@ -43,7 +43,7 @@ class List:
         if (
                 not isinstance(val, Iterable) or
                 isinstance(val, bytes) or
-                isinstance(val, bytes) or
+                isinstance(val, bytearray) or
                 isinstance(val, str)
         ):
             raise SerializationError(
