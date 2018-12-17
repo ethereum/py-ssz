@@ -23,9 +23,21 @@ class List:
     """
     LENGTH_BYTES = 4
 
-    def __init__(self, element_sedes):
+    def __init__(self, element_sedes=None, empty=False):
+        if element_sedes and empty:
+            raise ValueError(
+                "Either one of Element Sedes or Empty has to be specified"
+            )
+
+        elif not element_sedes and not empty:
+            raise ValueError(
+                "Either Element Sedes or Empty has to be specified"
+            )
+
         # This sedes object corresponds to each element of the iterable
         self.element_sedes = element_sedes
+        # This empty bool indicates whether this sedes is meant for empty lists
+        self.empty = empty
 
     def serialize(self, val):
         if (
@@ -37,6 +49,11 @@ class List:
             raise SerializationError(
                 'Can only serialize Iterable objects, except Dictionaries',
                 val
+            )
+
+        if self.empty and len(val) != 0:
+            raise ValueError(
+                "Empty List Sedes cannot serialize non-empty Iterables"
             )
 
         serialized_iterable_string = b"".join(
@@ -97,6 +114,6 @@ class List:
 
 address_list = List(address)
 boolean_list = List(boolean)
-empty_list = List(None)
+empty_list = List(empty=True)
 hash32_list = List(hash32)
 uint32_list = List(uint32)
