@@ -3,6 +3,11 @@ from .boolean import (  # noqa: F401
     Boolean,
 )
 
+from .bytes import (  # noqa: F401
+    bytes_sedes,
+    Bytes,
+)
+
 from .hash import (  # noqa: F401
     address,
     hash32,
@@ -40,6 +45,7 @@ sedes_by_name = {
     "address": address,
     "boolean": boolean,
     "boolean_list": boolean_list,
+    "bytes_sedes": bytes_sedes,
     "empty_list": empty_list,
     "hash32": hash32,
     "hash32_list": hash32_list,
