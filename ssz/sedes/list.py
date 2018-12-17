@@ -2,6 +2,9 @@ from collections.abc import (
     Iterable,
 )
 
+from ssz.constants import (
+    LIST_PREFIX_LENGTH,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -22,7 +25,6 @@ class List:
     WARNING: Avoid sets if possible, may not always lead to expected results
     (This is because iteration in sets doesn't always happen in the same order)
     """
-    LENGTH_BYTES = 4
 
     def __init__(self, element_sedes=None, empty=False):
         if element_sedes and empty:
@@ -61,12 +63,12 @@ class List:
             self.element_sedes.serialize(element) for element in val
         )
 
-        if len(serialized_iterable_string) >= 2 ** (self.LENGTH_BYTES * 8):
+        if len(serialized_iterable_string) >= 2 ** (LIST_PREFIX_LENGTH * 8):
             raise SerializationError(
-                'List too long to fit into {} bytes after serialization'.format(self.LENGTH_BYTES),
+                'List too long to fit into {} bytes after serialization'.format(LIST_PREFIX_LENGTH),
                 val
             )
-        serialized_len = len(serialized_iterable_string).to_bytes(self.LENGTH_BYTES, 'big')
+        serialized_len = len(serialized_iterable_string).to_bytes(LIST_PREFIX_LENGTH, 'big')
 
         return serialized_len + serialized_iterable_string
 
@@ -75,15 +77,15 @@ class List:
         Deserialize the data from the given start_index
         """
         # Make sure we have sufficient data for inferring length of list
-        if len(data) < start_index + self.LENGTH_BYTES:
+        if len(data) < start_index + LIST_PREFIX_LENGTH:
             raise DeserializationError(
                 'Insufficient data: Cannot retrieve the length of list',
                 data
             )
 
         # Number of bytes of only the list data, excluding the prepended list length
-        list_length = int.from_bytes(data[start_index:start_index + self.LENGTH_BYTES], 'big')
-        list_end_index = start_index + self.LENGTH_BYTES + list_length
+        list_length = int.from_bytes(data[start_index:start_index + LIST_PREFIX_LENGTH], 'big')
+        list_end_index = start_index + LIST_PREFIX_LENGTH + list_length
         # Make sure we have sufficent data for inferring the whole list
         if len(data) < list_end_index:
             raise DeserializationError(
@@ -93,7 +95,7 @@ class List:
 
         deserialized_list = []
         # element_start_index is the start index of an element in the serialized bytes string
-        element_start_index = start_index + self.LENGTH_BYTES
+        element_start_index = start_index + LIST_PREFIX_LENGTH
         while element_start_index < list_end_index:
             element, element_start_index = self.element_sedes.deserialize_segment(
                 data, element_start_index

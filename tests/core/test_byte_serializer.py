@@ -36,6 +36,7 @@ def test_bytes_serialize_values(value, expected):
         None,
         1,
         1.0,
+        '',
         'True',
         [1, 2, 3],
         (1, 2, 3),
