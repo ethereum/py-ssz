@@ -120,35 +120,35 @@ def test_list_serialize_bad_values(value, sedes):
     'value,sedes,expected',
     (
         # Deserialize Empty Objects
-        (b'\x00\x00\x00\x00', uint32_list, []),
-        (b'\x00\x00\x00\x00', uint32_list, []),
-        (b'\x00\x00\x00\x00', hash32_list, []),
-        (b'\x00\x00\x00\x00', hash32_list, []),
-        (b'\x00\x00\x00\x00', address_list, []),
-        (b'\x00\x00\x00\x00', address_list, []),
-        (b'\x00\x00\x00\x00', boolean_list, []),
-        (b'\x00\x00\x00\x00', boolean_list, []),
+        (b'\x00\x00\x00\x00', uint32_list, ()),
+        (b'\x00\x00\x00\x00', uint32_list, ()),
+        (b'\x00\x00\x00\x00', hash32_list, ()),
+        (b'\x00\x00\x00\x00', hash32_list, ()),
+        (b'\x00\x00\x00\x00', address_list, ()),
+        (b'\x00\x00\x00\x00', address_list, ()),
+        (b'\x00\x00\x00\x00', boolean_list, ()),
+        (b'\x00\x00\x00\x00', boolean_list, ()),
 
         # Deserialize uint32 Iterables
         (
             b'\x00\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x01'
             b'\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04',
             uint32_list,
-            [0, 1, 2, 3, 4],
+            (0, 1, 2, 3, 4),
         ),
 
         # Deserialize hash32 Iterables
-        (b'\x00\x00\x00 ' + (b'\x00' * 32), hash32_list, [b'\x00' * 32]),
-        (b'\x00\x00\x00@' + (b'\x00' * 64), hash32_list, [b'\x00' * 32, b'\x00' * 32]),
+        (b'\x00\x00\x00 ' + (b'\x00' * 32), hash32_list, (b'\x00' * 32,)),
+        (b'\x00\x00\x00@' + (b'\x00' * 64), hash32_list, (b'\x00' * 32, b'\x00' * 32)),
 
         # Deserialize address Iterables
-        (b'\x00\x00\x00\x14' + (b'\x00' * 20), address_list, [b'\x00' * 20]),
-        (b'\x00\x00\x00(' + (b'\x00' * 40), address_list, [b'\x00' * 20, b'\x00' * 20]),
+        (b'\x00\x00\x00\x14' + (b'\x00' * 20), address_list, (b'\x00' * 20,)),
+        (b'\x00\x00\x00(' + (b'\x00' * 40), address_list, (b'\x00' * 20, b'\x00' * 20)),
 
         # Deserialize boolean Iterables
-        (b'\x00\x00\x00\x04' + b'\x01' * 4, boolean_list, [True, True, True, True]),
-        (b'\x00\x00\x00\x04' + b'\x00' * 4, boolean_list, [False, False, False, False]),
-        (b'\x00\x00\x00\x04\x01\x00\x01\x00', boolean_list, [True, False, True, False]),
+        (b'\x00\x00\x00\x04' + b'\x01' * 4, boolean_list, (True, True, True, True)),
+        (b'\x00\x00\x00\x04' + b'\x00' * 4, boolean_list, (False, False, False, False)),
+        (b'\x00\x00\x00\x04\x01\x00\x01\x00', boolean_list, (True, False, True, False)),
     ),
 )
 def test_list_deserialize_values(value, sedes, expected):
@@ -185,21 +185,21 @@ def test_list_deserialize_bad_values(value, sedes):
 @pytest.mark.parametrize(
     'value,sedes',
     (
-        ([], uint32_list),
-        ([0, 1, 2, 3, 4], uint32_list),
+        ((), uint32_list),
+        ((0, 1, 2, 3, 4), uint32_list),
 
-        ([], hash32_list),
-        ([b'\x00' * 32], hash32_list),
-        ([b'\x00' * 32, b'\x00' * 32], hash32_list),
+        ((), hash32_list),
+        ((b'\x00' * 32,), hash32_list),
+        ((b'\x00' * 32, b'\x00' * 32), hash32_list),
 
-        ([], address_list),
-        ([b'\x00' * 20], address_list),
-        ([b'\x00' * 20, b'\x00' * 20], address_list),
+        ((), address_list),
+        ((b'\x00' * 20,), address_list),
+        ((b'\x00' * 20, b'\x00' * 20), address_list),
 
-        ([], boolean_list),
-        ([True, True, True, True], boolean_list),
-        ([False, False, False, False], boolean_list),
-        ([True, False, True, False], boolean_list),
+        ((), boolean_list),
+        ((True, True, True, True), boolean_list),
+        ((False, False, False, False), boolean_list),
+        ((True, False, True, False), boolean_list),
     ),
 )
 def test_list_round_trip(value, sedes):
@@ -209,37 +209,37 @@ def test_list_round_trip(value, sedes):
 @pytest.mark.parametrize(
     'value,sedes',
     (
-        ([], uint32_list),
-        ([0, 1, 2, 3, 4], uint32_list),
+        ((), uint32_list),
+        ((0, 1, 2, 3, 4), uint32_list),
 
-        ([], 'uint32_list'),
-        ([0, 1, 2, 3, 4], 'uint32_list'),
+        ((), 'uint32_list'),
+        ((0, 1, 2, 3, 4), 'uint32_list'),
 
-        ([], hash32_list),
-        ([b'\x00' * 32], hash32_list),
-        ([b'\x00' * 32, b'\x00' * 32], hash32_list),
+        ((), hash32_list),
+        ((b'\x00' * 32,), hash32_list),
+        ((b'\x00' * 32, b'\x00' * 32), hash32_list),
 
-        ([], 'hash32_list'),
-        ([b'\x00' * 32], 'hash32_list'),
-        ([b'\x00' * 32, b'\x00' * 32], 'hash32_list'),
+        ((), 'hash32_list'),
+        ((b'\x00' * 32,), 'hash32_list'),
+        ((b'\x00' * 32, b'\x00' * 32), 'hash32_list'),
 
-        ([], address_list),
-        ([b'\x00' * 20], address_list),
-        ([b'\x00' * 20, b'\x00' * 20], address_list),
+        ((), address_list),
+        ((b'\x00' * 20,), address_list),
+        ((b'\x00' * 20, b'\x00' * 20), address_list),
 
-        ([], 'address_list'),
-        ([b'\x00' * 20], 'address_list'),
-        ([b'\x00' * 20, b'\x00' * 20], 'address_list'),
+        ((), 'address_list'),
+        ((b'\x00' * 20,), 'address_list'),
+        ((b'\x00' * 20, b'\x00' * 20), 'address_list'),
 
-        ([], boolean_list),
-        ([True, True, True, True], boolean_list),
-        ([False, False, False, False], boolean_list),
-        ([True, False, True, False], boolean_list),
+        ((), boolean_list),
+        ((True, True, True, True), boolean_list),
+        ((False, False, False, False), boolean_list),
+        ((True, False, True, False), boolean_list),
 
-        ([], 'boolean_list'),
-        ([True, True, True, True], 'boolean_list'),
-        ([False, False, False, False], 'boolean_list'),
-        ([True, False, True, False], 'boolean_list'),
+        ((), 'boolean_list'),
+        ((True, True, True, True), 'boolean_list'),
+        ((False, False, False, False), 'boolean_list'),
+        ((True, False, True, False), 'boolean_list'),
     ),
 )
 def test_list_round_trip_codec(value, sedes):

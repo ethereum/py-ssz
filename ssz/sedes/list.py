@@ -82,7 +82,7 @@ class List:
             )
             deserialized_list.append(element)
 
-        return deserialized_list, list_end_index
+        return tuple(deserialized_list), list_end_index
 
     def deserialize(self, data):
         deserialized_data, end_index = self.deserialize_segment(data, 0)
