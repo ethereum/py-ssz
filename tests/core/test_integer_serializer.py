@@ -77,7 +77,7 @@ def test_integer_serialize_bad_values(value, sedes):
     ),
 )
 def test_ssz_encode_integer_serialize_bad_values(value):
-    with pytest.raises(SerializationError):
+    with pytest.raises(TypeError):
         encode(value)
 
 

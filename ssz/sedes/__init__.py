@@ -25,11 +25,25 @@ from .integer import (  # noqa: F401
     UnsignedInteger,
 )
 
+from .list import (  # noqa: F401
+    address_list,
+    boolean_list,
+    empty_list,
+    hash32_list,
+    uint32_list,
+    List,
+)
+
 
 sedes_by_name = {
+    "address_list": address_list,
     "address": address,
     "boolean": boolean,
+    "boolean_list": boolean_list,
+    "empty_list": empty_list,
     "hash32": hash32,
+    "hash32_list": hash32_list,
+    "uint32_list": uint32_list,
     "uint8": uint8,
     "uint16": uint16,
     "uint24": uint24,
