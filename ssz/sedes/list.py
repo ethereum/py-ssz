@@ -9,6 +9,7 @@ from ssz.exceptions import (
 from ssz.sedes import (
     address,
     boolean,
+    bytes_sedes,
     hash32,
     uint32,
 )
@@ -114,6 +115,7 @@ class List:
 
 address_list = List(address)
 boolean_list = List(boolean)
+bytes_list = List(bytes_sedes)
 empty_list = List(empty=True)
 hash32_list = List(hash32)
 uint32_list = List(uint32)
