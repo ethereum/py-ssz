@@ -13,7 +13,7 @@ class Bytes:
     """
 
     def serialize(self, val):
-        if not isinstance(val, bytes) and not isinstance(val, bytearray):
+        if not isinstance(val, (bytes, bytearray)):
             raise SerializationError(
                 "Can only serialize bytes or bytearray objects",
                 val

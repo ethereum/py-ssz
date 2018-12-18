@@ -45,9 +45,7 @@ class List:
     def serialize(self, val):
         if (
                 not isinstance(val, Iterable) or
-                isinstance(val, bytes) or
-                isinstance(val, bytearray) or
-                isinstance(val, str)
+                isinstance(val, (bytes, bytearray, str))
         ):
             raise SerializationError(
                 'Can only serialize Iterable objects, except Dictionaries',

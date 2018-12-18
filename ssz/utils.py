@@ -54,7 +54,7 @@ def infer_sedes(obj):
             obj
         )
 
-    elif isinstance(obj, bytes) or isinstance(obj, bytearray):
+    elif isinstance(obj, (bytes, bytearray)):
         return bytes_sedes
 
     elif isinstance(obj, Iterable):
