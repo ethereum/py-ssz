@@ -22,8 +22,8 @@ class Bytes:
         object_len = len(val)
         if object_len >= 2 ** (BYTES_PREFIX_LENGTH * 8):
             raise SerializationError(
-                'Object too long for its length to fit into {} bytes after serialization'
-                .format(BYTES_PREFIX_LENGTH),
+                f'Object too long for its length to fit into {BYTES_PREFIX_LENGTH} bytes'
+                f'after serialization',
                 val
             )
 
