@@ -54,6 +54,7 @@ class DeserializationError(SSZException):
         super(DeserializationError, self).__init__(message)
         self.serial = serial
 
+
 class TreeHashException(SSZException):
     """
     Exception raised if tree hash fails.
