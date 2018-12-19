@@ -1,7 +1,10 @@
 from typing import (
     Sequence,
 )
-from .hash_eth2 import hash_eth2
+
+from .hash_eth2 import (
+    hash_eth2,
+)
 
 
 def merkle_hash(items: Sequence, chunk_size=128):

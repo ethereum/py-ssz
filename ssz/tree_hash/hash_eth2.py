@@ -1,4 +1,6 @@
-from eth_hash.auto import keccak
+from eth_hash.auto import (
+    keccak,
+)
 
 
 def hash_eth2(data: bytes):

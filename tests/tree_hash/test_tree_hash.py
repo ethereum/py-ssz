@@ -1,10 +1,13 @@
 import pytest
-from ssz.tree_hash.tree_hash import hash_tree_root
+
 from ssz.sedes import (
     Boolean,
     uint16,
     uint32_list,
     uint512,
+)
+from ssz.tree_hash.tree_hash import (
+    hash_tree_root,
 )
 
 

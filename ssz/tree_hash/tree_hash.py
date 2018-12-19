@@ -1,11 +1,20 @@
-from .merkle_hash import merkle_hash
-from .hash_eth2 import hash_eth2
-from ssz.exceptions import TreeHashException
-from ssz.utils import infer_sedes
+from ssz.exceptions import (
+    TreeHashException,
+)
 from ssz.sedes import (
     Boolean,
     Hash,
     UnsignedInteger,
+)
+from ssz.utils import (
+    infer_sedes,
+)
+
+from .hash_eth2 import (
+    hash_eth2,
+)
+from .merkle_hash import (
+    merkle_hash,
 )
 
 
