@@ -5,6 +5,7 @@ from ssz.sedes import (
     uint16,
     uint32_list,
     uint512,
+    hash32_list,
 )
 from ssz.tree_hash.tree_hash import (
     hash_tree_root,
@@ -30,7 +31,10 @@ def test_boolean_serialize_values(value, expected):
         (56, uint16),
         ([123, 456, 789], uint32_list),
         (55665566, uint512),
-        ([], uint32_list)
+        ([], uint32_list),
+        ([b'\x56' * 32], hash32_list),
+        ([b'\x56' * 32] * 100, hash32_list),
+        ([b'\x56' * 32] * 101, hash32_list),
     ),
 )
 def test_rich_types_of_data(value, sedes):
