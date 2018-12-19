@@ -9,6 +9,7 @@ from eth_utils.toolz import (
 from ssz.sedes import (
     List,
     boolean,
+    bytes_sedes,
     empty_list,
 )
 
@@ -46,11 +47,16 @@ def infer_sedes(obj):
     """
     if isinstance(obj, bool):
         return boolean
+
     elif isinstance(obj, int):
         raise TypeError(
             'uint sedes object or uint string needs to be specified for ints',
             obj
         )
+
+    elif isinstance(obj, (bytes, bytearray)):
+        return bytes_sedes
+
     elif isinstance(obj, Iterable):
         return infer_list_sedes(obj)
 
