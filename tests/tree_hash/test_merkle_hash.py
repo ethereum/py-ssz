@@ -24,6 +24,7 @@ from ssz.tree_hash.merkle_hash import (
             (b'\x01', b'\x01', b'\x01',),
             b'\x01\x01\x01' + int(3).to_bytes(32, 'big'),
         ),
+        # two items in one chunk
         (
             (b'\x55' * 64, b'\x66' * 64, b'\x77' * 64,),
             (

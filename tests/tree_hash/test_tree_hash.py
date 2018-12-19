@@ -2,10 +2,10 @@ import pytest
 
 from ssz.sedes import (
     Boolean,
+    hash32_list,
     uint16,
     uint32_list,
     uint512,
-    hash32_list,
 )
 from ssz.tree_hash.tree_hash import (
     hash_tree_root,
