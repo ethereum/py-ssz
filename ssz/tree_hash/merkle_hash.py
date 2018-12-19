@@ -1,5 +1,10 @@
 from typing import (
+    Any,
     Sequence,
+)
+
+from eth_typing import (
+    Hash32,
 )
 
 from .hash_eth2 import (
@@ -7,38 +12,30 @@ from .hash_eth2 import (
 )
 
 
-def merkle_hash(lst: Sequence, chunk_size=128):
+def merkle_hash(input_items: Sequence[Any], chunk_size: int=128) -> Hash32:
     """
     Merkle tree hash of a list of homogenous, non-empty items
     """
 
-    # Store length of list (to compensate for non-bijectiveness of padding)
-    datalen = len(lst).to_bytes(32, 'big')
+    data_length = len(input_items).to_bytes(32, 'big')
 
-    if len(lst) == 0:
-        # Handle empty list case
-        chunkz = (b'\x00' * chunk_size,)
-    elif len(lst[0]) < chunk_size:
-        # See how many items fit in a chunk
-        items_per_chunk = chunk_size // len(lst[0])
+    if len(input_items) == 0:
+        chunks = (b'\x00' * chunk_size,)
+    elif len(input_items[0]) < chunk_size:
+        items_per_chunk = chunk_size // len(input_items[0])
 
-        # Build a list of chunks based on the number of items in the chunk
-        chunkz = tuple(
-            b''.join(lst[i:i + items_per_chunk])
-            for i in range(0, len(lst), items_per_chunk)
+        chunks = tuple(
+            b''.join(input_items[i:i + items_per_chunk])
+            for i in range(0, len(input_items), items_per_chunk)
         )
     else:
-        # Leave large items alone
-        chunkz = lst
+        chunks = input_items
 
-    # Tree-hash
-    while len(chunkz) > 1:
-        if len(chunkz) % 2 == 1:
-            chunkz += (b'\x00' * chunk_size, )
-        chunkz = tuple(
-            hash_eth2(chunkz[i] + chunkz[i + 1])
-            for i in range(0, len(chunkz), 2)
+    while len(chunks) > 1:
+        if len(chunks) % 2 == 1:
+            chunks += (b'\x00' * chunk_size, )
+        chunks = tuple(
+            hash_eth2(chunks[i] + chunks[i + 1])
+            for i in range(0, len(chunks), 2)
         )
-
-    # Return hash of root and length data
-    return hash_eth2(chunkz[0] + datalen)
+    return hash_eth2(chunks[0] + data_length)
