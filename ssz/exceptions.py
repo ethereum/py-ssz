@@ -53,3 +53,9 @@ class DeserializationError(SSZException):
     def __init__(self, message, serial):
         super(DeserializationError, self).__init__(message)
         self.serial = serial
+
+class TreeHashException(SSZException):
+    """
+    Exception raised if tree hash fails.
+    """
+    pass
