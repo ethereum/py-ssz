@@ -8,6 +8,7 @@ from typing import (
 from eth_typing import (
     Hash32,
 )
+
 from ssz.exceptions import (
     TreeHashException,
 )
