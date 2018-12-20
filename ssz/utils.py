@@ -45,6 +45,11 @@ def infer_sedes(obj):
     """
     Try to find a sedes objects suitable for a given Python object.
     """
+    if is_sedes(obj.__class__):
+        # Return sedes directly, if such a sedes exists with the class name
+        # Mainly used for `Serializable` Classes
+        return obj.__class__
+
     if isinstance(obj, bool):
         return boolean
 

@@ -12,7 +12,6 @@ from eth_utils import (
 from ssz.constants import (
     CONTAINER_PREFIX_LENGTH,
 )
-
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -142,6 +141,13 @@ class BaseSerializable(collections.Sequence):
 
     @classmethod
     def serialize(cls, obj):
+        # Make sure that the obj is instance of class before serializing
+        if not isinstance(obj, cls):
+            raise SerializationError(
+                f"Can only serialize objects which are instances of {cls.__name__} class",
+                obj
+            )
+
         serialized_string = b"".join(
             field_sedes.serialize(getattr(obj, field_name))
             for field_name, field_sedes in cls._meta.fields
