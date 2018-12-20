@@ -10,7 +10,6 @@ from eth_typing import (
 from .constants import (
     SSZ_CHUNK_SIZE,
 )
-
 from .hash_eth2 import (
     hash_eth2,
 )

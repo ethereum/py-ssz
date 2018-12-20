@@ -1,3 +1,6 @@
+from collections import (
+    abc,
+)
 from typing import (
     Any,
 )
@@ -5,7 +8,6 @@ from typing import (
 from eth_typing import (
     Hash32,
 )
-
 from ssz.exceptions import (
     TreeHashException,
 )
@@ -37,7 +39,7 @@ def hash_tree_root(input_object: Any, sedes: Any=None) -> Hash32:
         else:
             return serialization.ljust(32, b'\x00')
 
-    if isinstance(input_object, list):
+    if isinstance(input_object, abc.Iterable):
         return merkle_hash([hash_tree_root(item, sedes.element_sedes) for item in input_object])
 
     # TODO: check container type
