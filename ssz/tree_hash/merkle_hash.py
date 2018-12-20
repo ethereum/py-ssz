@@ -7,12 +7,16 @@ from eth_typing import (
     Hash32,
 )
 
+from .constants import (
+    SSZ_CHUNK_SIZE,
+)
+
 from .hash_eth2 import (
     hash_eth2,
 )
 
 
-def merkle_hash(input_items: Sequence[Any], chunk_size: int=128) -> Hash32:
+def merkle_hash(input_items: Sequence[Any]) -> Hash32:
     """
     Merkle tree hash of a list of homogenous, non-empty items
     """
@@ -20,9 +24,9 @@ def merkle_hash(input_items: Sequence[Any], chunk_size: int=128) -> Hash32:
     data_length = len(input_items).to_bytes(32, 'big')
 
     if len(input_items) == 0:
-        chunks = (b'\x00' * chunk_size,)
-    elif len(input_items[0]) < chunk_size:
-        items_per_chunk = chunk_size // len(input_items[0])
+        chunks = (b'\x00' * SSZ_CHUNK_SIZE,)
+    elif len(input_items[0]) < SSZ_CHUNK_SIZE:
+        items_per_chunk = SSZ_CHUNK_SIZE // len(input_items[0])
 
         chunks = tuple(
             b''.join(input_items[i:i + items_per_chunk])
@@ -33,7 +37,7 @@ def merkle_hash(input_items: Sequence[Any], chunk_size: int=128) -> Hash32:
 
     while len(chunks) > 1:
         if len(chunks) % 2 == 1:
-            chunks += (b'\x00' * chunk_size, )
+            chunks += (b'\x00' * SSZ_CHUNK_SIZE, )
         chunks = tuple(
             hash_eth2(chunks[i] + chunks[i + 1])
             for i in range(0, len(chunks), 2)
