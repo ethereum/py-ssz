@@ -22,7 +22,7 @@ from ssz.utils import (
 )
 
 
-class RLPType1(Serializable):
+class SSZType1(Serializable):
     fields = [
         ('field1', uint32),
         ('field2', bytes_sedes),
@@ -30,14 +30,14 @@ class RLPType1(Serializable):
     ]
 
 
-class RLPType2(Serializable):
+class SSZType2(Serializable):
     fields = [
-        ('field2_1', RLPType1),
-        ('field2_2', List(RLPType1)),
+        ('field2_1', SSZType1),
+        ('field2_2', List(SSZType1)),
     ]
 
 
-class RLPType3(Serializable):
+class SSZType3(Serializable):
     fields = [
         ('field1', uint32),
         ('field2', uint32),
@@ -48,13 +48,13 @@ class RLPType3(Serializable):
         super().__init__(field1=field1, field2=field2, field3=field3, **kwargs)
 
 
-class RLPType4(RLPType3):
+class SSZType4(SSZType3):
     pass
 
 
-_type_1_a = RLPType1(5, b'a', (0, 1))
-_type_1_b = RLPType1(9, b'b', (2, 3))
-_type_2 = RLPType2(_type_1_a.copy(), [_type_1_a.copy(), _type_1_b.copy()])
+_type_1_a = SSZType1(5, b'a', (0, 1))
+_type_1_b = SSZType1(9, b'b', (2, 3))
+_type_2 = SSZType2(_type_1_a.copy(), [_type_1_a.copy(), _type_1_b.copy()])
 
 
 @pytest.fixture
@@ -78,30 +78,30 @@ def ssz_obj(request):
 
 
 @pytest.mark.parametrize(
-    'rlptype,args,kwargs,exception_includes',
+    'ssztype,args,kwargs,exception_includes',
     (
         # missing fields args
-        (RLPType1, [], {}, ['field1', 'field2', 'field3']),
-        (RLPType1, [8], {}, ['field2', 'field3']),
-        (RLPType1, [7, 8], {}, ['field3']),
+        (SSZType1, [], {}, ['field1', 'field2', 'field3']),
+        (SSZType1, [8], {}, ['field2', 'field3']),
+        (SSZType1, [7, 8], {}, ['field3']),
         # missing fields kwargs
-        (RLPType1, [], {'field1': 7}, ['field2', 'field3']),
-        (RLPType1, [], {'field1': 7, 'field2': 8}, ['field3']),
-        (RLPType1, [], {'field2': 7, 'field3': (1, b'')}, ['field1']),
-        (RLPType1, [], {'field3': (1, b'')}, ['field1', 'field2']),
-        (RLPType1, [], {'field2': 7}, ['field1', 'field3']),
+        (SSZType1, [], {'field1': 7}, ['field2', 'field3']),
+        (SSZType1, [], {'field1': 7, 'field2': 8}, ['field3']),
+        (SSZType1, [], {'field2': 7, 'field3': (1, b'')}, ['field1']),
+        (SSZType1, [], {'field3': (1, b'')}, ['field1', 'field2']),
+        (SSZType1, [], {'field2': 7}, ['field1', 'field3']),
         # missing fields args and kwargs
-        (RLPType1, [7], {'field2': 8}, ['field3']),
-        (RLPType1, [7], {'field3': (1, b'')}, ['field2']),
+        (SSZType1, [7], {'field2': 8}, ['field3']),
+        (SSZType1, [7], {'field3': (1, b'')}, ['field2']),
         # duplicate fields
-        (RLPType1, [7], {'field1': 8}, ['field1']),
-        (RLPType1, [7, 8], {'field1': 8, 'field2': 7}, ['field1', 'field2']),
+        (SSZType1, [7], {'field1': 8}, ['field1']),
+        (SSZType1, [7, 8], {'field1': 8, 'field2': 7}, ['field1', 'field2']),
     ),
 )
-def test_serializable_initialization_validation(rlptype, args, kwargs, exception_includes):
+def test_serializable_initialization_validation(ssztype, args, kwargs, exception_includes):
     for msg_part in exception_includes:
         with pytest.raises(TypeError, match=msg_part):
-            rlptype(*args, **kwargs)
+            ssztype(*args, **kwargs)
 
 
 @pytest.mark.parametrize(
@@ -114,7 +114,7 @@ def test_serializable_initialization_validation(rlptype, args, kwargs, exception
     ),
 )
 def test_serializable_initialization_args_kwargs_mix(args, kwargs):
-    obj = RLPType3(*args, **kwargs)
+    obj = SSZType3(*args, **kwargs)
 
     assert obj.field1 == 1
     assert obj.field2 == 2
@@ -152,64 +152,64 @@ def test_serializable_getitem_lookups(type_1_a, lookup, expected):
 
 
 def test_serializable_subclass_retains_field_info_from_parent():
-    obj = RLPType4(2, 1, 3)
+    obj = SSZType4(2, 1, 3)
     assert obj.field1 == 1
     assert obj.field2 == 2
     assert obj.field3 == 3
 
 
 def test_deserialization_for_custom_init_method():
-    type_3 = RLPType3(2, 1, 3)
+    type_3 = SSZType3(2, 1, 3)
     assert type_3.field1 == 1
     assert type_3.field2 == 2
     assert type_3.field3 == 3
 
-    result = decode(encode(type_3), sedes=RLPType3)
+    result = decode(encode(type_3), sedes=SSZType3)
     assert result.field1 == 1
     assert result.field2 == 2
     assert result.field3 == 3
 
-    result_sedes_encode = decode(encode(type_3, RLPType3), sedes=RLPType3)
+    result_sedes_encode = decode(encode(type_3, SSZType3), sedes=SSZType3)
     assert result_sedes_encode.field1 == 1
     assert result_sedes_encode.field2 == 2
     assert result_sedes_encode.field3 == 3
 
 
 def test_serializable_sedes_inference(type_1_a, type_1_b, type_2):
-    assert infer_sedes(type_1_a) == RLPType1
-    assert infer_sedes(type_1_b) == RLPType1
-    assert infer_sedes(type_2) == RLPType2
+    assert infer_sedes(type_1_a) == SSZType1
+    assert infer_sedes(type_1_b) == SSZType1
+    assert infer_sedes(type_2) == SSZType2
 
 
 def test_serializable_invalid_serialization_value(type_1_a, type_1_b, type_2):
     with pytest.raises(SerializationError):
-        RLPType1.serialize(type_2)
+        SSZType1.serialize(type_2)
     with pytest.raises(SerializationError):
-        RLPType2.serialize(type_1_a)
+        SSZType2.serialize(type_1_a)
     with pytest.raises(SerializationError):
-        RLPType2.serialize(type_1_b)
+        SSZType2.serialize(type_1_b)
 
 
 @pytest.mark.parametrize(
     'value,sedes',
     (
         # Less than 4 bytes of serialized data
-        (b'\x00\x00\x00', RLPType1),
-        (b'\x00\x00\x00', RLPType2),
-        (b'\x00\x00\x00', RLPType3),
-        (b'\x00\x00\x00', RLPType4),
+        (b'\x00\x00\x00', SSZType1),
+        (b'\x00\x00\x00', SSZType2),
+        (b'\x00\x00\x00', SSZType3),
+        (b'\x00\x00\x00', SSZType4),
 
         # Insufficient serialized container data as per found out container length
-        (b'\x00\x00\x00\x04', RLPType1),
-        (b'\x00\x00\x00\x04', RLPType2),
-        (b'\x00\x00\x00\x04', RLPType3),
-        (b'\x00\x00\x00\x04', RLPType4),
+        (b'\x00\x00\x00\x04', SSZType1),
+        (b'\x00\x00\x00\x04', SSZType2),
+        (b'\x00\x00\x00\x04', SSZType3),
+        (b'\x00\x00\x00\x04', SSZType4),
 
         # Serialized data given is more than what is required
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', RLPType1),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', RLPType2),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', RLPType3),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', RLPType4),
+        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType1),
+        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType2),
+        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType3),
+        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType4),
     ),
 )
 def test_container_deserialize_bad_values(value, sedes):
@@ -217,30 +217,46 @@ def test_container_deserialize_bad_values(value, sedes):
         sedes.deserialize(value)
 
 
-def test_serializable_serialization(type_1_a, type_1_b, type_2):
-    serial_1_a = RLPType1.serialize(type_1_a)
-    serial_1_b = RLPType1.serialize(type_1_b)
-    serial_2 = RLPType2.serialize(type_2)
-    assert serial_1_a == (b'\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a\x00\x00'
-                          b'\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01')
-    assert serial_1_b == (b'\x00\x00\x00\x15\x00\x00\x00\t\x00\x00\x00\x01b\x00\x00'
-                          b'\x00\x08\x00\x00\x00\x02\x00\x00\x00\x03')
-    assert serial_2 == (b'\x00\x00\x00O\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00'
-                        b'\x01a\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00'
-                        b'\x00\x002\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a'
-                        b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x15\x00'
-                        b'\x00\x00\t\x00\x00\x00\x01b\x00\x00\x00\x08\x00\x00'
-                        b'\x00\x02\x00\x00\x00\x03')
+@pytest.mark.parametrize(
+    'value,sedes,expected',
+    (
+        # Below the values are called as functions, because they are fixtures
+        (
+            type_1_a(),
+            SSZType1,
+            b'\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a'
+            b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01',
+        ),
+        (
+            type_1_b(),
+            SSZType1,
+            b'\x00\x00\x00\x15\x00\x00\x00\t\x00\x00\x00\x01b'
+            b'\x00\x00\x00\x08\x00\x00\x00\x02\x00\x00\x00\x03',
+        ),
+        (
+            type_2(),
+            SSZType2,
+            b'\x00\x00\x00O\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00'
+            b'\x01a\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00'
+            b'\x00\x002\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a'
+            b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x15\x00'
+            b'\x00\x00\t\x00\x00\x00\x01b\x00\x00\x00\x08\x00\x00'
+            b'\x00\x02\x00\x00\x00\x03',
+        ),
+    )
+)
+def test_serializable_serialization(value, sedes, expected):
+    assert sedes.serialize(value) == expected
 
 
 def test_serializable_deserialization(type_1_a, type_1_b, type_2):
-    serial_1_a = RLPType1.serialize(type_1_a)
-    serial_1_b = RLPType1.serialize(type_1_b)
-    serial_2 = RLPType2.serialize(type_2)
+    serial_1_a = SSZType1.serialize(type_1_a)
+    serial_1_b = SSZType1.serialize(type_1_b)
+    serial_2 = SSZType2.serialize(type_2)
 
-    res_type_1_a = RLPType1.deserialize(serial_1_a)
-    res_type_1_b = RLPType1.deserialize(serial_1_b)
-    res_type_2 = RLPType2.deserialize(serial_2)
+    res_type_1_a = SSZType1.deserialize(serial_1_a)
+    res_type_1_b = SSZType1.deserialize(serial_1_b)
+    res_type_2 = SSZType2.deserialize(serial_2)
 
     assert res_type_1_a == type_1_a
     assert res_type_1_b == type_1_b
@@ -267,16 +283,16 @@ def test_serializable_field_immutability(type_1_a, type_1_b, type_2):
 
 def test_serializable_iterator():
     values = (5, b'a', (1, b'c'))
-    obj = RLPType1(*values)
+    obj = SSZType1(*values)
     assert tuple(obj) == values
 
 
 def test_serializable_equality(type_1_a, type_1_b, type_2):
     # equality
     assert type_1_a == type_1_a
-    assert type_1_a == RLPType1(*type_1_a)
+    assert type_1_a == SSZType1(*type_1_a)
     assert type_1_b == type_1_b
-    assert type_1_b == RLPType1(*type_1_b)
+    assert type_1_b == SSZType1(*type_1_b)
 
     assert type_2 == type_2
     assert type_1_a != type_1_b
