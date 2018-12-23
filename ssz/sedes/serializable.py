@@ -191,14 +191,13 @@ class BaseSerializable(collections.Sequence):
 
         deserialized_field_values = []
         field_start_index = start_index + CONTAINER_PREFIX_LENGTH
-        # sedes_generator generates the sedes object for the fields in order
-        sedes_generator = (field_sedes for field_name, field_sedes in cls._meta.fields)
-        while field_start_index < container_end_index:
-            current_field_sedes = next(sedes_generator)
-            field_value, field_start_index = current_field_sedes.deserialize_segment(
-                data, field_start_index
+        for _, field_sedes in cls._meta.fields:
+            field_value, next_field_start_index = field_sedes.deserialize_segment(
+                data,
+                field_start_index,
             )
             deserialized_field_values.append(field_value)
+            field_start_index = next_field_start_index
 
         return tuple(deserialized_field_values), container_end_index
 
