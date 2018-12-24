@@ -12,6 +12,9 @@ from ssz.sedes import (
     bytes_sedes,
     empty_list,
 )
+from ssz.sedes.base import (
+    BaseSSZSedes,
+)
 
 
 def is_sedes(obj):
@@ -20,7 +23,7 @@ def is_sedes(obj):
     A sedes object is characterized by having the methods
     `serialize(obj)` and `deserialize(serial)`.
     """
-    return hasattr(obj, 'serialize') and hasattr(obj, 'deserialize')
+    return isinstance(obj, BaseSSZSedes)
 
 
 def infer_list_sedes(obj):

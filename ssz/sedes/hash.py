@@ -3,8 +3,12 @@ from ssz.exceptions import (
     SerializationError,
 )
 
+from .base import (
+    BaseSSZSedes,
+)
 
-class Hash:
+
+class Hash(BaseSSZSedes):
     """
     A sedes for hashes (hash<N>).
     """

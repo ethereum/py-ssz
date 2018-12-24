@@ -17,8 +17,12 @@ from ssz.sedes import (
     uint32,
 )
 
+from .base import (
+    BaseSSZSedes,
+)
 
-class List:
+
+class List(BaseSSZSedes):
     """
     A sedes for lists.
 

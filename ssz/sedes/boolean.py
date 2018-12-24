@@ -3,8 +3,12 @@ from ssz.exceptions import (
     SerializationError,
 )
 
+from .base import (
+    BaseSSZSedes,
+)
 
-class Boolean:
+
+class Boolean(BaseSSZSedes):
     """
     A sedes for booleans.
     """

@@ -6,8 +6,12 @@ from ssz.exceptions import (
     SerializationError,
 )
 
+from .base import (
+    BaseSSZSedes,
+)
 
-class Bytes:
+
+class Bytes(BaseSSZSedes):
     """
     A sedes for byte objects.
     """
