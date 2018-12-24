@@ -69,12 +69,17 @@ class SSZType6(Serializable):
         super().__init__(field1=field1, field2=field2, **kwargs)
 
 
+class SSZUndeclaredFieldsType(Serializable):
+    pass
+
+
 _type_1_a = SSZType1(5, b'a', (0, 1))
 _type_1_b = SSZType1(9, b'b', (2, 3))
 _type_2 = SSZType2(_type_1_a.copy(), [_type_1_a.copy(), _type_1_b.copy()])
 _type_3 = SSZType3(1, 2, 3)
 _type_5 = SSZType5()
 _type_6 = SSZType6(1, 2)
+_type_undeclared_fields = SSZUndeclaredFieldsType()
 
 
 @pytest.fixture
@@ -208,6 +213,13 @@ def test_serializable_invalid_serialization_value(type_1_a, type_1_b, type_2):
         SSZType2.serialize(type_1_a)
     with pytest.raises(SerializationError):
         SSZType2.serialize(type_1_b)
+
+
+def test_undeclared_fields_serializable_class():
+    assert SSZUndeclaredFieldsType.serialize(_type_undeclared_fields) == b'\x00\x00\x00\x00'
+    assert SSZUndeclaredFieldsType.deserialize(
+        SSZUndeclaredFieldsType.serialize(_type_undeclared_fields)
+    ) == _type_undeclared_fields
 
 
 @pytest.mark.parametrize(
