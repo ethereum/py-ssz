@@ -52,9 +52,29 @@ class SSZType4(SSZType3):
     pass
 
 
+class SSZType5(Serializable):
+    fields = []
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class SSZType6(Serializable):
+    fields = [
+        ('field1', uint32),
+        ('field2', uint32),
+    ]
+
+    def __init__(self, field2, field1, **kwargs):
+        super().__init__(field1=field1, field2=field2, **kwargs)
+
+
 _type_1_a = SSZType1(5, b'a', (0, 1))
 _type_1_b = SSZType1(9, b'b', (2, 3))
 _type_2 = SSZType2(_type_1_a.copy(), [_type_1_a.copy(), _type_1_b.copy()])
+_type_3 = SSZType3(1, 2, 3)
+_type_5 = SSZType5()
+_type_6 = SSZType6(1, 2)
 
 
 @pytest.fixture
@@ -215,6 +235,18 @@ def test_serializable_invalid_serialization_value(type_1_a, type_1_b, type_2):
 def test_container_deserialize_bad_values(value, sedes):
     with pytest.raises(DeserializationError):
         sedes.deserialize(value)
+
+
+def test_empty_fields_container_deserialize():
+    with pytest.raises(DeserializationError):
+        SSZType5.deserialize(SSZType6.serialize(_type_6))
+        SSZType6.deserialize(SSZType5.serialize(_type_5))
+
+
+def test_subset_or_superset_fields_container_deserialize_bad_values():
+    with pytest.raises(DeserializationError):
+        SSZType6.deserialize(SSZType3.serialize(_type_3))
+        SSZType3.deserialize(SSZType6.serialize(_type_6))
 
 
 @pytest.mark.parametrize(
