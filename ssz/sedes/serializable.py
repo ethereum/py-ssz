@@ -33,42 +33,40 @@ def _get_duplicates(values):
     )
 
 
-def validate_args_and_kwargs(args, kwargs, arg_names, allow_missing=False):
+def validate_args_and_kwargs(args, kwargs, arg_names):
     duplicate_arg_names = _get_duplicates(arg_names)
     if duplicate_arg_names:
-        raise TypeError("Duplicate argument names: {0}".format(sorted(duplicate_arg_names)))
+        raise ValueError("Duplicate argument names: {0}".format(sorted(duplicate_arg_names)))
 
-    needed_kwargs = arg_names[len(args):]
-    used_kwargs = set(arg_names[:len(args)])
+    needed_arg_names = set(arg_names[len(args):])
+    used_arg_names = set(arg_names[:len(args)])
 
-    duplicate_kwargs = used_kwargs.intersection(kwargs.keys())
-    if duplicate_kwargs:
-        raise TypeError("Duplicate kwargs: {0}".format(sorted(duplicate_kwargs)))
+    duplicate_arg_names = used_arg_names.intersection(kwargs.keys())
+    if duplicate_arg_names:
+        raise TypeError("Duplicate kwargs: {0}".format(sorted(duplicate_arg_names)))
 
-    unknown_kwargs = set(kwargs.keys()).difference(arg_names)
-    if unknown_kwargs:
-        raise TypeError("Unknown kwargs: {0}".format(sorted(unknown_kwargs)))
+    unknown_arg_names = set(kwargs.keys()).difference(arg_names)
+    if unknown_arg_names:
+        raise TypeError("Unknown kwargs: {0}".format(sorted(unknown_arg_names)))
 
-    missing_kwargs = set(needed_kwargs).difference(kwargs.keys())
-    if not allow_missing and missing_kwargs:
-        raise TypeError("Missing kwargs: {0}".format(sorted(missing_kwargs)))
+    missing_arg_names = set(needed_arg_names).difference(kwargs.keys())
+    if missing_arg_names:
+        raise TypeError("Missing kwargs: {0}".format(sorted(missing_arg_names)))
 
 
 @to_tuple
-def merge_kwargs_to_args(args, kwargs, arg_names, allow_missing=False):
-    validate_args_and_kwargs(args, kwargs, arg_names, allow_missing=allow_missing)
+def merge_kwargs_to_args(args, kwargs, arg_names):
+    validate_args_and_kwargs(args, kwargs, arg_names)
 
-    needed_kwargs = arg_names[len(args):]
+    needed_arg_names = arg_names[len(args):]
 
     yield from args
-    for arg_name in needed_kwargs:
+    for arg_name in needed_arg_names:
         yield kwargs[arg_name]
 
 
 @to_dict
-def merge_args_to_kwargs(args, kwargs, arg_names, allow_missing=False):
-    validate_args_and_kwargs(args, kwargs, arg_names, allow_missing=allow_missing)
-
+def merge_args_to_kwargs(args, kwargs, arg_names):
     yield from kwargs.items()
     for value, name in zip(args, arg_names):
         yield name, value
@@ -76,11 +74,10 @@ def merge_args_to_kwargs(args, kwargs, arg_names, allow_missing=False):
 
 class BaseSerializable(collections.Sequence):
     def __init__(self, *args, **kwargs):
-        if kwargs:
-            field_values = merge_kwargs_to_args(args, kwargs, self._meta.field_names)
-        else:
-            field_values = args
+        validate_args_and_kwargs(args, kwargs, self._meta.field_names)
+        field_values = merge_kwargs_to_args(args, kwargs, self._meta.field_names)
 
+        # Ensure that all the fields have been given values in initialization
         if len(field_values) != len(self._meta.field_names):
             raise TypeError(
                 'Argument count mismatch. expected {0} - got {1} - missing {2}'.format(
@@ -104,17 +101,17 @@ class BaseSerializable(collections.Sequence):
         for attr in self._meta.field_attrs:
             yield getattr(self, attr)
 
-    def __getitem__(self, idx):
-        if isinstance(idx, int):
-            attr = self._meta.field_attrs[idx]
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            attr = self._meta.field_attrs[index]
             return getattr(self, attr)
-        elif isinstance(idx, slice):
-            field_slice = self._meta.field_attrs[idx]
+        elif isinstance(index, slice):
+            field_slice = self._meta.field_attrs[index]
             return tuple(getattr(self, field) for field in field_slice)
-        elif isinstance(idx, str):
-            return getattr(self, idx)
+        elif isinstance(index, str):
+            return getattr(self, index)
         else:
-            raise IndexError("Unsupported type for __getitem__: {0}".format(type(idx)))
+            raise IndexError("Unsupported type for __getitem__: {0}".format(type(index)))
 
     def __len__(self):
         return len(self._meta.fields)
@@ -198,6 +195,12 @@ class BaseSerializable(collections.Sequence):
             )
             deserialized_field_values.append(field_value)
             field_start_index = next_field_start_index
+
+        if field_start_index != container_end_index:
+            raise DeserializationError(
+                'Data to be deserialized is too long',
+                data
+            )
 
         return tuple(deserialized_field_values), container_end_index
 
@@ -325,7 +328,10 @@ class SerializableBase(abc.ABCMeta):
             fields = tuple(tuple(field) for field in attrs.pop('fields'))
 
         # split the fields into names and sedes
-        field_names, sedes = zip(*fields)
+        if fields:
+            field_names, sedes = zip(*fields)
+        else:
+            field_names = ()
 
         # check that field names are unique
         duplicate_field_names = _get_duplicates(field_names)
