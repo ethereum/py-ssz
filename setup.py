@@ -47,6 +47,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "eth-utils>=1,<2",
+        "eth-hash[pycryptodome]",
     ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',
