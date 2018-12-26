@@ -16,6 +16,8 @@ from ssz.sedes import (
     Boolean,
     Hash,
     UnsignedInteger,
+    Serializable,
+    List,
 )
 from ssz.utils import (
     infer_sedes,
@@ -38,11 +40,12 @@ def hash_tree_root(input_object: Any, sedes: Any=None) -> Hash32:
         if isinstance(sedes, UnsignedInteger) and sedes.num_bytes > 32:
             return hash_eth2(serialization)
         else:
-            return serialization.ljust(32, b'\x00')
+            return serialization
 
-    if isinstance(input_object, abc.Iterable):
+    if isinstance(input_object, Serializable):
+        return hash_eth2(b''.join([hash_tree_root(input_object[field_name], field_sedes) for field_name, field_sedes in input_object._meta.fields]))
+
+    if isinstance(input_object, abc.Iterable) or isinstance(input_object, List):
         return merkle_hash([hash_tree_root(item, sedes.element_sedes) for item in input_object])
-
-    # TODO: check container type
 
     raise TreeHashException("Can't produce tree hash", input_object, sedes)
