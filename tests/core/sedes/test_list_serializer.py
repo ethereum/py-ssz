@@ -12,6 +12,7 @@ from ssz.sedes import (
     bytes_list,
     hash32_list,
     uint32_list,
+    empty_list,
 )
 
 
@@ -88,10 +89,6 @@ def test_list_serialize_values(value, sedes, expected):
     (
         ([], b'\x00\x00\x00\x00'),
         ((), b'\x00\x00\x00\x00'),
-        ([True, False, True], b'\x00\x00\x00\x03\x01\x00\x01'),
-        ((True, False, True), b'\x00\x00\x00\x03\x01\x00\x01'),
-        ([b'\x01'], b'\x00\x00\x00\x05\x00\x00\x00\x01\x01'),
-        ([b'\x01', b'\x02'], b'\x00\x00\x00\n\x00\x00\x00\x01\x01\x00\x00\x00\x01\x02'),
     ),
 )
 def test_list_serialize_values_no_element_sedes(value, expected):
@@ -102,29 +99,12 @@ def test_list_serialize_values_no_element_sedes(value, expected):
     'value,sedes',
     (
         # Serialize non-list objects
-        (5, uint32_list),
         ("foo", uint32_list),
-        ({"k1": 1, "k2": 2}, uint32_list),
-        (5, hash32_list),
+        (b"foo", uint32_list),
+        (bytearray(b"foo"), uint32_list),
         ("foo", hash32_list),
-        ({"k1": 1, "k2": 2}, hash32_list),
-        (5, address_list),
         ("foo", address_list),
-        ({"k1": 1, "k2": 2}, address_list),
-        (5, boolean_list),
         ("foo", boolean_list),
-        ({"k1": 1, "k2": 2}, boolean_list),
-
-        # Serialize objects of different types
-        ([1, "foo", 3], uint32_list),
-        ((1, "foo", 3), uint32_list),
-
-        # Wrong element_sedes object
-        ([True, False, True], uint32_list),
-        ([1, 2, 3], boolean_list),
-        ([1, 2, 3], hash32_list),
-        ([1, 2, 3], address_list),
-        ([1, 2, 3], bytes_list),
     ),
 )
 def test_list_serialize_bad_values(value, sedes):
@@ -136,6 +116,7 @@ def test_list_serialize_bad_values(value, sedes):
     'value,sedes,expected',
     (
         # Deserialize Empty Objects
+        (b'\x00\x00\x00\x00', empty_list, ()),
         (b'\x00\x00\x00\x00', uint32_list, ()),
         (b'\x00\x00\x00\x00', hash32_list, ()),
         (b'\x00\x00\x00\x00', address_list, ()),
@@ -198,6 +179,9 @@ def test_list_deserialize_values(value, sedes, expected):
         (b'\x00\x00\x00 ' + (b'\x00' * 35), hash32_list),
         (b'\x00\x00\x00\x14' + (b'\x00' * 25), address_list),
         (b'\x00\x00\x00\x04' + b'\x01' * 5, boolean_list),
+
+        # Non-empty lists for empty sedes
+        (b'\x00\x00\x00\x01\x00', empty_list)
     ),
 )
 def test_list_deserialize_bad_values(value, sedes):
