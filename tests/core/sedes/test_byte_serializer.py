@@ -2,7 +2,6 @@ import pytest
 
 from ssz import (
     DeserializationError,
-    SerializationError,
     decode,
     encode,
 )

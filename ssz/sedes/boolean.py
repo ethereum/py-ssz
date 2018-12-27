@@ -10,7 +10,7 @@ from ssz.sedes.base import FixedSizedSedes
 
 class Boolean(FixedSizedSedes[bool, bool]):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(length=1)
 
     def serialize_content(self, value: bool) -> bytes:
