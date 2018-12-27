@@ -45,14 +45,6 @@ def test_integer_serialize_values(value, sedes, expected):
 @pytest.mark.parametrize(
     'value,sedes',
     (
-        # Wrong input types
-        (1.0, uint32),
-        (True, uint32),
-        (False, uint32),
-        ('123', uint32),
-        ('123.0', uint32),
-        (b'123', uint32),
-        ([1, 2, 3], uint32),
         # Negative values to be serialized
         (-5, uint32),
         # Input Overflow by sedes object

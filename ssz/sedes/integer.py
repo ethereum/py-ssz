@@ -1,68 +1,33 @@
 from ssz.exceptions import (
-    DeserializationError,
     SerializationError,
 )
+from ssz.sedes.base import FixedSizedSedes
 
 
-class UnsignedInteger:
-    """
-    A sedes for integers (uint<N>).
-    """
-    num_bytes = 0
+class UnsignedInteger(FixedSizedSedes[int, int]):
 
-    def __init__(self, num_bits):
-        # Make sure the number of bits are multiple of 8
+    def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:
             raise ValueError(
-                "Number of bits should be multiple of 8"
+                "Number of bits must be a multiple of 8"
             )
-        if num_bits <= 0:
-            raise ValueError(
-                "Number of bits should be greater than 0"
-            )
-        self.num_bytes = num_bits // 8
+        super().__init__(num_bits // 8)
 
-    def serialize(self, val):
-        if isinstance(val, bool) or not isinstance(val, int):
+    def serialize_content(self, value: int) -> bytes:
+        if value < 0:
             raise SerializationError(
-                'As per specified sedes object, can only serialize non-negative integer values',
-                val
-            )
-        if val < 0:
-            raise SerializationError(
-                'As per specified sedes object, can only serialize non-negative integer values',
-                val
+                f"Can only serialize non-negative integers, got {value}",
             )
 
         try:
-            serialized_obj = val.to_bytes(self.num_bytes, 'big')
-        except OverflowError as err:
-            raise SerializationError('As per specified sedes object, %s' % err, val)
-
-        return serialized_obj
-
-    def deserialize_segment(self, data, start_index):
-        """
-        Deserialize the data from the given start_index
-        """
-        # Make sure we have sufficient data for deserializing
-        if len(data) + start_index < self.num_bytes:
-            raise DeserializationError(
-                'Insufficient data for deserializing',
-                data
-            )
-        end_index = start_index + self.num_bytes
-        return int.from_bytes(data[start_index:end_index], 'big'), end_index
-
-    def deserialize(self, data):
-        deserialized_data, end_index = self.deserialize_segment(data, 0)
-        if end_index != len(data):
-            raise DeserializationError(
-                'Data to be deserialized is too long',
-                data
+            return value.to_bytes(self.length, 'big')
+        except OverflowError:
+            raise SerializationError(
+                f"{value} is too large to be serialized in {self.length * 8} bits"
             )
 
-        return deserialized_data
+    def deserialize_content(self, content: bytes) -> int:
+        return int.from_bytes(content, 'big')
 
 
 uint8 = UnsignedInteger(8)
