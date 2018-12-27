@@ -30,26 +30,6 @@ def test_bytes_serialize_values(value, expected):
 
 
 @pytest.mark.parametrize(
-    'value',
-    (
-        # Non-byte objects
-        None,
-        1,
-        1.0,
-        '',
-        'True',
-        [1, 2, 3],
-        (1, 2, 3),
-        {b"0": b"1"},
-        {b"0", b"1", b"2", b"3"},
-    ),
-)
-def test_bytes_serialize_bad_values(value):
-    with pytest.raises(SerializationError):
-        bytes_sedes.serialize(value)
-
-
-@pytest.mark.parametrize(
     'value,expected',
     (
         (b'\x00\x00\x00\x00', b""),
