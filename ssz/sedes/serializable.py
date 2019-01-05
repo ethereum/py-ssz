@@ -242,8 +242,6 @@ class BaseSerializable(collections.Sequence):
     def __deepcopy__(self, *args):
         return self.copy()
 
-    _in_mutable_context = False
-
 
 def make_immutable(value):
     if isinstance(value, list):
@@ -269,9 +267,9 @@ def _mk_field_property(field, attr):
         return getattr(self, attr)
 
     def field_fn_setter(self, value):
-        if not self._in_mutable_context:
-            raise AttributeError("can't set attribute")
-        setattr(self, attr, value)
+        raise AttributeError(
+            "Created Object is Immutable, can't set attribute"
+        )
 
     return property(field_fn_getter, field_fn_setter)
 
