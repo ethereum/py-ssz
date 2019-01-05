@@ -11,6 +11,7 @@ from eth_utils import (
 
 from ssz.constants import (
     CONTAINER_PREFIX_LENGTH,
+    MAX_LEN_SERIALIZED_CONTAINER_OBJECT,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -150,7 +151,7 @@ class BaseSerializable(collections.Sequence):
             for field_name, field_sedes in cls._meta.fields
         )
 
-        if len(serialized_string) >= 2 ** (CONTAINER_PREFIX_LENGTH * 8):
+        if len(serialized_string) >= MAX_LEN_SERIALIZED_CONTAINER_OBJECT:
             raise SerializationError(
                 f'Container too long to fit into {CONTAINER_PREFIX_LENGTH} bytes'
                 f'after serialization',

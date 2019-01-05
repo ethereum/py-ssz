@@ -4,6 +4,7 @@ from collections.abc import (
 
 from ssz.constants import (
     LIST_PREFIX_LENGTH,
+    MAX_LEN_SERIALIZED_LIST_OBJECT,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -61,7 +62,7 @@ class List:
             self.element_sedes.serialize(element) for element in val
         )
 
-        if len(serialized_iterable_string) >= 2 ** (LIST_PREFIX_LENGTH * 8):
+        if len(serialized_iterable_string) >= MAX_LEN_SERIALIZED_LIST_OBJECT:
             raise SerializationError(
                 'List too long to fit into {} bytes after serialization'.format(LIST_PREFIX_LENGTH),
                 val
