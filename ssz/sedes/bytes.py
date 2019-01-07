@@ -1,5 +1,6 @@
 from ssz.constants import (
     BYTES_PREFIX_LENGTH,
+    MAX_LEN_SERIALIZED_BYTES_OBJECT,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -20,7 +21,7 @@ class Bytes:
             )
 
         object_len = len(val)
-        if object_len >= 2 ** (BYTES_PREFIX_LENGTH * 8):
+        if object_len >= MAX_LEN_SERIALIZED_BYTES_OBJECT:
             raise SerializationError(
                 f'Object too long for its length to fit into {BYTES_PREFIX_LENGTH} bytes'
                 f'after serialization',

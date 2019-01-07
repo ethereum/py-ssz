@@ -40,6 +40,10 @@ from .list import (  # noqa: F401
     List,
 )
 
+from .serializable import (  # noqa: F401
+    Serializable,
+)
+
 
 sedes_by_name = {
     "address_list": address_list,
