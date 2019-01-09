@@ -1,5 +1,7 @@
-import abc
-
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from typing import (
     Generic,
     Tuple,
@@ -16,19 +18,15 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-class BaseSedes(abc.ABC, Generic[T, S]):
+class BaseSedes(ABC, Generic[T, S]):
 
-    @abc.abstractmethod
+    @abstractmethod
     def serialize(self, value: T) -> bytes:
-        raise NotImplementedError(
-            "The serialize method must be implemented by sedes objects"
-        )
+        pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[S, int]:
-        raise NotImplementedError(
-            "The deserialize_segment method must be implemented by sedes objects"
-        )
+        pass
 
     def deserialize(self, data: bytes) -> S:
         value, end_index = self.deserialize_segment(data, 0)
@@ -76,11 +74,9 @@ class FixedSizedSedes(BaseSedes[T, S]):
     def serialize(self, value: T) -> bytes:
         return self.serialize_content(value)
 
-    @abc.abstractmethod
+    @abstractmethod
     def serialize_content(self, value: T) -> bytes:
-        raise NotImplementedError(
-            "The content serialization method must be implemented by LengthPrefixedSedes objects"
-        )
+        pass
 
     #
     # Deserialization
@@ -89,11 +85,9 @@ class FixedSizedSedes(BaseSedes[T, S]):
         content, continuation_index = self.consume_bytes(data, start_index, self.length)
         return self.deserialize_content(content), continuation_index
 
-    @abc.abstractmethod
+    @abstractmethod
     def deserialize_content(self, content: bytes) -> S:
-        raise NotImplementedError(
-            "The content deserialization method must be implemented by LengthPrefixedSedes objects"
-        )
+        pass
 
 
 class LengthPrefixedSedes(BaseSedes[T, S]):
@@ -102,9 +96,9 @@ class LengthPrefixedSedes(BaseSedes[T, S]):
     # Prefix helpers
     #
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def length_bytes(self) -> int:
-        raise NotImplementedError("LengthPrefixedSedes objects must specify their prefix length")
+        pass
 
     @property
     def max_content_length(self) -> int:
@@ -127,11 +121,9 @@ class LengthPrefixedSedes(BaseSedes[T, S]):
         self.validate_content_length(content)
         return self.get_length_prefix(content) + content
 
-    @abc.abstractmethod
+    @abstractmethod
     def serialize_content(self, value: T) -> bytes:
-        raise NotImplementedError(
-            "The content serialization method must be implemented by LengthPrefixedSedes objects"
-        )
+        pass
 
     #
     # Deserialization
@@ -142,8 +134,6 @@ class LengthPrefixedSedes(BaseSedes[T, S]):
         content, continuation_index = self.consume_bytes(data, content_start_index, length)
         return self.deserialize_content(content), continuation_index
 
-    @abc.abstractmethod
+    @abstractmethod
     def deserialize_content(self, content: bytes) -> S:
-        raise NotImplementedError(
-            "The content deserialization method must be implemented by LengthPrefixedSedes objects"
-        )
+        pass
