@@ -2,8 +2,11 @@ import pytest
 
 from ssz.sedes import (
     Boolean,
+    Serializable,
+    bytes_sedes,
     hash32_list,
     uint16,
+    uint32,
     uint32_list,
     uint512,
 )
@@ -51,3 +54,26 @@ def test_iterables(items, sedes):
     # Make sure Lists are also tested
     for value in (items, list(items),):
         assert len(hash_tree_root(value, sedes)) == 32
+
+
+class SSZType1(Serializable):
+    fields = [
+        ('field1', uint32),
+        ('field2', bytes_sedes),
+        ('field3', uint32_list)
+    ]
+
+
+@pytest.mark.parametrize(
+    'field_inputs,sedes',
+    (
+        ((5, b'a', (0, 1),), SSZType1),
+        ((9, b'b', (2, 3),), SSZType1),
+    ),
+)
+def test_serializables(field_inputs, sedes):
+    value = sedes(*field_inputs)
+
+    assert len(hash_tree_root(value, sedes)) == 32
+    # Also make sure infer works
+    assert len(hash_tree_root(value)) == 32

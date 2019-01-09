@@ -14,6 +14,7 @@ from ssz.exceptions import (
 )
 from ssz.sedes import (
     Boolean,
+    Bytes,
     Hash,
     Serializable,
     UnsignedInteger,
@@ -50,6 +51,9 @@ def _hash_tree_root(input_object: Any, sedes: Any=None) -> bytes:
             return hash_eth2(value)
         else:
             return value
+
+    if isinstance(sedes, Bytes):
+        return hash_eth2(sedes.serialize(input_object))
 
     if isinstance(input_object, Serializable):
         container_hashs = (
