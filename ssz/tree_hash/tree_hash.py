@@ -35,12 +35,15 @@ def hash_tree_root(input_object: Any, sedes: Any=None) -> Hash32:
     if sedes is None:
         sedes = infer_sedes(input_object)
 
-    if isinstance(sedes, (Boolean, Hash, UnsignedInteger)):
-        serialization = sedes.serialize(input_object)
-        if isinstance(sedes, UnsignedInteger) and sedes.num_bytes > 32:
-            return hash_eth2(serialization)
+    if isinstance(sedes, (Boolean, Hash)):
+        return input_object
+
+    if isinstance(sedes, UnsignedInteger):
+        val = input_object.to_bytes(sedes.num_bytes, 'big')
+        if sedes.num_bytes > 32:
+            return hash_eth2(val)
         else:
-            return serialization
+            return val
 
     if isinstance(input_object, Serializable):
         return hash_eth2(b''.join([hash_tree_root(input_object[field_name], field_sedes) for field_name, field_sedes in input_object._meta.fields]))
