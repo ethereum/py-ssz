@@ -1,7 +1,4 @@
 import time
-
-import pytest
-
 from ssz.sedes import (
     List,
     Serializable,
@@ -13,6 +10,8 @@ from ssz.sedes import (
 from ssz.tree_hash.tree_hash import (
     hash_tree_root,
 )
+
+TOLERABLE_PERFORMANCE = 15  # Seconds
 
 
 class ValidatorRecord(Serializable):
@@ -70,28 +69,37 @@ crosslink_record = CrosslinkRecord(slot=12847, shard_block_root=b'\x67' * 32)
 crosslink_record_stubs = [crosslink_record for i in range(1024)]
 
 
-@pytest.fixture
-def make_state():
-    def make_state(num_validators):
-        shard_committee = ShardCommittee(
-            shard=1, committee=tuple(range(num_validators // 1024)),
-            total_validator_count=num_validators,
-        )
-        shard_committee_stubs = tuple(tuple(shard_committee for i in range(16)) for i in range(64))
-        state = State(
-            validator_registry=tuple(validator_record for i in range(num_validators)),
-            shard_and_committee_for_slots=shard_committee_stubs,
-            latest_crosslinks=crosslink_record_stubs,
-        )
-        return state
-    return make_state
+def make_state(num_validators):
+    shard_committee = ShardCommittee(
+        shard=1, committee=tuple(range(num_validators // 1024)),
+        total_validator_count=num_validators,
+    )
+    shard_committee_stubs = tuple(tuple(shard_committee for i in range(16)) for i in range(64))
+    state = State(
+        validator_registry=tuple(validator_record for i in range(num_validators)),
+        shard_and_committee_for_slots=shard_committee_stubs,
+        latest_crosslinks=crosslink_record_stubs,
+    )
+    return state
 
 
-def test_performance_to_root_a_state(make_state):
-    state = make_state(num_validators=2**18)
+def run():
+    state = make_state(2**18)
 
-    a = time.time()
+    start_time = time.time()
 
     hash_tree_root(state)
 
-    assert time.time() - a <= 15
+    actual_performance = time.time() - start_time
+
+    print("Performance of hash_tree_root", actual_performance)
+
+    if actual_performance > TOLERABLE_PERFORMANCE:
+        raise TimeoutError("hash_tree_root is not fast enough. Tolerable: {}, Actual: {}".format(
+            TOLERABLE_PERFORMANCE,
+            actual_performance,
+        ))
+
+
+if __name__ == '__main__':
+    run()
