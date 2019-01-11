@@ -30,6 +30,7 @@ class SSZType2(Serializable):
     ]
 
 
+# Type3 and Type4 use to make sure tree hash works on inheritance serializable
 class SSZType3(Serializable):
     fields = [
         ('field1', uint32),
@@ -41,21 +42,8 @@ class SSZType3(Serializable):
         super().__init__(field1=field1, field2=field2, field3=field3, **kwargs)
 
 
-class SSZType5(Serializable):
-    fields = []
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-
-class SSZType6(Serializable):
-    fields = [
-        ('field1', uint32),
-        ('field2', uint32),
-    ]
-
-    def __init__(self, field2, field1, **kwargs):
-        super().__init__(field1=field1, field2=field2, **kwargs)
+class SSZType4(SSZType3):
+    pass
 
 
 class SSZUndeclaredFieldsType(Serializable):
@@ -66,8 +54,6 @@ _type_1_a = SSZType1(5, b'a', (0, 1))
 _type_1_b = SSZType1(9, b'b', (2, 3))
 _type_2 = SSZType2(_type_1_a.copy(), [_type_1_a.copy(), _type_1_b.copy()])
 _type_3 = SSZType3(1, 2, 3)
-_type_5 = SSZType5()
-_type_6 = SSZType6(1, 2)
 _type_undeclared_fields = SSZUndeclaredFieldsType()
 
 
@@ -77,8 +63,6 @@ _type_undeclared_fields = SSZUndeclaredFieldsType()
         (_type_1_a, SSZType1),
         (_type_1_b, SSZType1),
         (_type_2, SSZType2),
-        (_type_3, SSZType3),
-        (_type_6, SSZType6),
     ),
 )
 def test_serializables(value, sedes):
@@ -91,7 +75,7 @@ def test_serializables(value, sedes):
 @pytest.mark.parametrize(
     'value,sedes,expected',
     (
-        (_type_5, SSZType5, hash_eth2(b'')),
+        (_type_3, SSZType3, hash_tree_root(_type_3, SSZType4)),
         (_type_undeclared_fields, SSZUndeclaredFieldsType, hash_eth2(b'')),
     ),
 )
