@@ -1,4 +1,5 @@
 import time
+
 from ssz.sedes import (
     List,
     Serializable,
@@ -31,7 +32,6 @@ class ValidatorRecord(Serializable):
 
 class CrosslinkRecord(Serializable):
     fields = [
-
         ('slot', uint64),
         ('shard_block_root', hash32),
     ]
@@ -71,7 +71,8 @@ crosslink_record_stubs = [crosslink_record for i in range(1024)]
 
 def make_state(num_validators):
     shard_committee = ShardCommittee(
-        shard=1, committee=tuple(range(num_validators // 1024)),
+        shard=1,
+        committee=tuple(range(num_validators // 1024)),
         total_validator_count=num_validators,
     )
     shard_committee_stubs = tuple(tuple(shard_committee for i in range(16)) for i in range(64))

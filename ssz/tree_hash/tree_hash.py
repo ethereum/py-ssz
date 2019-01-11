@@ -44,26 +44,22 @@ def _hash_tree_root(input_object: Any, sedes: Any=None) -> bytes:
 
     if isinstance(sedes, (Boolean, Hash)):
         return sedes.serialize(input_object)
-
-    if isinstance(sedes, UnsignedInteger):
+    elif isinstance(sedes, UnsignedInteger):
         value = input_object.to_bytes(sedes.num_bytes, 'big')
         if sedes.num_bytes > 32:
             return hash_eth2(value)
         else:
             return value
-
-    if isinstance(sedes, Bytes):
+    elif isinstance(sedes, Bytes):
         return hash_eth2(sedes.serialize(input_object))
-
-    if isinstance(input_object, Serializable):
+    elif isinstance(input_object, Serializable):
         container_hashes = (
             _hash_tree_root(input_object[field_name], field_sedes)
             for field_name, field_sedes in input_object._meta.fields
         )
-        return hash_eth2(b''.join(container_hashs))
-
-    if isinstance(input_object, abc.Iterable):
+        return hash_eth2(b''.join(container_hashes))
+    elif isinstance(input_object, abc.Iterable):
         input_items = tuple(_hash_tree_root(item, sedes.element_sedes) for item in input_object)
         return merkle_hash(input_items)
-
-    raise TreeHashException("Can't produce tree hash", input_object, sedes)
+    else:
+        raise TreeHashException("Can't produce tree hash", input_object, sedes)
