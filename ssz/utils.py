@@ -1,3 +1,4 @@
+import collections
 from collections.abc import (
     Iterable,
 )
@@ -67,3 +68,12 @@ def infer_sedes(obj):
 
     msg = 'Did not find sedes handling type {}'.format(type(obj).__name__)
     raise TypeError(msg)
+
+
+def get_duplicates(values):
+    counts = collections.Counter(values)
+    return tuple(
+        item
+        for item, num in counts.items()
+        if num > 1
+    )

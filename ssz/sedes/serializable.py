@@ -17,6 +17,9 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
+from ssz.utils import (
+    get_duplicates,
+)
 
 
 class MetaBase:
@@ -25,17 +28,8 @@ class MetaBase:
     field_attrs = None
 
 
-def _get_duplicates(values):
-    counts = collections.Counter(values)
-    return tuple(
-        item
-        for item, num in counts.items()
-        if num > 1
-    )
-
-
 def validate_args_and_kwargs(args, kwargs, arg_names):
-    duplicate_arg_names = _get_duplicates(arg_names)
+    duplicate_arg_names = get_duplicates(arg_names)
     if duplicate_arg_names:
         raise ValueError("Duplicate argument names: {0}".format(sorted(duplicate_arg_names)))
 
@@ -293,6 +287,7 @@ def _get_class_namespace(cls):
 
 
 class SerializableBase(abc.ABCMeta):
+
     def __new__(cls, name, bases, attrs):
         super_new = super(SerializableBase, cls).__new__
 
@@ -333,7 +328,7 @@ class SerializableBase(abc.ABCMeta):
             field_names = ()
 
         # check that field names are unique
-        duplicate_field_names = _get_duplicates(field_names)
+        duplicate_field_names = get_duplicates(field_names)
         if duplicate_field_names:
             raise TypeError(
                 "The following fields are duplicated in the `fields` "
