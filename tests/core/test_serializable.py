@@ -206,15 +206,6 @@ def test_serializable_sedes_inference(type_1_a, type_1_b, type_2):
     assert infer_sedes(type_2) == SSZType2
 
 
-def test_serializable_invalid_serialization_value(type_1_a, type_1_b, type_2):
-    with pytest.raises(SerializationError):
-        SSZType1.serialize(type_2)
-    with pytest.raises(SerializationError):
-        SSZType2.serialize(type_1_a)
-    with pytest.raises(SerializationError):
-        SSZType2.serialize(type_1_b)
-
-
 def test_undeclared_fields_serializable_class():
     assert SSZUndeclaredFieldsType.serialize(_type_undeclared_fields) == b'\x00\x00\x00\x00'
     assert SSZUndeclaredFieldsType.deserialize(
