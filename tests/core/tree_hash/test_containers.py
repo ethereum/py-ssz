@@ -68,7 +68,7 @@ _type_undeclared_fields = SSZUndeclaredFieldsType()
 def test_serializables(value, sedes):
 
     assert len(hash_tree_root(value, sedes)) == 32
-    # Also make sure infer works
+    # Also make sure `infer_sedes` works
     assert len(hash_tree_root(value)) == 32
 
 
