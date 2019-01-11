@@ -9,8 +9,9 @@ from eth_utils import (
 from ssz.exceptions import (
     SerializationError,
 )
-from ssz.sedes.base import FixedSizedSedes
-
+from ssz.sedes.base import (
+    FixedSizedSedes,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 

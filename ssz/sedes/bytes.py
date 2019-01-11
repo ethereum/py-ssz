@@ -2,8 +2,9 @@ from typing import (
     Union,
 )
 
-from ssz.sedes.base import LengthPrefixedSedes
-
+from ssz.sedes.base import (
+    LengthPrefixedSedes,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 

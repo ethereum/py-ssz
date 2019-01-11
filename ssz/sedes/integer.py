@@ -1,7 +1,9 @@
 from ssz.exceptions import (
     SerializationError,
 )
-from ssz.sedes.base import FixedSizedSedes
+from ssz.sedes.base import (
+    FixedSizedSedes,
+)
 
 
 class UnsignedInteger(FixedSizedSedes[int, int]):

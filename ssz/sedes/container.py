@@ -7,12 +7,11 @@ from typing import (
     TypeVar,
 )
 
-from mypy_extensions import (
-    TypedDict,
-)
-
 from eth_utils import (
     to_dict,
+)
+from mypy_extensions import (
+    TypedDict,
 )
 
 from ssz.sedes.base import (
@@ -22,7 +21,6 @@ from ssz.sedes.base import (
 from ssz.utils import (
     get_duplicates,
 )
-
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})
 TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)

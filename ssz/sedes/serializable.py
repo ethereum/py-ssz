@@ -2,7 +2,6 @@ import abc
 import collections
 import copy
 import re
-
 from typing import (
     Tuple,
     Type,
@@ -24,7 +23,6 @@ from ssz.sedes.container import (
 from ssz.utils import (
     get_duplicates,
 )
-
 
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 

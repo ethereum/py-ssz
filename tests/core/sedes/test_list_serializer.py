@@ -10,9 +10,9 @@ from ssz.sedes import (
     address_list,
     boolean_list,
     bytes_list,
+    empty_list,
     hash32_list,
     uint32_list,
-    empty_list,
 )
 
 

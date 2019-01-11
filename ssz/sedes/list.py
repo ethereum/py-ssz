@@ -28,7 +28,6 @@ from ssz.sedes.base import (
     LengthPrefixedSedes,
 )
 
-
 T = TypeVar("T")
 S = TypeVar("S")
 

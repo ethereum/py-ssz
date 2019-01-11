@@ -8,7 +8,6 @@ from ssz import (
 )
 from ssz.exceptions import (
     DeserializationError,
-    SerializationError,
 )
 from ssz.sedes import (
     List,

@@ -5,7 +5,9 @@ from eth_utils import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.sedes.base import FixedSizedSedes
+from ssz.sedes.base import (
+    FixedSizedSedes,
+)
 
 
 class Boolean(FixedSizedSedes[bool, bool]):

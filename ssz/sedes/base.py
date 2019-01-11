@@ -13,7 +13,6 @@ from ssz.exceptions import (
     SerializationError,
 )
 
-
 T = TypeVar("T")
 S = TypeVar("S")
 

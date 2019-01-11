@@ -45,8 +45,8 @@ def _hash_tree_root(input_object: Any, sedes: Any=None) -> bytes:
     if isinstance(sedes, (Boolean, Hash)):
         return sedes.serialize(input_object)
     elif isinstance(sedes, UnsignedInteger):
-        value = input_object.to_bytes(sedes.num_bytes, 'big')
-        if sedes.num_bytes > 32:
+        value = input_object.to_bytes(sedes.length, 'big')
+        if sedes.length > 32:
             return hash_eth2(value)
         else:
             return value
