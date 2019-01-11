@@ -27,6 +27,9 @@ from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
 )
+from ssz.tree_hash.merkle_hash import (
+    merkle_hash,
+)
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -100,6 +103,10 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
 
         if element_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
+
+    def intermediate_tree_hash(self, value: Iterable[T]) -> bytes:
+        element_hashes = [self.element_sedes.intermediate_tree_hash(element) for element in value]
+        return merkle_hash(element_hashes)
 
 
 address_list = List(address)

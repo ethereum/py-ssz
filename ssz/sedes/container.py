@@ -18,6 +18,9 @@ from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
 )
+from ssz.tree_hash.hash_eth2 import (
+    hash_eth2,
+)
 from ssz.utils import (
     get_duplicates,
 )
@@ -62,3 +65,10 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
 
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
+
+    def intermediate_tree_hash(self, value: TAnyTypedDict) -> bytes:
+        field_hashes = [
+            field_sedes.intermediate_tree_hash(value[field_name])
+            for field_name, field_sedes in self.fields
+        ]
+        return hash_eth2(b"".join(field_hashes))

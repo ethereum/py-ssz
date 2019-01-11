@@ -12,6 +12,9 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
+from ssz.tree_hash.hash_eth2 import (
+    hash_eth2,
+)
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -58,6 +61,10 @@ class BaseSedes(ABC, Generic[T, S]):
             continuation_index = start_index + num_bytes
             return data[start_index:start_index + num_bytes], continuation_index
 
+    @abstractmethod
+    def intermediate_tree_hash(self, value: T) -> bytes:
+        pass
+
 
 class FixedSizedSedes(BaseSedes[T, S]):
 
@@ -87,6 +94,16 @@ class FixedSizedSedes(BaseSedes[T, S]):
     @abstractmethod
     def deserialize_content(self, content: bytes) -> S:
         pass
+
+    #
+    # Tree hashing
+    #
+    def intermediate_tree_hash(self, value: T) -> bytes:
+        serialized = self.serialize(value)
+        if self.length <= 32:
+            return serialized
+        else:
+            return hash_eth2(serialized)
 
 
 class LengthPrefixedSedes(BaseSedes[T, S]):

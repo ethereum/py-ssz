@@ -1,6 +1,3 @@
-from collections import (
-    abc,
-)
 from typing import (
     Any,
 )
@@ -9,57 +6,21 @@ from eth_typing import (
     Hash32,
 )
 
-from ssz.exceptions import (
-    TreeHashException,
-)
-from ssz.sedes import (
-    Boolean,
-    Bytes,
-    Hash,
-    Serializable,
-    UnsignedInteger,
+from ssz.sedes.base import (
+    BaseSedes,
 )
 from ssz.utils import (
     infer_sedes,
 )
 
-from .hash_eth2 import (
-    hash_eth2,
-)
-from .merkle_hash import (
-    merkle_hash,
-)
 
-
-def hash_tree_root(input_object: Any, sedes: Any=None) -> Hash32:
-    result = _hash_tree_root(input_object, sedes)
-    if len(result) < 32:
-        return Hash32(result.ljust(32, b'\x00'))
-    return Hash32(result)
-
-
-def _hash_tree_root(input_object: Any, sedes: Any=None) -> bytes:
+def hash_tree_root(value: Any, sedes: BaseSedes=None) -> Hash32:
     if sedes is None:
-        sedes = infer_sedes(input_object)
+        sedes = infer_sedes(value)
 
-    if isinstance(sedes, (Boolean, Hash)):
-        return sedes.serialize(input_object)
-    elif isinstance(sedes, UnsignedInteger):
-        value = input_object.to_bytes(sedes.length, 'big')
-        if sedes.length > 32:
-            return hash_eth2(value)
-        else:
-            return value
-    elif isinstance(sedes, Bytes):
-        return hash_eth2(sedes.serialize(input_object))
-    elif isinstance(input_object, Serializable):
-        container_hashes = (
-            _hash_tree_root(input_object[field_name], field_sedes)
-            for field_name, field_sedes in input_object._meta.fields
-        )
-        return hash_eth2(b''.join(container_hashes))
-    elif isinstance(input_object, abc.Iterable):
-        input_items = tuple(_hash_tree_root(item, sedes.element_sedes) for item in input_object)
-        return merkle_hash(input_items)
+    intermediate_tree_hash = sedes.intermediate_tree_hash(value)
+
+    if len(intermediate_tree_hash) < 32:
+        return Hash32(intermediate_tree_hash.ljust(32, b'\x00'))
     else:
-        raise TreeHashException("Can't produce tree hash", input_object, sedes)
+        return Hash32(intermediate_tree_hash)

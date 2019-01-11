@@ -360,6 +360,9 @@ class SerializableBase(abc.ABCMeta):
     def consume_bytes(cls, data: bytes, start_index: int, num_bytes: int) -> Tuple[bytes, int]:
         return cls._meta.container_sedes.consume_bytes(data, start_index, num_bytes)
 
+    def intermediate_tree_hash(cls: Type[TSerializable], value: TSerializable) -> bytes:
+        return cls._meta.container_sedes.intermediate_tree_hash(value)
+
 
 # Make any class created with SerializableBase an instance of BaseSedes
 BaseSedes.register(SerializableBase)
