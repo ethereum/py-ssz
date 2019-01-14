@@ -34,7 +34,7 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
     length_bytes = 4
 
     def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
-        field_names = [field_name for field_name, field_sedes in fields]
+        field_names = tuple(field_name for field_name, field_sedes in fields)
         duplicate_field_names = get_duplicates(field_names)
         if duplicate_field_names:
             raise ValueError(

@@ -16,21 +16,21 @@ from ssz.tree_hash.hash_eth2 import (
     hash_eth2,
 )
 
-T = TypeVar("T")
-S = TypeVar("S")
+TSerializable = TypeVar("TSerializable")
+TDeserialized = TypeVar("TDeserialized")
 
 
-class BaseSedes(ABC, Generic[T, S]):
+class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
     @abstractmethod
-    def serialize(self, value: T) -> bytes:
+    def serialize(self, value: TSerializable) -> bytes:
         pass
 
     @abstractmethod
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[S, int]:
+    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         pass
 
-    def deserialize(self, data: bytes) -> S:
+    def deserialize(self, data: bytes) -> TDeserialized:
         value, end_index = self.deserialize_segment(data, 0)
 
         num_leftover_bytes = len(data) - end_index
@@ -62,11 +62,11 @@ class BaseSedes(ABC, Generic[T, S]):
             return data[start_index:start_index + num_bytes], continuation_index
 
     @abstractmethod
-    def intermediate_tree_hash(self, value: T) -> bytes:
+    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
         pass
 
 
-class FixedSizedSedes(BaseSedes[T, S]):
+class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
 
     def __init__(self, length: int):
         if length <= 0:
@@ -77,28 +77,28 @@ class FixedSizedSedes(BaseSedes[T, S]):
     #
     # Serialization
     #
-    def serialize(self, value: T) -> bytes:
+    def serialize(self, value: TSerializable) -> bytes:
         return self.serialize_content(value)
 
     @abstractmethod
-    def serialize_content(self, value: T) -> bytes:
+    def serialize_content(self, value: TSerializable) -> bytes:
         pass
 
     #
     # Deserialization
     #
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[S, int]:
+    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         content, continuation_index = self.consume_bytes(data, start_index, self.length)
         return self.deserialize_content(content), continuation_index
 
     @abstractmethod
-    def deserialize_content(self, content: bytes) -> S:
+    def deserialize_content(self, content: bytes) -> TDeserialized:
         pass
 
     #
     # Tree hashing
     #
-    def intermediate_tree_hash(self, value: T) -> bytes:
+    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
         serialized = self.serialize(value)
         if self.length <= 32:
             return serialized
@@ -106,7 +106,7 @@ class FixedSizedSedes(BaseSedes[T, S]):
             return hash_eth2(serialized)
 
 
-class LengthPrefixedSedes(BaseSedes[T, S]):
+class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
 
     #
     # Prefix helpers
@@ -132,24 +132,24 @@ class LengthPrefixedSedes(BaseSedes[T, S]):
     #
     # Serialization
     #
-    def serialize(self, value: T) -> bytes:
+    def serialize(self, value: TSerializable) -> bytes:
         content = self.serialize_content(value)
         self.validate_content_length(content)
         return self.get_length_prefix(content) + content
 
     @abstractmethod
-    def serialize_content(self, value: T) -> bytes:
+    def serialize_content(self, value: TSerializable) -> bytes:
         pass
 
     #
     # Deserialization
     #
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[S, int]:
+    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         prefix, content_start_index = self.consume_bytes(data, start_index, self.length_bytes)
         length = int.from_bytes(prefix, "big")
         content, continuation_index = self.consume_bytes(data, content_start_index, length)
         return self.deserialize_content(content), continuation_index
 
     @abstractmethod
-    def deserialize_content(self, content: bytes) -> S:
+    def deserialize_content(self, content: bytes) -> TDeserialized:
         pass
