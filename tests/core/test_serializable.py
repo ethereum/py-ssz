@@ -8,7 +8,6 @@ from ssz import (
 )
 from ssz.exceptions import (
     DeserializationError,
-    SerializationError,
 )
 from ssz.sedes import (
     List,
@@ -204,15 +203,6 @@ def test_serializable_sedes_inference(type_1_a, type_1_b, type_2):
     assert infer_sedes(type_1_a) == SSZType1
     assert infer_sedes(type_1_b) == SSZType1
     assert infer_sedes(type_2) == SSZType2
-
-
-def test_serializable_invalid_serialization_value(type_1_a, type_1_b, type_2):
-    with pytest.raises(SerializationError):
-        SSZType1.serialize(type_2)
-    with pytest.raises(SerializationError):
-        SSZType2.serialize(type_1_a)
-    with pytest.raises(SerializationError):
-        SSZType2.serialize(type_1_b)
 
 
 def test_undeclared_fields_serializable_class():

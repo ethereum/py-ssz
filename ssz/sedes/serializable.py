@@ -2,6 +2,11 @@ import abc
 import collections
 import copy
 import re
+from typing import (
+    Tuple,
+    Type,
+    TypeVar,
+)
 
 from eth_utils import (
     to_dict,
@@ -9,33 +14,28 @@ from eth_utils import (
     to_tuple,
 )
 
-from ssz.constants import (
-    CONTAINER_PREFIX_LENGTH,
-    MAX_LEN_SERIALIZED_CONTAINER_OBJECT,
+from ssz.sedes.base import (
+    BaseSedes,
 )
-from ssz.exceptions import (
-    DeserializationError,
-    SerializationError,
+from ssz.sedes.container import (
+    Container,
 )
+from ssz.utils import (
+    get_duplicates,
+)
+
+TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 
 
 class MetaBase:
     fields = None
     field_names = None
     field_attrs = None
-
-
-def _get_duplicates(values):
-    counts = collections.Counter(values)
-    return tuple(
-        item
-        for item, num in counts.items()
-        if num > 1
-    )
+    container_sedes = None
 
 
 def validate_args_and_kwargs(args, kwargs, arg_names):
-    duplicate_arg_names = _get_duplicates(arg_names)
+    duplicate_arg_names = get_duplicates(arg_names)
     if duplicate_arg_names:
         raise ValueError("Duplicate argument names: {0}".format(sorted(duplicate_arg_names)))
 
@@ -74,6 +74,7 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 
 
 class BaseSerializable(collections.Sequence):
+
     def __init__(self, *args, **kwargs):
         validate_args_and_kwargs(args, kwargs, self._meta.field_names)
         field_values = merge_kwargs_to_args(args, kwargs, self._meta.field_names)
@@ -136,87 +137,6 @@ class BaseSerializable(collections.Sequence):
             self._hash_cache = hash(tuple(self))
 
         return self._hash_cache
-
-    @classmethod
-    def serialize(cls, obj):
-        # Make sure that the obj is instance of class before serializing
-        if not isinstance(obj, cls):
-            raise SerializationError(
-                f"Can only serialize objects which are instances of {cls.__name__} class",
-                obj
-            )
-
-        serialized_string = b"".join(
-            field_sedes.serialize(getattr(obj, field_name))
-            for field_name, field_sedes in cls._meta.fields
-        )
-
-        if len(serialized_string) >= MAX_LEN_SERIALIZED_CONTAINER_OBJECT:
-            raise SerializationError(
-                f'Container too long to fit into {CONTAINER_PREFIX_LENGTH} bytes'
-                f'after serialization',
-                obj
-            )
-        serialized_len = len(serialized_string).to_bytes(CONTAINER_PREFIX_LENGTH, 'big')
-
-        return serialized_len + serialized_string
-
-    @classmethod
-    def deserialize_segment(cls, data, start_index):
-        """
-        Deserialize the data from the given start_index
-        """
-        # Make sure we have sufficient data for inferring length of container
-        if len(data) < start_index + CONTAINER_PREFIX_LENGTH:
-            raise DeserializationError(
-                'Insufficient data: Cannot retrieve the length of container',
-                data
-            )
-
-        # container_len contains the length of the original container
-        container_len = int.from_bytes(
-            data[start_index:start_index + CONTAINER_PREFIX_LENGTH],
-            'big'
-        )
-        container_end_index = start_index + CONTAINER_PREFIX_LENGTH + container_len
-
-        # Make sure we have sufficent data for inferring the whole container
-        if len(data) < container_end_index:
-            raise DeserializationError(
-                'Insufficient data: Cannot retrieve the whole container',
-                data
-            )
-
-        deserialized_field_values = []
-        field_start_index = start_index + CONTAINER_PREFIX_LENGTH
-        for _, field_sedes in cls._meta.fields:
-            field_value, next_field_start_index = field_sedes.deserialize_segment(
-                data,
-                field_start_index,
-            )
-            deserialized_field_values.append(field_value)
-            field_start_index = next_field_start_index
-
-        if field_start_index != container_end_index:
-            raise DeserializationError(
-                'Data to be deserialized is too long',
-                data
-            )
-
-        return tuple(deserialized_field_values), container_end_index
-
-    @classmethod
-    def deserialize(cls, data, **extra_kwargs):
-        # deserialized_field_values stores all the field values in tuple format
-        deserialized_field_values, end_index = cls.deserialize_segment(data, 0)
-        if end_index != len(data):
-            raise DeserializationError(
-                'Data to be deserialized is too long',
-                data
-            )
-
-        args_as_kwargs = merge_args_to_kwargs(deserialized_field_values, {}, cls._meta.field_names)
-        return cls(**args_as_kwargs, **extra_kwargs)
 
     def copy(self, *args, **kwargs):
         missing_overrides = set(
@@ -293,6 +213,7 @@ def _get_class_namespace(cls):
 
 
 class SerializableBase(abc.ABCMeta):
+
     def __new__(cls, name, bases, attrs):
         super_new = super(SerializableBase, cls).__new__
 
@@ -333,7 +254,7 @@ class SerializableBase(abc.ABCMeta):
             field_names = ()
 
         # check that field names are unique
-        duplicate_field_names = _get_duplicates(field_names)
+        duplicate_field_names = get_duplicates(field_names)
         if duplicate_field_names:
             raise TypeError(
                 "The following fields are duplicated in the `fields` "
@@ -389,6 +310,7 @@ class SerializableBase(abc.ABCMeta):
             'fields': fields,
             'field_attrs': field_attrs,
             'field_names': field_names,
+            'container_sedes': Container(fields),
         }
 
         meta_base = attrs.pop('_meta', MetaBase)
@@ -415,6 +337,35 @@ class SerializableBase(abc.ABCMeta):
                 tuple(attrs.items())
             ),
         )
+
+    #
+    # Implement BaseSedes methods as pass-throughs to the container sedes
+    #
+    def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
+        return cls._meta.container_sedes.serialize(value)
+
+    def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:
+        deserialized_field_dict = cls._meta.container_sedes.deserialize(data)
+        return cls(**deserialized_field_dict)
+
+    def deserialize_segment(cls: Type[TSerializable],
+                            data: bytes,
+                            start_index: int) -> Tuple[TSerializable, int]:
+        deserialized_field_dict, continuation_index = cls._meta.container_sedes.deserialize_segment(
+            data,
+            start_index,
+        )
+        return cls(**deserialized_field_dict), continuation_index
+
+    def consume_bytes(cls, data: bytes, start_index: int, num_bytes: int) -> Tuple[bytes, int]:
+        return cls._meta.container_sedes.consume_bytes(data, start_index, num_bytes)
+
+    def intermediate_tree_hash(cls: Type[TSerializable], value: TSerializable) -> bytes:
+        return cls._meta.container_sedes.intermediate_tree_hash(value)
+
+
+# Make any class created with SerializableBase an instance of BaseSedes
+BaseSedes.register(SerializableBase)
 
 
 class Serializable(BaseSerializable, metaclass=SerializableBase):

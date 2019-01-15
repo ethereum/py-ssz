@@ -2,7 +2,6 @@ import pytest
 
 from ssz import (
     DeserializationError,
-    SerializationError,
     decode,
     encode,
 )
@@ -35,7 +34,7 @@ def test_boolean_serialize_values(value, expected):
 )
 def test_boolean_serialize_bad_values(value):
     sedes = Boolean()
-    with pytest.raises(SerializationError):
+    with pytest.raises(TypeError):
         sedes.serialize(value)
 
 
