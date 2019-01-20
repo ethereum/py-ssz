@@ -7,11 +7,12 @@ from ssz import (
     encode,
 )
 from ssz.sedes import (
-    address_list,
     boolean_list,
+    bytes32_list,
+    bytes48_list,
+    bytes96_list,
     bytes_list,
     empty_list,
-    hash32_list,
     uint32_list,
 )
 
@@ -22,10 +23,12 @@ from ssz.sedes import (
         # Serialize Empty Objects
         ([], uint32_list, b'\x00\x00\x00\x00'),
         ((), uint32_list, b'\x00\x00\x00\x00'),
-        ([], hash32_list, b'\x00\x00\x00\x00'),
-        ((), hash32_list, b'\x00\x00\x00\x00'),
-        ([], address_list, b'\x00\x00\x00\x00'),
-        ((), address_list, b'\x00\x00\x00\x00'),
+        ([], bytes32_list, b'\x00\x00\x00\x00'),
+        ((), bytes32_list, b'\x00\x00\x00\x00'),
+        ([], bytes48_list, b'\x00\x00\x00\x00'),
+        ((), bytes48_list, b'\x00\x00\x00\x00'),
+        ([], bytes96_list, b'\x00\x00\x00\x00'),
+        ((), bytes96_list, b'\x00\x00\x00\x00'),
         ([], boolean_list, b'\x00\x00\x00\x00'),
         ((), boolean_list, b'\x00\x00\x00\x00'),
         ([], bytes_list, b'\x00\x00\x00\x00'),
@@ -51,15 +54,21 @@ from ssz.sedes import (
             b'\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04',
         ),
 
-        # Serialize hash32 Iterables
-        ([b'\x00' * 32], hash32_list, b'\x00\x00\x00 ' + (b'\x00' * 32)),
-        ([b'\x00' * 32, b'\x00' * 32], hash32_list, b'\x00\x00\x00@' + (b'\x00' * 64)),
-        ((b'\x00' * 32, b'\x00' * 32), hash32_list, b'\x00\x00\x00@' + (b'\x00' * 64)),
+        # Serialize bytes32 Iterables
+        ([b'\x00' * 32], bytes32_list, b'\x00\x00\x00\x20' + (b'\x00' * 32)),
+        ([b'\x00' * 32, b'\x00' * 32], bytes32_list, b'\x00\x00\x00\x40' + (b'\x00' * 64)),
+        ((b'\x00' * 32, b'\x00' * 32), bytes32_list, b'\x00\x00\x00\x40' + (b'\x00' * 64)),
 
-        # Serialize address Iterables
-        ([b'\x00' * 20], address_list, b'\x00\x00\x00\x14' + (b'\x00' * 20)),
-        ([b'\x00' * 20, b'\x00' * 20], address_list, b'\x00\x00\x00(' + (b'\x00' * 40)),
-        ((b'\x00' * 20, b'\x00' * 20), address_list, b'\x00\x00\x00(' + (b'\x00' * 40)),
+        # Serialize bytes48 Iterables
+        ([b'\x00' * 48], bytes48_list, b'\x00\x00\x00\x30' + (b'\x00' * 48)),
+        ([b'\x00' * 48, b'\x00' * 48], bytes48_list, b'\x00\x00\x00\x60' + (b'\x00' * 96)),
+        ((b'\x00' * 48, b'\x00' * 48), bytes48_list, b'\x00\x00\x00\x60' + (b'\x00' * 96)),
+
+        # Serialize bytes96 Iterables
+        ([b'\x00' * 96], bytes96_list, b'\x00\x00\x00\x60' + (b'\x00' * 96)),
+        ([b'\x00' * 96, b'\x00' * 96], bytes96_list, b'\x00\x00\x00\xc0' + (b'\x00' * 192)),
+        ((b'\x00' * 96, b'\x00' * 96), bytes96_list, b'\x00\x00\x00\xc0' + (b'\x00' * 192)),
+
 
         # Serialize boolean Iterables
         ([True, True, True, True], boolean_list, b'\x00\x00\x00\x04' + b'\x01' * 4),
@@ -102,8 +111,9 @@ def test_list_serialize_values_no_element_sedes(value, expected):
         ("foo", uint32_list),
         (b"foo", uint32_list),
         (bytearray(b"foo"), uint32_list),
-        ("foo", hash32_list),
-        ("foo", address_list),
+        ("foo", bytes32_list),
+        ("foo", bytes48_list),
+        ("foo", bytes96_list),
         ("foo", boolean_list),
     ),
 )
@@ -118,8 +128,9 @@ def test_list_serialize_bad_values(value, sedes):
         # Deserialize Empty Objects
         (b'\x00\x00\x00\x00', empty_list, ()),
         (b'\x00\x00\x00\x00', uint32_list, ()),
-        (b'\x00\x00\x00\x00', hash32_list, ()),
-        (b'\x00\x00\x00\x00', address_list, ()),
+        (b'\x00\x00\x00\x00', bytes32_list, ()),
+        (b'\x00\x00\x00\x00', bytes48_list, ()),
+        (b'\x00\x00\x00\x00', bytes96_list, ()),
         (b'\x00\x00\x00\x00', boolean_list, ()),
 
         # Deserialize uint32 Iterables
@@ -130,13 +141,17 @@ def test_list_serialize_bad_values(value, sedes):
             (0, 1, 2, 3, 4),
         ),
 
-        # Deserialize hash32 Iterables
-        (b'\x00\x00\x00 ' + (b'\x00' * 32), hash32_list, (b'\x00' * 32,)),
-        (b'\x00\x00\x00@' + (b'\x00' * 64), hash32_list, (b'\x00' * 32, b'\x00' * 32)),
+        # Deserialize bytes32 Iterables
+        (b'\x00\x00\x00\x20' + (b'\x00' * 32), bytes32_list, (b'\x00' * 32,)),
+        (b'\x00\x00\x00\x40' + (b'\x00' * 64), bytes32_list, (b'\x00' * 32, b'\x00' * 32)),
 
-        # Deserialize address Iterables
-        (b'\x00\x00\x00\x14' + (b'\x00' * 20), address_list, (b'\x00' * 20,)),
-        (b'\x00\x00\x00(' + (b'\x00' * 40), address_list, (b'\x00' * 20, b'\x00' * 20)),
+        # Deserialize bytes48 Iterables
+        (b'\x00\x00\x00\x30' + (b'\x00' * 48), bytes48_list, (b'\x00' * 48,)),
+        (b'\x00\x00\x00\x60' + (b'\x00' * 96), bytes48_list, (b'\x00' * 48, b'\x00' * 48)),
+
+        # Deserialize bytes96 Iterables
+        (b'\x00\x00\x00\x60' + (b'\x00' * 96), bytes96_list, (b'\x00' * 96,)),
+        (b'\x00\x00\x00\xc0' + (b'\x00' * 192), bytes96_list, (b'\x00' * 96, b'\x00' * 96)),
 
         # Deserialize boolean Iterables
         (b'\x00\x00\x00\x04' + b'\x01' * 4, boolean_list, (True, True, True, True)),
@@ -164,20 +179,23 @@ def test_list_deserialize_values(value, sedes, expected):
     (
         # Less than 4 bytes of serialized data
         (b'\x00\x00\x00', uint32_list),
-        (b'\x00\x00\x00', hash32_list),
-        (b'\x00\x00\x00', address_list),
+        (b'\x00\x00\x00', bytes32_list),
+        (b'\x00\x00\x00', bytes48_list),
+        (b'\x00\x00\x00', bytes96_list),
         (b'\x00\x00\x00', boolean_list),
 
         # Insufficient serialized list data as per found out list length
         (b'\x00\x00\x04', uint32_list),
-        (b'\x00\x00\x04', hash32_list),
-        (b'\x00\x00\x04', address_list),
+        (b'\x00\x00\x04', bytes32_list),
+        (b'\x00\x00\x04', bytes48_list),
+        (b'\x00\x00\x04', bytes96_list),
         (b'\x00\x00\x04', boolean_list),
 
         # Serialized data given is more than what is required
         (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', uint32_list),
-        (b'\x00\x00\x00 ' + (b'\x00' * 35), hash32_list),
-        (b'\x00\x00\x00\x14' + (b'\x00' * 25), address_list),
+        (b'\x00\x00\x00 ' + (b'\x00' * 35), bytes32_list),
+        (b'\x00\x00\x00\x14' + (b'\x00' * 53), bytes48_list),
+        (b'\x00\x00\x00\x14' + (b'\x00' * 101), bytes96_list),
         (b'\x00\x00\x00\x04' + b'\x01' * 5, boolean_list),
 
         # Non-empty lists for empty sedes
@@ -195,13 +213,17 @@ def test_list_deserialize_bad_values(value, sedes):
         ((), uint32_list),
         ((0, 1, 2, 3, 4), uint32_list),
 
-        ((), hash32_list),
-        ((b'\x00' * 32,), hash32_list),
-        ((b'\x00' * 32, b'\x00' * 32), hash32_list),
+        ((), bytes32_list),
+        ((b'\x00' * 32,), bytes32_list),
+        ((b'\x00' * 32, b'\x00' * 32), bytes32_list),
 
-        ((), address_list),
-        ((b'\x00' * 20,), address_list),
-        ((b'\x00' * 20, b'\x00' * 20), address_list),
+        ((), bytes48_list),
+        ((b'\x00' * 48,), bytes48_list),
+        ((b'\x00' * 48, b'\x00' * 48), bytes48_list),
+
+        ((), bytes96_list),
+        ((b'\x00' * 96,), bytes96_list),
+        ((b'\x00' * 96, b'\x00' * 96), bytes96_list),
 
         ((), boolean_list),
         ((True, True, True, True), boolean_list),
@@ -226,21 +248,29 @@ def test_list_round_trip(value, sedes):
         ((), 'uint32_list'),
         ((0, 1, 2, 3, 4), 'uint32_list'),
 
-        ((), hash32_list),
-        ((b'\x00' * 32,), hash32_list),
-        ((b'\x00' * 32, b'\x00' * 32), hash32_list),
+        ((), bytes32_list),
+        ((b'\x00' * 32,), bytes32_list),
+        ((b'\x00' * 32, b'\x00' * 32), bytes32_list),
 
-        ((), 'hash32_list'),
-        ((b'\x00' * 32,), 'hash32_list'),
-        ((b'\x00' * 32, b'\x00' * 32), 'hash32_list'),
+        ((), 'bytes32_list'),
+        ((b'\x00' * 32,), 'bytes32_list'),
+        ((b'\x00' * 32, b'\x00' * 32), 'bytes32_list'),
 
-        ((), address_list),
-        ((b'\x00' * 20,), address_list),
-        ((b'\x00' * 20, b'\x00' * 20), address_list),
+        ((), bytes48_list),
+        ((b'\x00' * 48,), bytes48_list),
+        ((b'\x00' * 48, b'\x00' * 48), bytes48_list),
 
-        ((), 'address_list'),
-        ((b'\x00' * 20,), 'address_list'),
-        ((b'\x00' * 20, b'\x00' * 20), 'address_list'),
+        ((), 'bytes48_list'),
+        ((b'\x00' * 48,), 'bytes48_list'),
+        ((b'\x00' * 48, b'\x00' * 48), 'bytes48_list'),
+
+        ((), bytes96_list),
+        ((b'\x00' * 96,), bytes96_list),
+        ((b'\x00' * 96, b'\x00' * 96), bytes96_list),
+
+        ((), 'bytes96_list'),
+        ((b'\x00' * 96,), 'bytes96_list'),
+        ((b'\x00' * 96, b'\x00' * 96), 'bytes96_list'),
 
         ((), boolean_list),
         ((True, True, True, True), boolean_list),

@@ -16,7 +16,7 @@ from ssz.sedes.base import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Hash(FixedSizedSedes[BytesOrByteArray, bytes]):
+class BytesN(FixedSizedSedes[BytesOrByteArray, bytes]):
 
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
@@ -24,12 +24,15 @@ class Hash(FixedSizedSedes[BytesOrByteArray, bytes]):
                 f"Can only serialize values of exactly {len(value)} bytes, got"
                 f"{encode_hex(value)} which is {len(value)} bytes."
             )
-
         return value
 
     def deserialize_content(self, content: bytes) -> bytes:
         return content
 
 
-hash32 = Hash(32)
-address = Hash(20)
+# Use case: for hashes and messages
+bytes32 = BytesN(32)
+# Use case: for BLS public keys
+bytes48 = BytesN(48)
+# Use case: for BLS signatures
+bytes96 = BytesN(96)
