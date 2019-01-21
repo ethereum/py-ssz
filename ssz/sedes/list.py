@@ -17,10 +17,11 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes import (
-    address,
     boolean,
+    bytes32,
+    bytes48,
+    bytes96,
     bytes_sedes,
-    hash32,
     uint32,
 )
 from ssz.sedes.base import (
@@ -109,9 +110,10 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
         return merkle_hash(element_hashes)
 
 
-address_list = List(address)
 boolean_list = List(boolean)
 bytes_list = List(bytes_sedes)
 empty_list: List[None, None] = List(empty=True)
-hash32_list = List(hash32)
 uint32_list = List(uint32)
+bytes32_list = List(bytes32)
+bytes48_list = List(bytes48)
+bytes96_list = List(bytes96)

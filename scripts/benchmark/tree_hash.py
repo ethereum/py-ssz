@@ -3,7 +3,7 @@ import time
 from ssz.sedes import (
     List,
     Serializable,
-    hash32,
+    bytes32,
     uint24,
     uint64,
     uint384,
@@ -18,13 +18,13 @@ TOLERABLE_PERFORMANCE = 15  # Seconds
 class ValidatorRecord(Serializable):
     fields = [
         ('pubkey', uint384),
-        ('withdrawal_credentials', hash32),
-        ('randao_commitment', hash32),
+        ('withdrawal_credentials', bytes32),
+        ('randao_commitment', bytes32),
         ('randao_layers', uint64),
         ('status', uint64),
         ('latest_status_change_slot', uint64),
         ('exit_count', uint64),
-        ('poc_commitment', hash32),
+        ('poc_commitment', bytes32),
         ('last_poc_change_slot', uint64),
         ('second_last_poc_change_slot', uint64),
     ]
@@ -33,7 +33,7 @@ class ValidatorRecord(Serializable):
 class CrosslinkRecord(Serializable):
     fields = [
         ('slot', uint64),
-        ('shard_block_root', hash32),
+        ('shard_block_root', bytes32),
     ]
 
 

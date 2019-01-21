@@ -8,10 +8,11 @@ from .bytes import (  # noqa: F401
     Bytes,
 )
 
-from .hash import (  # noqa: F401
-    address,
-    hash32,
-    Hash,
+from .bytes_n import (  # noqa: F401
+    bytes32,
+    bytes48,
+    bytes96,
+    BytesN,
 )
 
 from .integer import (  # noqa: F401
@@ -31,12 +32,13 @@ from .integer import (  # noqa: F401
 )
 
 from .list import (  # noqa: F401
-    address_list,
     boolean_list,
     bytes_list,
     empty_list,
-    hash32_list,
     uint32_list,
+    bytes32_list,
+    bytes48_list,
+    bytes96_list,
     List,
 )
 
@@ -46,16 +48,18 @@ from .serializable import (  # noqa: F401
 
 
 sedes_by_name = {
-    "address_list": address_list,
-    "address": address,
     "boolean": boolean,
     "boolean_list": boolean_list,
     "bytes_list": bytes_list,
     "bytes_sedes": bytes_sedes,
+    "bytes32": bytes32,
+    "bytes48": bytes48,
+    "bytes96": bytes96,
     "empty_list": empty_list,
-    "hash32": hash32,
-    "hash32_list": hash32_list,
     "uint32_list": uint32_list,
+    "bytes32_list": bytes32_list,
+    "bytes48_list": bytes48_list,
+    "bytes96_list": bytes96_list,
     "uint8": uint8,
     "uint16": uint16,
     "uint24": uint24,
