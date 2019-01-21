@@ -4,13 +4,12 @@ from hypothesis import (
 )
 import pytest
 
-from ssz.exceptions import (
-    SerializationError,
-)
 from ssz.sedes import (
     Boolean,
-    boolean,
+    BytesN,
     UnsignedInteger,
+    boolean,
+    bytes_sedes,
 )
 from ssz.tree_hash.hash_eth2 import (
     hash_eth2,
@@ -71,3 +70,24 @@ def test_unsign_integers_more_than_32_bytes(data, num_bits):
     )
     expected = hash_eth2(value.to_bytes(num_bits // 8, 'big'))
     assert hash_tree_root(value, uintn) == expected
+
+
+@given(value=st.binary())
+def test_bytes_sedes(value):
+    assert len(hash_tree_root(value, bytes_sedes)) == 32
+
+
+@given(data=st.data())
+@pytest.mark.parametrize(
+    'length',
+    (32, 48, 96),
+)
+def test_bytes_n(data, length):
+    sedes = BytesN(length)
+    value = data.draw(
+        st.binary(
+            min_size=length,
+            max_size=length,
+        )
+    )
+    assert len(hash_tree_root(value, sedes)) == 32
