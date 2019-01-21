@@ -9,6 +9,7 @@ from ssz.exceptions import (
 )
 from ssz.sedes import (
     Boolean,
+    boolean,
     UnsignedInteger,
 )
 from ssz.tree_hash.hash_eth2 import (
@@ -26,8 +27,15 @@ from ssz.tree_hash.tree_hash import (
         (False, b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'),  # noqa
     ),
 )
-def test_boolean_serialize_values(value, expected):
-    sedes = Boolean()
+@pytest.mark.parametrize(
+    'sedes,',
+    (
+        None,
+        boolean,
+        Boolean(),
+    )
+)
+def test_boolean_serialize_values(value, sedes, expected):
     assert hash_tree_root(value, sedes) == expected
 
 
