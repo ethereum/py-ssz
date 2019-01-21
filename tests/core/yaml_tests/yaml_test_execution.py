@@ -16,8 +16,8 @@ from ssz.sedes import (
     BaseSedes,
     Boolean,
     Bytes,
+    BytesN,
     Container,
-    Hash,
     List,
     UnsignedInteger,
     sedes_by_name,
@@ -122,7 +122,7 @@ def parse_value(value, sedes):
             raise ValueError(f"Expected value of type str, got {type(value)}")
         return int(value)
 
-    elif isinstance(sedes, (Bytes, Hash)):
+    elif isinstance(sedes, (Bytes, BytesN)):
         if not isinstance(value, str) or not is_hex(value):
             raise ValueError(f"Expected hex string, got {type(value)}")
         return decode_hex(value)

@@ -10,6 +10,7 @@ extras_require = {
         "pytest>=3.6,<3.7",
         "pytest-xdist",
         "tox>=2.9.1,<3",
+        "ruamel.yaml",
         "hypothesis==3.69.5",
     ],
     'lint': [
