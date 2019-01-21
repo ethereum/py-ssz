@@ -8,8 +8,8 @@ from ssz.sedes import (
     BytesN,
     List,
     bytes32_list,
-    uint32_list,
     bytes_list,
+    uint32_list,
 )
 from ssz.tree_hash.tree_hash import (
     hash_tree_root,
@@ -105,7 +105,7 @@ def test_bytes_n_list_randomized(data, length, sequence_type):
     'items',
     (
         tuple(),
-        (b'\x56', b'\xab'*2, b'\xcd'*3),
+        (b'\x56', b'\xab' * 2, b'\xcd' * 3),
         (b'', b'\x56', ),
     ),
 )
