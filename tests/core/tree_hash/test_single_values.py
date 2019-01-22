@@ -44,7 +44,7 @@ def test_boolean_serialize_values(value, sedes, expected):
     (8, 16, 24, 32, 40, 48, 56, 64, 128, 256),
 )
 def test_unsign_integers_less_than_32_bytes(data, num_bits):
-    uintn = UnsignedInteger(num_bits)
+    uint_n = UnsignedInteger(num_bits)
     value = data.draw(
         st.integers(
             min_value=0,
@@ -52,7 +52,7 @@ def test_unsign_integers_less_than_32_bytes(data, num_bits):
         )
     )
     expected = value.to_bytes(num_bits // 8, 'big').ljust(32, b'\x00')
-    assert hash_tree_root(value, uintn) == expected
+    assert hash_tree_root(value, uint_n) == expected
 
 
 @given(data=st.data())
@@ -61,7 +61,7 @@ def test_unsign_integers_less_than_32_bytes(data, num_bits):
     (384, 512),
 )
 def test_unsign_integers_more_than_32_bytes(data, num_bits):
-    uintn = UnsignedInteger(num_bits)
+    uint_n = UnsignedInteger(num_bits)
     value = data.draw(
         st.integers(
             min_value=0,
@@ -69,7 +69,7 @@ def test_unsign_integers_more_than_32_bytes(data, num_bits):
         )
     )
     expected = hash_eth2(value.to_bytes(num_bits // 8, 'big'))
-    assert hash_tree_root(value, uintn) == expected
+    assert hash_tree_root(value, uint_n) == expected
 
 
 @given(value=st.binary())
