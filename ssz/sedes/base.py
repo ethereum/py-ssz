@@ -121,7 +121,7 @@ class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
         return 2 ** (self.length_bytes * 8) - 1
 
     def get_length_prefix(self, content: bytes) -> bytes:
-        return len(content).to_bytes(self.length_bytes, "big")
+        return len(content).to_bytes(self.length_bytes, "little")
 
     def validate_content_length(self, content: bytes) -> None:
         if len(content) >= self.max_content_length:
@@ -146,7 +146,7 @@ class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         prefix, content_start_index = self.consume_bytes(data, start_index, self.length_bytes)
-        length = int.from_bytes(prefix, "big")
+        length = int.from_bytes(prefix, "little")
         content, continuation_index = self.consume_bytes(data, content_start_index, length)
         return self.deserialize_content(content), continuation_index
 

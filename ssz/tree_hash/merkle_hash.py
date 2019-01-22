@@ -21,7 +21,7 @@ def merkle_hash(input_items: Sequence[Any]) -> Hash32:
     """
 
     # Store length of list (to compensate for non-bijectiveness of padding)
-    data_length = len(input_items).to_bytes(32, 'big')
+    data_length = len(input_items).to_bytes(32, "little")
 
     if len(input_items) == 0:
         # Handle empty list case
