@@ -242,12 +242,14 @@ def test_container_deserialize_bad_values(value, sedes):
 def test_empty_fields_container_deserialize():
     with pytest.raises(DeserializationError):
         SSZType5.deserialize(SSZType6.serialize(_type_6))
+    with pytest.raises(DeserializationError):
         SSZType6.deserialize(SSZType5.serialize(_type_5))
 
 
 def test_subset_or_superset_fields_container_deserialize_bad_values():
     with pytest.raises(DeserializationError):
         SSZType6.deserialize(SSZType3.serialize(_type_3))
+    with pytest.raises(DeserializationError):
         SSZType3.deserialize(SSZType6.serialize(_type_6))
 
 
