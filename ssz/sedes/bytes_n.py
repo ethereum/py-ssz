@@ -21,7 +21,7 @@ class BytesN(FixedSizedSedes[BytesOrByteArray, bytes]):
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
             raise SerializationError(
-                f"Can only serialize values of exactly {len(value)} bytes, got"
+                f"Can only serialize values of exactly {self.length} bytes, got"
                 f"{encode_hex(value)} which is {len(value)} bytes."
             )
         return value

@@ -1,9 +1,18 @@
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import pytest
 
 from ssz.sedes import (
     Boolean,
-    uint16,
-    uint512,
+    BytesN,
+    UnsignedInteger,
+    boolean,
+    bytes_sedes,
+)
+from ssz.tree_hash.hash_eth2 import (
+    hash_eth2,
 )
 from ssz.tree_hash.tree_hash import (
     hash_tree_root,
@@ -17,18 +26,68 @@ from ssz.tree_hash.tree_hash import (
         (False, b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'),  # noqa
     ),
 )
-def test_boolean_serialize_values(value, expected):
-    sedes = Boolean()
+@pytest.mark.parametrize(
+    'sedes,',
+    (
+        None,
+        boolean,
+        Boolean(),
+    )
+)
+def test_boolean_serialize_values(value, sedes, expected):
     assert hash_tree_root(value, sedes) == expected
 
 
+@given(data=st.data())
 @pytest.mark.parametrize(
-    'value,sedes',
-    (
-        (0, uint16),
-        (56, uint16),
-        (55665566, uint512),
-    ),
+    'num_bits',
+    (8, 16, 24, 32, 40, 48, 56, 64, 128, 256),
 )
-def test_non_iterables(value, sedes):
+def test_unsign_integers_less_than_32_bytes(data, num_bits):
+    uint_n = UnsignedInteger(num_bits)
+    value = data.draw(
+        st.integers(
+            min_value=0,
+            max_value=2**num_bits - 1,
+        )
+    )
+    expected = value.to_bytes(num_bits // 8, 'big').ljust(32, b'\x00')
+    assert hash_tree_root(value, uint_n) == expected
+
+
+@given(data=st.data())
+@pytest.mark.parametrize(
+    'num_bits',
+    (384, 512),
+)
+def test_unsign_integers_more_than_32_bytes(data, num_bits):
+    uint_n = UnsignedInteger(num_bits)
+    value = data.draw(
+        st.integers(
+            min_value=0,
+            max_value=2**num_bits - 1,
+        )
+    )
+    expected = hash_eth2(value.to_bytes(num_bits // 8, 'big'))
+    assert hash_tree_root(value, uint_n) == expected
+
+
+@given(value=st.binary())
+def test_bytes_sedes(value):
+    assert len(hash_tree_root(value, bytes_sedes)) == 32
+
+
+@given(data=st.data())
+@pytest.mark.parametrize(
+    'length',
+    (32, 48, 96),
+)
+def test_bytes_n(data, length):
+    sedes = BytesN(length)
+    value = data.draw(
+        st.binary(
+            min_size=length,
+            max_size=length,
+        )
+    )
     assert len(hash_tree_root(value, sedes)) == 32
