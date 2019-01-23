@@ -54,8 +54,8 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
             raise ValueError("Number of bytes to read must not be negative")
         elif start_index + num_bytes > len(data):
             raise DeserializationError(
-                f"Tried to read {num_bytes} bytes from {start_index} but the string is only "
-                f"{len(data)} bytes long"
+                f"Tried to read {num_bytes} bytes starting at index {start_index} but the string "
+                f"is only {len(data)} bytes long"
             )
         else:
             continuation_index = start_index + num_bytes

@@ -14,6 +14,9 @@ from mypy_extensions import (
     TypedDict,
 )
 
+from ssz.exceptions import (
+    DeserializationError,
+)
 from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
@@ -62,6 +65,10 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
             if next_field_start_index <= field_start_index:
                 raise Exception("Invariant: must always make progress")
             field_start_index = next_field_start_index
+
+        if field_start_index < len(content):
+            extra_bytes = len(content) - field_start_index
+            raise DeserializationError(f"Serialized container ends with {extra_bytes} extra bytes")
 
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
