@@ -13,7 +13,7 @@ from ssz.sedes import (
     Boolean,
     Bytes,
     Container,
-    Hash,
+    BytesN,
     List,
     UnsignedInteger,
 )
@@ -47,8 +47,8 @@ def render_type_definition(sedes):
     elif isinstance(sedes, UnsignedInteger):
         return f"uint{sedes.length * 8}"
 
-    elif isinstance(sedes, Hash):
-        return f"hash{sedes.length}"
+    elif isinstance(sedes, BytesN):
+        return f"bytes{sedes.length}"
 
     elif isinstance(sedes, Bytes):
         return f"bytes"
