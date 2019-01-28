@@ -12,8 +12,8 @@ from ssz.sedes import (
     BaseSedes,
     Boolean,
     Bytes,
-    Container,
     BytesN,
+    Container,
     List,
     UnsignedInteger,
 )
