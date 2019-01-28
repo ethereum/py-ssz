@@ -23,15 +23,15 @@ from ssz.sedes import (
         (255, uint8, b'\xff'),
 
         (0, uint16, b'\x00\x00'),
-        (5, uint16, b'\x00\x05'),
-        (127, uint16, b'\x00\x7f'),
-        (256, uint16, b'\x01\x00'),
-        (1024, uint16, b'\x04\x00'),
+        (5, uint16, b'\x05\x00'),
+        (127, uint16, b'\x7f\x00'),
+        (256, uint16, b'\x00\x01'),
+        (1024, uint16, b'\x00\x04'),
         (65535, uint16, b'\xff\xff'),
 
         (0, uint32, b'\x00\x00\x00\x00'),
-        (5, uint32, b'\x00\x00\x00\x05'),
-        (65536, uint32, b'\x00\x01\x00\x00'),
+        (5, uint32, b'\x05\x00\x00\x00'),
+        (65536, uint32, b'\x00\x00\x01\x00'),
         (4294967295, uint32, b'\xff\xff\xff\xff'),
 
         (0, uint64, b'\x00\x00\x00\x00\x00\x00\x00\x00'),
@@ -77,8 +77,8 @@ def test_ssz_encode_integer_serialize_bad_values(value):
     'value,sedes,expected',
     (
         (b'\x05', uint8, 5),
-        (b'\x00\x05', uint16, 5),
-        (b'\x00\x00\x00\x05', uint32, 5),
+        (b'\x05\x00', uint16, 5),
+        (b'\x05\x00\x00\x00', uint32, 5),
         (b'\x7f', uint8, 127),
         (b'\xff', uint8, 255),
         (b'\xff\xff', uint16, 65535),
@@ -94,14 +94,15 @@ def test_integer_deserialize_values(value, sedes, expected):
         # Values too short
         (b'\x05', uint16),
         (b'\x7f', uint16),
-        (b'\x00\x05', uint32),
-        (b'\x00\x00\x00\x05', uint64),
+        (b'\x05\x00', uint32),
+        (b'\x05\x00\x00\x00', uint64),
 
         # Values too long
         (b'\x05\x00\x05', uint16),
         (b'\x7f\x00\x7f', uint16),
-        (b'\x00\x05\x00\x05\x00\x05', uint32),
+        (b'\x05\x00\x05\x00\x05\x00', uint32),
         (b'\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00\x05', uint64),
+        (b'\x05\x00\x00\x00\x05\x00\x00\x00\x05\x00\x00\x00', uint64),
     ),
 )
 def test_integer_deserialize_bad_values(value, sedes):

@@ -51,7 +51,7 @@ def test_unsign_integers_less_than_32_bytes(data, num_bits):
             max_value=2**num_bits - 1,
         )
     )
-    expected = value.to_bytes(num_bits // 8, 'big').ljust(32, b'\x00')
+    expected = value.to_bytes(num_bits // 8, "little").ljust(32, b'\x00')
     assert hash_tree_root(value, uint_n) == expected
 
 
@@ -68,7 +68,7 @@ def test_unsign_integers_more_than_32_bytes(data, num_bits):
             max_value=2**num_bits - 1,
         )
     )
-    expected = hash_eth2(value.to_bytes(num_bits // 8, 'big'))
+    expected = hash_eth2(value.to_bytes(num_bits // 8, "little"))
     assert hash_tree_root(value, uint_n) == expected
 
 

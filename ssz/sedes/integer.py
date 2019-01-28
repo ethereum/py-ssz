@@ -22,14 +22,14 @@ class UnsignedInteger(FixedSizedSedes[int, int]):
             )
 
         try:
-            return value.to_bytes(self.length, 'big')
+            return value.to_bytes(self.length, "little")
         except OverflowError:
             raise SerializationError(
                 f"{value} is too large to be serialized in {self.length * 8} bits"
             )
 
     def deserialize_content(self, content: bytes) -> int:
-        return int.from_bytes(content, 'big')
+        return int.from_bytes(content, "little")
 
 
 uint8 = UnsignedInteger(8)

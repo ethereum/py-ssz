@@ -222,16 +222,16 @@ def test_undeclared_fields_serializable_class():
         (b'\x00\x00\x00', SSZType4),
 
         # Insufficient serialized container data as per found out container length
-        (b'\x00\x00\x00\x04', SSZType1),
-        (b'\x00\x00\x00\x04', SSZType2),
-        (b'\x00\x00\x00\x04', SSZType3),
-        (b'\x00\x00\x00\x04', SSZType4),
+        (b'\x04\x00\x00\x00', SSZType1),
+        (b'\x04\x00\x00\x00', SSZType2),
+        (b'\x04\x00\x00\x00', SSZType3),
+        (b'\x04\x00\x00\x00', SSZType4),
 
         # Serialized data given is more than what is required
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType1),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType2),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType3),
-        (b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType4),
+        (b'\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType1),
+        (b'\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType2),
+        (b'\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType3),
+        (b'\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00', SSZType4),
     ),
 )
 def test_container_deserialize_bad_values(value, sedes):
@@ -260,28 +260,37 @@ def test_subset_or_superset_fields_container_deserialize_bad_values():
         (
             type_1_a(),
             SSZType1,
-            b'\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a'
-            b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01',
+            b'\x15\x00\x00\x00\x05\x00\x00\x00\x01\x00\x00\x00\x61'
+            b'\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00',
         ),
         (
             type_1_b(),
             SSZType1,
-            b'\x00\x00\x00\x15\x00\x00\x00\t\x00\x00\x00\x01b'
-            b'\x00\x00\x00\x08\x00\x00\x00\x02\x00\x00\x00\x03',
+            b'\x15\x00\x00\x00\x09\x00\x00\x00\x01\x00\x00\x00\x62'
+            b'\x08\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00',
         ),
         (
             type_2(),
             SSZType2,
-            b'\x00\x00\x00O\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00'
-            b'\x01a\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00'
-            b'\x00\x002\x00\x00\x00\x15\x00\x00\x00\x05\x00\x00\x00\x01a'
-            b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x15\x00'
-            b'\x00\x00\t\x00\x00\x00\x01b\x00\x00\x00\x08\x00\x00'
-            b'\x00\x02\x00\x00\x00\x03',
+            b'\x4f\x00\x00\x00'  # SSZType2 prefix
+            b'\x15\x00\x00\x00'  # SSZType1 prefix
+            b'\x05\x00\x00\x00'  # SSZType1.field1 (uint32)
+            b'\x01\x00\x00\x00\x61'  # SSZType1.field2 (bytes)
+            b'\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00'  # SSZType1.field3 (uint32_list)
+            b'\x32\x00\x00\x00'  # SSZType2.field2 (List[SSZType1]) prefix
+            b'\x15\x00\x00\x00'  # SSZType1 prefix
+            b'\x05\x00\x00\x00'  # SSZType1.field1 (uint32)
+            b'\x01\x00\x00\x00\x61'  # SSZType1.field2 (bytes)
+            b'\x08\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00'  # SSZType1.field3 (uint32_list)
+            b'\x15\x00\x00\x00'  # SSZType1 prefix
+            b'\x09\x00\x00\x00'  # SSZType1.field1 (uint32)
+            b'\x01\x00\x00\x00\x62'  # SSZType1.field2 (bytes)
+            b'\x08\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00',  # SSZType1.field3 (uint32_list)
         ),
     )
 )
 def test_serializable_serialization(value, sedes, expected):
+    sedes.deserialize(expected)
     assert sedes.serialize(value) == expected
 
 
@@ -408,12 +417,12 @@ def test_serializable_single_inheritance_with_no_fields():
     parent = Parent(1, 2)
     assert parent.field_a == 1
     assert parent.field_b == 2
-    assert Parent.serialize(parent) == b'\x00\x00\x00\x08\x00\x00\x00\x01\x00\x00\x00\x02'
+    assert Parent.serialize(parent) == b'\x08\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00'
 
     child = Child(3, 4)
     assert child.field_a == 3
     assert child.field_b == 4
-    assert Child.serialize(child) == b'\x00\x00\x00\x08\x00\x00\x00\x03\x00\x00\x00\x04'
+    assert Child.serialize(child) == b'\x08\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00'
 
 
 def test_serializable_single_inheritance_with_fields():
@@ -433,7 +442,7 @@ def test_serializable_single_inheritance_with_fields():
     parent = Parent(1, 2)
     assert parent.field_a == 1
     assert parent.field_b == 2
-    assert Parent.serialize(parent) == b'\x00\x00\x00\x08\x00\x00\x00\x01\x00\x00\x00\x02'
+    assert Parent.serialize(parent) == b'\x08\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00'
 
     with pytest.raises(TypeError):
         # ensure that the fields don't somehow leak into the parent class.
@@ -443,8 +452,8 @@ def test_serializable_single_inheritance_with_fields():
     assert child.field_a == 3
     assert child.field_b == 4
     assert child.field_c == 5
-    assert Child.serialize(child) == (b'\x00\x00\x00\x0c\x00\x00\x00\x03'
-                                      b'\x00\x00\x00\x04\x00\x00\x00\x05')
+    assert Child.serialize(child) == (b'\x0c\x00\x00\x00\x03\x00\x00\x00'
+                                      b'\x04\x00\x00\x00\x05\x00\x00\x00')
 
 
 def test_serializable_inheritance_with_sedes_overrides():
@@ -464,14 +473,14 @@ def test_serializable_inheritance_with_sedes_overrides():
     parent = Parent(1, 2)
     assert parent.field_a == 1
     assert parent.field_b == 2
-    assert Parent.serialize(parent) == b'\x00\x00\x00\x08\x00\x00\x00\x01\x00\x00\x00\x02'
+    assert Parent.serialize(parent) == b'\x08\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00'
 
     child = Child(b'1', b'2', b'3')
     assert child.field_a == b'1'
     assert child.field_b == b'2'
     assert child.field_c == b'3'
-    assert Child.serialize(child) == (b'\x00\x00\x00\x0f\x00\x00\x00\x011\x00'
-                                      b'\x00\x00\x012\x00\x00\x00\x013')
+    assert Child.serialize(child) == (b'\x0f\x00\x00\x00\x01\x00\x00\x00\x31'
+                                      b'\x01\x00\x00\x00\x32\x01\x00\x00\x00\x33')
 
 
 def test_serializable_multiple_inheritance_requires_all_parent_fields():

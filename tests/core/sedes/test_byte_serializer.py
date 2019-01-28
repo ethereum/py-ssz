@@ -14,27 +14,23 @@ from ssz.sedes import (
     'value,expected',
     (
         (b"", b'\x00\x00\x00\x00'),
-        (b"I", b'\x00\x00\x00\x01I'),
-        (b"foo", b'\x00\x00\x00\x03foo'),
-        (b"hello", b'\x00\x00\x00\x05hello'),
-
-        (bytearray(b""), b'\x00\x00\x00\x00'),
-        (bytearray(b"I"), b'\x00\x00\x00\x01I'),
-        (bytearray(b"foo"), b'\x00\x00\x00\x03foo'),
-        (bytearray(b"hello"), b'\x00\x00\x00\x05hello'),
+        (b"I", b'\x01\x00\x00\x00I'),
+        (b"foo", b'\x03\x00\x00\x00foo'),
+        (b"hello", b'\x05\x00\x00\x00hello'),
     ),
 )
 def test_bytes_serialize_values(value, expected):
     assert bytes_sedes.serialize(value) == expected
+    assert bytes_sedes.serialize(bytearray(value)) == expected
 
 
 @pytest.mark.parametrize(
     'value,expected',
     (
         (b'\x00\x00\x00\x00', b""),
-        (b'\x00\x00\x00\x01I', b"I"),
-        (b'\x00\x00\x00\x03foo', b"foo"),
-        (b'\x00\x00\x00\x05hello', b"hello"),
+        (b'\x01\x00\x00\x00I', b"I"),
+        (b'\x03\x00\x00\x00foo', b"foo"),
+        (b'\x05\x00\x00\x00hello', b"hello"),
     ),
 )
 def test_bytes_deserialize_values(value, expected):
@@ -45,13 +41,13 @@ def test_bytes_deserialize_values(value, expected):
     'value',
     (
         # Less than 4 bytes of serialized data
-        b'\x00\x00\x01',
+        b'\x01\x00\x00',
 
         # Insufficient serialized object data as per found out byte object length
-        b'\x00\x00\x00\x04',
+        b'\x04\x00\x00\x00',
 
         # Serialized data given is more than what is required
-        b'\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00'
+        b'\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01' + b'\x00'
     ),
 )
 def test_bytes_deserialization_bad_value(value):
@@ -66,15 +62,11 @@ def test_bytes_deserialization_bad_value(value):
         (b"I", b'I'),
         (b"foo", b'foo'),
         (b"hello", b'hello'),
-
-        (bytearray(b""), b''),
-        (bytearray(b"I"), b'I'),
-        (bytearray(b"foo"), b'foo'),
-        (bytearray(b"hello"), b'hello'),
     ),
 )
 def test_bytes_round_trip(value, expected):
     assert bytes_sedes.deserialize(bytes_sedes.serialize(value)) == expected
+    assert bytes_sedes.deserialize(bytes_sedes.serialize(bytearray(value))) == expected
 
 
 @pytest.mark.parametrize(
