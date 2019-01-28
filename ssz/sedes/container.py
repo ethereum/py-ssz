@@ -21,9 +21,6 @@ from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
 )
-from ssz.exceptions import (
-    DeserializationError,
-)
 from ssz.tree_hash.hash_eth2 import (
     hash_eth2,
 )
