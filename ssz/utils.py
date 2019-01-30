@@ -1,10 +1,7 @@
 import collections
 from collections.abc import (
     Iterable,
-)
-
-from eth_utils.toolz import (
-    peek,
+    Sequence,
 )
 
 from ssz.sedes import (
@@ -16,15 +13,12 @@ from ssz.sedes import (
 )
 
 
-def infer_list_sedes(obj):
-    try:
-        first_element, iterator = peek(obj)
-    except StopIteration:
-        # For empty lists we use any empty_list sedes.
+def infer_list_sedes(value):
+    if len(value) == 0:
         return empty_list
     else:
         try:
-            element_sedes = infer_sedes(first_element)
+            element_sedes = infer_sedes(value[0])
         except TypeError:
             raise TypeError("Could not infer sedes for list elements")
         else:
@@ -48,8 +42,11 @@ def infer_sedes(value):
     elif isinstance(value, (bytes, bytearray)):
         return bytes_sedes
 
-    elif isinstance(obj, Iterable):
-        return infer_list_sedes(obj)
+    elif isinstance(value, Sequence):
+        return infer_list_sedes(value)
+
+    elif isinstance(value, Iterable):
+        raise TypeError("Cannot infer list sedes for iterables that are not sequences")
 
     else:
         raise TypeError(f"Did not find sedes handling type {type(value).__name__}")
