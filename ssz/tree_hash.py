@@ -6,11 +6,11 @@ from eth_typing import (
     Hash32,
 )
 
-from ssz.sedes.base import (
-    BaseSedes,
-)
 from ssz.utils import (
-    infer_sedes,
+    infer_sedes
+)
+from ssz.sedes import (
+    BaseSedes,
 )
 
 

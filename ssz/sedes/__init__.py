@@ -46,7 +46,7 @@ from .base import (  # noqa: F401
     BaseSedes,
 )
 
-from .serializable import (
+from .serializable import (  # noqa: F401
     Serializable,
 )
 

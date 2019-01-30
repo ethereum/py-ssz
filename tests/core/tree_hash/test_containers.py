@@ -7,10 +7,10 @@ from ssz.sedes import (
     uint32,
     uint32_list,
 )
-from ssz.tree_hash.hash_eth2 import (
+from ssz.tree_hash_backup.hash_eth2 import (
     hash_eth2,
 )
-from ssz.tree_hash.tree_hash import (
+from ssz.tree_hash_backup.tree_hash import (
     hash_tree_root,
 )
 

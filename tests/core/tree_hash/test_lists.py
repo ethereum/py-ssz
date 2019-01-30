@@ -11,7 +11,7 @@ from ssz.sedes import (
     bytes_list,
     uint32_list,
 )
-from ssz.tree_hash.tree_hash import (
+from ssz.tree_hash_backup.tree_hash import (
     hash_tree_root,
 )
 

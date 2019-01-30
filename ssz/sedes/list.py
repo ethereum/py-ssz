@@ -28,7 +28,7 @@ from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
 )
-from ssz.tree_hash.merkle_hash import (
+from ssz.utils import (
     merkle_hash,
 )
 

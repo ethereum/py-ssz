@@ -1,9 +1,7 @@
 import pytest
 
-from ssz.tree_hash.hash_eth2 import (
+from ssz.utils import (
     hash_eth2,
-)
-from ssz.tree_hash.merkle_hash import (
     merkle_hash,
 )
 

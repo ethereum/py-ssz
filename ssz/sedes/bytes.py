@@ -5,7 +5,7 @@ from typing import (
 from ssz.sedes.base import (
     LengthPrefixedSedes,
 )
-from ssz.tree_hash.hash_eth2 import (
+from ssz.tree_hash_backup.hash_eth2 import (
     hash_eth2,
 )
 
