@@ -8,20 +8,12 @@ from eth_utils.toolz import (
 )
 
 from ssz.sedes import (
+    BaseSedes,
     List,
     boolean,
     bytes_sedes,
     empty_list,
 )
-
-
-def is_sedes(obj):
-    """
-    Check if `obj` is a sedes object.
-    A sedes object is characterized by having the methods
-    `serialize(obj)` and `deserialize(serial)`.
-    """
-    return hasattr(obj, 'serialize') and hasattr(obj, 'deserialize')
 
 
 def infer_list_sedes(obj):
@@ -46,8 +38,7 @@ def infer_sedes(obj):
     """
     Try to find a sedes objects suitable for a given Python object.
     """
-    if is_sedes(obj.__class__):
-        # Return sedes directly, if such a sedes exists with the class name
+    if isinstance(value.__class__, BaseSedes):
         # Mainly used for `Serializable` Classes
         return obj.__class__
 

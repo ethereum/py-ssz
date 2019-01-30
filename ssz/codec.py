@@ -8,10 +8,10 @@ from ssz.exceptions import (
 )
 from ssz.sedes import (
     sedes_by_name,
+    BaseSedes,
 )
 from ssz.utils import (
     infer_sedes,
-    is_sedes,
 )
 
 
@@ -30,8 +30,8 @@ def encode(obj, sedes=None):
         else:
             sedes_obj = sedes
 
-        if not is_sedes(sedes_obj):
-            raise InvalidSedesError("Invalid sedes object", sedes)
+        if not isinstance(sedes_obj, BaseSedes):
+            raise TypeError("Invalid sedes object")
 
     else:
         sedes_obj = infer_sedes(obj)

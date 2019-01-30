@@ -42,7 +42,11 @@ from .list import (  # noqa: F401
     List,
 )
 
-from .serializable import (  # noqa: F401
+from .base import (  # noqa: F401
+    BaseSedes,
+)
+
+from .serializable import (
     Serializable,
 )
 
