@@ -2,10 +2,6 @@ from eth_utils import (
     is_bytes,
 )
 
-from ssz.exceptions import (
-    DecodingError,
-    InvalidSedesError,
-)
 from ssz.sedes import (
     sedes_by_name,
     BaseSedes,
@@ -45,7 +41,7 @@ def decode(ssz, sedes):
     Decode a SSZ encoded object.
     """
     if not is_bytes(ssz):
-        raise DecodingError('Can only decode SSZ bytes, got type %s' % type(ssz).__name__, ssz)
+        raise TypeError(f"Can only decode SSZ bytes, got type {type(ssz).__name__}")
 
     obj = sedes.deserialize(ssz)
     return obj

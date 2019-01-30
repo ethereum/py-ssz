@@ -5,8 +5,6 @@ from .codec import (  # noqa: F401
 
 from .exceptions import (  # noqa: F401
     SSZException,
-    EncodingError,
-    DecodingError,
     SerializationError,
     DeserializationError,
 )
