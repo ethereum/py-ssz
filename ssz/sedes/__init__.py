@@ -92,13 +92,7 @@ from .uint import (  # noqa: F401
 )
 
 from .list import (  # noqa: F401
-    boolean_list,
-    bytes_list,
     empty_list,
-    uint32_list,
-    bytes32_list,
-    bytes48_list,
-    bytes96_list,
     List,
 )
 
@@ -108,7 +102,7 @@ from .base import (  # noqa: F401
     LengthPrefixedSedes,
 )
 
-from .container import (
+from .container import (  # noqa: F401
     Container,
 )
 
@@ -119,17 +113,11 @@ from .serializable import (  # noqa: F401
 
 sedes_by_name = {
     "boolean": boolean,
-    "boolean_list": boolean_list,
-    "bytes_list": bytes_list,
     "bytes_sedes": bytes_sedes,
     "bytes32": bytes32,
     "bytes48": bytes48,
     "bytes96": bytes96,
     "empty_list": empty_list,
-    "uint32_list": uint32_list,
-    "bytes32_list": bytes32_list,
-    "bytes48_list": bytes48_list,
-    "bytes96_list": bytes96_list,
 
     "uint8": uint8,
     "uint16": uint16,

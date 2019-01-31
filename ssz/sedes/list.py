@@ -19,14 +19,6 @@ from ssz.exceptions import (
 from ssz.hash import (
     merkle_hash,
 )
-from ssz.sedes import (
-    boolean,
-    bytes32,
-    bytes48,
-    bytes96,
-    bytes_sedes,
-    uint32,
-)
 from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
@@ -110,10 +102,4 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
         return merkle_hash(element_hashes)
 
 
-boolean_list = List(boolean)
-bytes_list = List(bytes_sedes)
 empty_list: List[None, None] = List(empty=True)
-uint32_list = List(uint32)
-bytes32_list = List(bytes32)
-bytes48_list = List(bytes48)
-bytes96_list = List(bytes96)

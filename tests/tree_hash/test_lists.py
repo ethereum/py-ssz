@@ -10,10 +10,14 @@ from ssz import (
 from ssz.sedes import (
     BytesN,
     List,
-    bytes32_list,
-    bytes_list,
-    uint32_list,
+    bytes32,
+    bytes_sedes,
+    uint32,
 )
+
+bytes32_list = List(bytes32)
+bytes_list = List(bytes_sedes)
+uint32_list = List(uint32)
 
 
 @pytest.mark.parametrize(

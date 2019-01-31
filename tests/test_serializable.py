@@ -14,11 +14,12 @@ from ssz.sedes import (
     Serializable,
     bytes_sedes,
     uint32,
-    uint32_list,
 )
 from ssz.utils import (
     infer_sedes,
 )
+
+uint32_list = List(uint32)
 
 
 class SSZType1(Serializable):

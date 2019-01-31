@@ -8,11 +8,12 @@ from ssz.sedes import (
     Serializable,
     bytes_sedes,
     uint32,
-    uint32_list,
 )
 from ssz.tree_hash import (
     hash_tree_root,
 )
+
+uint32_list = List(uint32)
 
 
 class SSZType1(Serializable):
