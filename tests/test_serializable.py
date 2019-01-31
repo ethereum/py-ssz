@@ -97,11 +97,6 @@ def type_2():
     return _type_2.copy()
 
 
-@pytest.fixture(params=[_type_1_a, _type_1_b, _type_2])
-def ssz_obj(request):
-    return request.param.copy()
-
-
 @pytest.mark.parametrize(
     'ssztype,args,kwargs,exception_includes',
     (

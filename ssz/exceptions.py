@@ -17,10 +17,3 @@ class DeserializationError(SSZException):
     Exception raised if deserialization fails.
     """
     pass
-
-
-class TreeHashException(SSZException):
-    """
-    Exception raised if tree hash fails.
-    """
-    pass
