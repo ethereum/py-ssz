@@ -15,8 +15,8 @@ from .bytes_n import (  # noqa: F401
     BytesN,
 )
 
-from .integer import (  # noqa: F401
-    UnsignedInteger,
+from .uint import (  # noqa: F401
+    UInt,
 
     uint8,
     uint16,

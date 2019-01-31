@@ -37,7 +37,7 @@ from .sedes import (  # noqa: F401
     bytes48,
     bytes96,
 
-    UnsignedInteger,
+    UInt,
 
     uint8,
     uint16,
