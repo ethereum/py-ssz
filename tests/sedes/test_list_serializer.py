@@ -7,14 +7,22 @@ from ssz import (
     encode,
 )
 from ssz.sedes import (
-    boolean_list,
-    bytes32_list,
-    bytes48_list,
-    bytes96_list,
-    bytes_list,
+    List,
+    boolean,
+    bytes32,
+    bytes48,
+    bytes96,
+    bytes_sedes,
     empty_list,
-    uint32_list,
+    uint32,
 )
+
+boolean_list = List(boolean)
+bytes32_list = List(bytes32)
+bytes48_list = List(bytes48)
+bytes96_list = List(bytes96)
+bytes_list = List(bytes_sedes)
+uint32_list = List(uint32)
 
 
 @pytest.mark.parametrize(
@@ -257,52 +265,27 @@ def test_list_round_trip(value, sedes):
         ((), uint32_list),
         ((0, 1, 2, 3, 4), uint32_list),
 
-        ((), 'uint32_list'),
-        ((0, 1, 2, 3, 4), 'uint32_list'),
-
         ((), bytes32_list),
         ((b'\x00' * 32,), bytes32_list),
         ((b'\x00' * 32, b'\x00' * 32), bytes32_list),
-
-        ((), 'bytes32_list'),
-        ((b'\x00' * 32,), 'bytes32_list'),
-        ((b'\x00' * 32, b'\x00' * 32), 'bytes32_list'),
 
         ((), bytes48_list),
         ((b'\x00' * 48,), bytes48_list),
         ((b'\x00' * 48, b'\x00' * 48), bytes48_list),
 
-        ((), 'bytes48_list'),
-        ((b'\x00' * 48,), 'bytes48_list'),
-        ((b'\x00' * 48, b'\x00' * 48), 'bytes48_list'),
-
         ((), bytes96_list),
         ((b'\x00' * 96,), bytes96_list),
         ((b'\x00' * 96, b'\x00' * 96), bytes96_list),
-
-        ((), 'bytes96_list'),
-        ((b'\x00' * 96,), 'bytes96_list'),
-        ((b'\x00' * 96, b'\x00' * 96), 'bytes96_list'),
 
         ((), boolean_list),
         ((True, True, True, True), boolean_list),
         ((False, False, False, False), boolean_list),
         ((True, False, True, False), boolean_list),
 
-        ((), 'boolean_list'),
-        ((True, True, True, True), 'boolean_list'),
-        ((False, False, False, False), 'boolean_list'),
-        ((True, False, True, False), 'boolean_list'),
-
         ((), bytes_list),
         ((b'\x01',), bytes_list),
         ((b'\x01', b'\x02'), bytes_list),
         ((b'\x01\x02', b'\x02\x03'), bytes_list),
-
-        ((), 'bytes_list'),
-        ((b'\x01',), 'bytes_list'),
-        ((b'\x01', b'\x02'), 'bytes_list'),
-        ((b'\x01\x02', b'\x02\x03'), 'bytes_list'),
     ),
 )
 def test_list_round_trip_codec(value, sedes):

@@ -2,11 +2,11 @@ from typing import (
     Union,
 )
 
+from ssz.hash import (
+    hash_eth2,
+)
 from ssz.sedes.base import (
     LengthPrefixedSedes,
-)
-from ssz.tree_hash.hash_eth2 import (
-    hash_eth2,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]

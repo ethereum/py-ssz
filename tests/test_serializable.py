@@ -14,11 +14,12 @@ from ssz.sedes import (
     Serializable,
     bytes_sedes,
     uint32,
-    uint32_list,
 )
 from ssz.utils import (
     infer_sedes,
 )
+
+uint32_list = List(uint32)
 
 
 class SSZType1(Serializable):
@@ -94,11 +95,6 @@ def type_1_b():
 @pytest.fixture
 def type_2():
     return _type_2.copy()
-
-
-@pytest.fixture(params=[_type_1_a, _type_1_b, _type_2])
-def ssz_obj(request):
-    return request.param.copy()
 
 
 @pytest.mark.parametrize(

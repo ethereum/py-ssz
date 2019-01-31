@@ -4,16 +4,20 @@ from hypothesis import (
 )
 import pytest
 
+from ssz import (
+    hash_tree_root,
+)
 from ssz.sedes import (
     BytesN,
     List,
-    bytes32_list,
-    bytes_list,
-    uint32_list,
+    bytes32,
+    bytes_sedes,
+    uint32,
 )
-from ssz.tree_hash.tree_hash import (
-    hash_tree_root,
-)
+
+bytes32_list = List(bytes32)
+bytes_list = List(bytes_sedes)
+uint32_list = List(uint32)
 
 
 @pytest.mark.parametrize(

@@ -1,18 +1,19 @@
 import pytest
 
+from ssz.hash import (
+    hash_eth2,
+)
 from ssz.sedes import (
     List,
     Serializable,
     bytes_sedes,
     uint32,
-    uint32_list,
 )
-from ssz.tree_hash.hash_eth2 import (
-    hash_eth2,
-)
-from ssz.tree_hash.tree_hash import (
+from ssz.tree_hash import (
     hash_tree_root,
 )
+
+uint32_list = List(uint32)
 
 
 class SSZType1(Serializable):

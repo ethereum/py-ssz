@@ -4,17 +4,17 @@ from hypothesis import (
 )
 import pytest
 
+from ssz.hash import (
+    hash_eth2,
+)
 from ssz.sedes import (
     Boolean,
     BytesN,
-    UnsignedInteger,
+    UInt,
     boolean,
     bytes_sedes,
 )
-from ssz.tree_hash.hash_eth2 import (
-    hash_eth2,
-)
-from ssz.tree_hash.tree_hash import (
+from ssz.tree_hash import (
     hash_tree_root,
 )
 
@@ -44,7 +44,7 @@ def test_boolean_serialize_values(value, sedes, expected):
     (8, 16, 24, 32, 40, 48, 56, 64, 128, 256),
 )
 def test_unsign_integers_less_than_32_bytes(data, num_bits):
-    uint_n = UnsignedInteger(num_bits)
+    uint_n = UInt(num_bits)
     value = data.draw(
         st.integers(
             min_value=0,
@@ -61,7 +61,7 @@ def test_unsign_integers_less_than_32_bytes(data, num_bits):
     (384, 512),
 )
 def test_unsign_integers_more_than_32_bytes(data, num_bits):
-    uint_n = UnsignedInteger(num_bits)
+    uint_n = UInt(num_bits)
     value = data.draw(
         st.integers(
             min_value=0,

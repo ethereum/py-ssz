@@ -12,7 +12,7 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.tree_hash.hash_eth2 import (
+from ssz.hash import (
     hash_eth2,
 )
 

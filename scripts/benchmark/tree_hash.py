@@ -1,5 +1,8 @@
 import time
 
+from ssz import (
+    hash_tree_root,
+)
 from ssz.sedes import (
     List,
     Serializable,
@@ -7,9 +10,6 @@ from ssz.sedes import (
     uint24,
     uint64,
     uint384,
-)
-from ssz.tree_hash.tree_hash import (
-    hash_tree_root,
 )
 
 TOLERABLE_PERFORMANCE = 15  # Seconds

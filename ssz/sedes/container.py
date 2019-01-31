@@ -17,12 +17,12 @@ from mypy_extensions import (
 from ssz.exceptions import (
     DeserializationError,
 )
+from ssz.hash import (
+    hash_eth2,
+)
 from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
-)
-from ssz.tree_hash.hash_eth2 import (
-    hash_eth2,
 )
 from ssz.utils import (
     get_duplicates,
