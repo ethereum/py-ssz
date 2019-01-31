@@ -12,7 +12,6 @@ from ssz.sedes import (
     uint384,
 )
 
-
 TOLERABLE_PERFORMANCE = 15  # Seconds
 
 

@@ -4,15 +4,15 @@ from hypothesis import (
 )
 import pytest
 
+from ssz import (
+    hash_tree_root,
+)
 from ssz.sedes import (
     BytesN,
     List,
     bytes32_list,
     bytes_list,
     uint32_list,
-)
-from ssz.tree_hash_backup.tree_hash import (
-    hash_tree_root,
 )
 
 

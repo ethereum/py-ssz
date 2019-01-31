@@ -16,8 +16,6 @@ from .tree_hash import (  # noqa: F401
 #
 # sedes
 #
-import sedes
-
 from .sedes import (  # noqa: F401
     BaseSedes,
     FixedSizedSedes,

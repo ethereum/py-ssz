@@ -1,6 +1,6 @@
 import pytest
 
-from ssz.utils import (
+from ssz.hash import (
     hash_eth2,
     merkle_hash,
 )

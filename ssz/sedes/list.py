@@ -16,6 +16,9 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
+from ssz.hash import (
+    merkle_hash,
+)
 from ssz.sedes import (
     boolean,
     bytes32,
@@ -27,9 +30,6 @@ from ssz.sedes import (
 from ssz.sedes.base import (
     BaseSedes,
     LengthPrefixedSedes,
-)
-from ssz.utils import (
-    merkle_hash,
 )
 
 T = TypeVar("T")

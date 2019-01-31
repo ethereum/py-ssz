@@ -4,6 +4,9 @@ from hypothesis import (
 )
 import pytest
 
+from ssz.hash import (
+    hash_eth2,
+)
 from ssz.sedes import (
     Boolean,
     BytesN,
@@ -11,10 +14,7 @@ from ssz.sedes import (
     boolean,
     bytes_sedes,
 )
-from ssz.tree_hash_backup.hash_eth2 import (
-    hash_eth2,
-)
-from ssz.tree_hash_backup.tree_hash import (
+from ssz.tree_hash import (
     hash_tree_root,
 )
 
