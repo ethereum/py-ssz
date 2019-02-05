@@ -31,7 +31,6 @@ def merkle_hash(input_items: Sequence[Any]) -> Hash32:
 
     # Store length of list (to compensate for non-bijectiveness of padding)
     data_length = len(input_items).to_bytes(32, "little")
-
     if len(input_items) == 0:
         # Handle empty list case
         chunks = (b'\x00' * SSZ_CHUNK_SIZE,)
@@ -40,9 +39,13 @@ def merkle_hash(input_items: Sequence[Any]) -> Hash32:
         items_per_chunk = SSZ_CHUNK_SIZE // len(input_items[0])
 
         # Build a list of chunks based on the number of items in the chunk
-        chunks = tuple(
+        chunks_unpadded = (
             b''.join(input_items[i:i + items_per_chunk])
             for i in range(0, len(input_items), items_per_chunk)
+        )
+        chunks = tuple(
+            chunk.ljust(SSZ_CHUNK_SIZE, b"\x00")
+            for chunk in chunks_unpadded
         )
     else:
         # Leave large items alone

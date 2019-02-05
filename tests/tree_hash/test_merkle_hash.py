@@ -16,17 +16,17 @@ from ssz.hash import (
         ),
         (
             (b'\x01',),
-            b'\x01' + int(1).to_bytes(32, "little"),
+            b'\x01' + b'\x00' * 127 + int(1).to_bytes(32, "little"),
         ),
         (
             (b'\x01', b'\x01', b'\x01',),
-            b'\x01\x01\x01' + int(3).to_bytes(32, "little"),
+            b'\x01\x01\x01' + b'\x00' * 125 + int(3).to_bytes(32, "little"),
         ),
         # two items in one chunk
         (
             (b'\x55' * 64, b'\x66' * 64, b'\x77' * 64,),
             (
-                hash_eth2(b'\x55' * 64 + b'\x66' * 64 + b'\x77' * 64) +
+                hash_eth2(b'\x55' * 64 + b'\x66' * 64 + b'\x77' * 64 + b'\x00' * 64) +
                 int(3).to_bytes(32, "little")
             ),
         ),
@@ -34,8 +34,8 @@ from ssz.hash import (
             (b'\x55' * 96, b'\x66' * 96, b'\x77' * 96, b'\x88' * 96),
             (
                 hash_eth2((
-                    hash_eth2(b'\x55' * 96 + b'\x66' * 96) +
-                    hash_eth2(b'\x77' * 96 + b'\x88' * 96)
+                    hash_eth2(b'\x55' * 96 + b'\x00' * 32 + b'\x66' * 96 + b'\x00' * 32) +
+                    hash_eth2(b'\x77' * 96 + b'\x00' * 32 + b'\x88' * 96 + b'\x00' * 32)
                 )) +
                 int(4).to_bytes(32, "little")
             ),
