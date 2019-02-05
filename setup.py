@@ -39,7 +39,7 @@ extras_require['dev'] = (
 setup(
     name='ssz',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version='0.1.0-alpha.0',
+    version='0.1.0-alpha.1',
     description="""ssz: Python implementation of the Simple Serialization encoding and decoding""",
     long_description_markdown_filename='README.md',
     author='Jason Carver',
