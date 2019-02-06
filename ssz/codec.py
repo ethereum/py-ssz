@@ -24,7 +24,7 @@ def encode(value, sedes=None, cache=True):
     """
     if isinstance(value, Serializable):
         cached_ssz = value._cached_ssz
-        if sedes is None and cached_ssz:
+        if sedes is None and cached_ssz is not None:
             return cached_ssz
         else:
             really_cache = (
