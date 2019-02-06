@@ -21,6 +21,14 @@ def encode(value, sedes=None, cache=True):
     of integers(as of now).
     `sedes` parameter could be given as a string or as the
     actual sedes object itself.
+
+    If `value` has an attribute :attr:`_cached_ssz` (as, notably,
+    :class:`ssz.sedes.Serializable`) and its value is not `None`, this value is
+    returned bypassing serialization and encoding, unless `sedes` is given (as
+    the cache is assumed to refer to the standard serialization which can be
+    replaced by specifying `sedes`).
+    If `value` is a :class:`ssz.sedes.Serializable` and `cache` is true, the result of
+    the encoding will be stored in :attr:`_cached_ssz` if it is empty.
     """
     if isinstance(value, Serializable):
         cached_ssz = value._cached_ssz
