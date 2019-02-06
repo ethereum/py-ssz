@@ -1,8 +1,5 @@
 import time
 
-from ssz import (
-    hash_tree_root,
-)
 from ssz.sedes import (
     List,
     Serializable,
@@ -11,8 +8,9 @@ from ssz.sedes import (
     uint64,
     uint384,
 )
-
-TOLERABLE_PERFORMANCE = 15  # Seconds
+from ssz.tree_hash import (
+    hash_tree_root,
+)
 
 
 class ValidatorRecord(Serializable):
@@ -84,23 +82,31 @@ def make_state(num_validators):
     return state
 
 
-def run():
-    state = make_state(2**18)
+def do_test_tree_hash_not_cache(state, rounds=100):
+    for _ in range(rounds):
+        result = hash_tree_root(state, cache=False)
+    return result
+
+
+def do_test_tree_hash_cache(state, rounds=100):
+    for _ in range(rounds):
+        result = hash_tree_root(state, cache=True)
+    return result
+
+
+def test_tree_hash_cache():
+    state = make_state(2**10)
 
     start_time = time.time()
+    without_cache_result = do_test_tree_hash_not_cache(state)
+    without_cache_actual_performance = time.time() - start_time
+    print("Performance of serialization without cache", without_cache_actual_performance)
 
-    print('hash_tree_root: ', hash_tree_root(state))
+    state = make_state(2**10)
+    start_time = time.time()
+    with_cache_result = do_test_tree_hash_cache(state)
+    with_cache_actual_performance = time.time() - start_time
+    print("Performance of serialization with cache", with_cache_actual_performance)
 
-    actual_performance = time.time() - start_time
-
-    print("Performance of hash_tree_root", actual_performance)
-
-    if actual_performance > TOLERABLE_PERFORMANCE:
-        raise TimeoutError("hash_tree_root is not fast enough. Tolerable: {}, Actual: {}".format(
-            TOLERABLE_PERFORMANCE,
-            actual_performance,
-        ))
-
-
-if __name__ == '__main__':
-    run()
+    assert with_cache_result == without_cache_result
+    assert with_cache_actual_performance * 10 < without_cache_actual_performance

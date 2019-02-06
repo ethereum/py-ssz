@@ -73,9 +73,9 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
 
-    def intermediate_tree_hash(self, value: TAnyTypedDict) -> bytes:
+    def intermediate_tree_hash(self, value: TAnyTypedDict, cache=True) -> bytes:
         field_hashes = [
-            field_sedes.intermediate_tree_hash(value[field_name])
+            field_sedes.intermediate_tree_hash(value[field_name], cache=cache)
             for field_name, field_sedes in self.fields
         ]
         return hash_eth2(b"".join(field_hashes))

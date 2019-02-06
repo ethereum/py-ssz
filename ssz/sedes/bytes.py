@@ -22,7 +22,7 @@ class Bytes(LengthPrefixedSedes[BytesOrByteArray, bytes]):
     def deserialize_content(self, content: bytes) -> bytes:
         return content
 
-    def intermediate_tree_hash(self, value: BytesOrByteArray) -> bytes:
+    def intermediate_tree_hash(self, value: BytesOrByteArray, cache=True) -> bytes:
         return hash_eth2(self.serialize(value))
 
 

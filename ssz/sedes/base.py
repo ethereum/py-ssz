@@ -62,7 +62,7 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
             return data[start_index:start_index + num_bytes], continuation_index
 
     @abstractmethod
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
+    def intermediate_tree_hash(self, value: TSerializable, cache=True) -> bytes:
         pass
 
 
@@ -98,7 +98,7 @@ class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
+    def intermediate_tree_hash(self, value: TSerializable, cache=True) -> bytes:
         serialized = self.serialize(value)
         if self.length <= 32:
             return serialized

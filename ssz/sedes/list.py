@@ -97,8 +97,11 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
         if element_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
 
-    def intermediate_tree_hash(self, value: Iterable[T]) -> bytes:
-        element_hashes = [self.element_sedes.intermediate_tree_hash(element) for element in value]
+    def intermediate_tree_hash(self, value: Iterable[T], cache=True) -> bytes:
+        element_hashes = [
+            self.element_sedes.intermediate_tree_hash(element, cache=cache)
+            for element in value
+        ]
         return merkle_hash(element_hashes)
 
 

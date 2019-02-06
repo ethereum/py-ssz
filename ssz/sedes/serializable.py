@@ -20,6 +20,9 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
+from ssz.tree_hash import (
+    hash_tree_root,
+)
 from ssz.utils import (
     get_duplicates,
 )
@@ -137,6 +140,14 @@ class BaseSerializable(collections.Sequence):
             self._hash_cache = hash(tuple(self))
 
         return self._hash_cache
+
+    _cached_hash_tree_root = None
+
+    @property
+    def root(self):
+        if self._cached_hash_tree_root is None:
+            self._cached_hash_tree_root = hash_tree_root(self)
+        return self._cached_hash_tree_root
 
     def copy(self, *args, **kwargs):
         missing_overrides = set(
@@ -360,8 +371,17 @@ class SerializableBase(abc.ABCMeta):
     def consume_bytes(cls, data: bytes, start_index: int, num_bytes: int) -> Tuple[bytes, int]:
         return cls._meta.container_sedes.consume_bytes(data, start_index, num_bytes)
 
-    def intermediate_tree_hash(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        return cls._meta.container_sedes.intermediate_tree_hash(value)
+    def intermediate_tree_hash(cls: Type[TSerializable], value: TSerializable, cache=True) -> bytes:
+        if value._cached_hash_tree_root is not None and cache:
+            return value.root
+        elif cache:
+            value._cached_hash_tree_root = cls._meta.container_sedes.intermediate_tree_hash(
+                value,
+                cache=cache,
+            )
+            return value.root
+        else:
+            return cls._meta.container_sedes.intermediate_tree_hash(value, cache=cache)
 
 
 # Make any class created with SerializableBase an instance of BaseSedes
