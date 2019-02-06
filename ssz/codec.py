@@ -3,6 +3,7 @@ from eth_utils import (
 )
 
 from ssz.sedes import (
+    Serializable,
     sedes_by_name,
 )
 from ssz.sedes.base import (
@@ -13,7 +14,7 @@ from ssz.utils import (
 )
 
 
-def encode(value, sedes=None):
+def encode(value, sedes=None, cache=True):
     """
     Encode object in SSZ format.
     `sedes` needs to be explicitly mentioned for encode/decode
@@ -21,6 +22,18 @@ def encode(value, sedes=None):
     `sedes` parameter could be given as a string or as the
     actual sedes object itself.
     """
+    if isinstance(value, Serializable):
+        cached_ssz = value._cached_ssz
+        if sedes is None and cached_ssz:
+            return cached_ssz
+        else:
+            really_cache = (
+                cache and
+                sedes is None
+            )
+    else:
+        really_cache = False
+
     if sedes is not None:
         if sedes in sedes_by_name:
             # Get the actual sedes object from string representation
@@ -35,6 +48,10 @@ def encode(value, sedes=None):
         sedes_obj = infer_sedes(value)
 
     serialized_obj = sedes_obj.serialize(value)
+
+    if really_cache:
+        value._cached_ssz = serialized_obj
+
     return serialized_obj
 
 
