@@ -75,6 +75,8 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 
 class BaseSerializable(collections.Sequence):
 
+    _cached_ssz = None
+
     def __init__(self, *args, **kwargs):
         validate_args_and_kwargs(args, kwargs, self._meta.field_names)
         field_values = merge_kwargs_to_args(args, kwargs, self._meta.field_names)
