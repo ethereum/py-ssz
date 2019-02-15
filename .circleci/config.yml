@@ -24,6 +24,9 @@ common: &common
         name: install dependencies
         command: pip install --user tox
     - run:
+        name: download yaml test vectors
+        command: git submodule update --init tests/eth2.0-tests
+    - run:
         name: run tox
         command: ~/.local/bin/tox -r
     - save_cache:
