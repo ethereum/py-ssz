@@ -24,13 +24,12 @@ def load_test_cases(filenames):
         with open(filename) as f:
             test = yaml.load(f)
 
-        for index, test_case in enumerate(test["test_cases"]):
-            yield test_case, make_test_id(filename, index)
+        for test_case in test["test_cases"]:
+            yield test_case, make_test_id(filename, test_case)
 
 
-def make_test_id(filename, test_case_index):
-    basename = os.path.basename(filename)
-    return f"{basename}[{test_case_index}]"
+def make_test_id(filename, test_case):
+    return f"{filename}:{test_case.lc.line}"
 
 
 def pytest_generate_tests(metafunc):
