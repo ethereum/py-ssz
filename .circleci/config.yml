@@ -24,6 +24,9 @@ common: &common
         name: install dependencies
         command: pip install --user tox
     - run:
+        name: download yaml test vectors
+        command: git submodule update --init tests/eth2.0-tests
+    - run:
         name: run tox
         command: ~/.local/bin/tox -r
     - save_cache:
@@ -54,6 +57,12 @@ jobs:
       - image: circleci/python:3.6
         environment:
           TOXENV: py36-core
+  yaml:
+    <<: *common
+    docker:
+    - image: circleci/python:3.6
+      environment:
+        TOXENV: yaml
   benchmark:
     <<: *common
     docker:
@@ -67,4 +76,5 @@ workflows:
       - doctest
       - lint
       - py36
+      - yaml
       - benchmark
