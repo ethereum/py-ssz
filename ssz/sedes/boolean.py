@@ -6,13 +6,11 @@ from ssz.exceptions import (
     DeserializationError,
 )
 from ssz.sedes.base import (
-    FixedSizedSedes,
+    BasicSedes,
 )
 
 
-class Boolean(FixedSizedSedes[bool, bool]):
-
-    is_variable_length = False
+class Boolean(BasicSedes[bool, bool]):
 
     def __init__(self) -> None:
         super().__init__(length=1)

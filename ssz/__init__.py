@@ -18,8 +18,8 @@ from .tree_hash import (  # noqa: F401
 #
 from .sedes import (  # noqa: F401
     BaseSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
+    BasicSedes,
+    CompositeSedes,
 
     Container,
     Serializable,

@@ -2,13 +2,11 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes.base import (
-    FixedSizedSedes,
+    BasicSedes,
 )
 
 
-class UInt(FixedSizedSedes[int, int]):
-
-    is_variable_length = False
+class UInt(BasicSedes[int, int]):
 
     def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:

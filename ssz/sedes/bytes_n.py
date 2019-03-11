@@ -10,13 +10,13 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes.base import (
-    FixedSizedSedes,
+    BasicSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class BytesN(FixedSizedSedes[BytesOrByteArray, bytes]):
+class BytesN(BasicSedes[BytesOrByteArray, bytes]):
 
     is_variable_length = False
 

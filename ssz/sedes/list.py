@@ -21,14 +21,14 @@ from ssz.hash import (
 )
 from ssz.sedes.base import (
     BaseSedes,
-    LengthPrefixedSedes,
+    CompositeSedes,
 )
 
 TSerializable = TypeVar("TSerializable")
 TDeserialized = TypeVar("TDeserialized")
 
 
-class List(LengthPrefixedSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
+class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
 
     def __init__(self,
                  element_sedes: BaseSedes[TSerializable, TDeserialized] = None,

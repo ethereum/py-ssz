@@ -43,8 +43,8 @@ from .list import (  # noqa: F401
 
 from .base import (  # noqa: F401
     BaseSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
+    BasicSedes,
+    CompositeSedes,
 )
 
 from .container import (  # noqa: F401

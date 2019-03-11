@@ -6,13 +6,13 @@ from ssz.hash import (
     hash_eth2,
 )
 from ssz.sedes.base import (
-    LengthPrefixedSedes,
+    CompositeSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteList(LengthPrefixedSedes[BytesOrByteArray, bytes]):
+class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
 
     is_variable_length = True
 

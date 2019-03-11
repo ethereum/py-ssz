@@ -81,13 +81,18 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
         pass
 
 
-class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
+class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
 
     def __init__(self, length: int):
         if length <= 0:
             raise ValueError("Length must be greater than 0")
 
         self.length = length
+
+    #
+    # Size
+    #
+    is_variable_length = False
 
     def get_fixed_length(self):
         return self.length
@@ -124,15 +129,20 @@ class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
             return hash_eth2(serialized)
 
 
-class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
+class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
 
     #
     # Serialization
     #
     def serialize(self, value: TSerializable) -> bytes:
         content = self.serialize_content(value)
-        validate_content_length(content)
-        return get_length_prefix(content) + content
+
+        if not self.is_variable_length:
+            return content
+        else:
+            validate_content_length(content)
+            length_prefix = get_length_prefix(content)
+            return length_prefix + content
 
     @abstractmethod
     def serialize_content(self, value: TSerializable) -> bytes:
@@ -142,10 +152,15 @@ class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
     # Deserialization
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        prefix, content_start_index = self.consume_bytes(data, start_index, LENGTH_PREFIX_SIZE)
-        length = int.from_bytes(prefix, "little")
-        content, continuation_index = self.consume_bytes(data, content_start_index, length)
-        return self.deserialize_content(content), continuation_index
+        if not self.is_variable_length:
+            content_size = self.get_fixed_length()
+            content, continuation_index = self.consume_bytes(data, start_index, content_size)
+            return self.deserialize_content(content), continuation_index
+        else:
+            prefix, content_start_index = self.consume_bytes(data, start_index, LENGTH_PREFIX_SIZE)
+            length = int.from_bytes(prefix, "little")
+            content, continuation_index = self.consume_bytes(data, content_start_index, length)
+            return self.deserialize_content(content), continuation_index
 
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:
