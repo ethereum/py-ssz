@@ -65,6 +65,15 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     def intermediate_tree_hash(self, value: TSerializable) -> bytes:
         pass
 
+    @property
+    @abstractmethod
+    def is_variable_length(self) -> bool:
+        pass
+
+    @abstractmethod
+    def get_fixed_length(self) -> int:
+        pass
+
 
 class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
 
@@ -73,6 +82,9 @@ class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
             raise ValueError("Length must be greater than 0")
 
         self.length = length
+
+    def get_fixed_length(self):
+        return self.length
 
     #
     # Serialization

@@ -5,6 +5,8 @@ from ssz.sedes.base import (
 
 class Byte(FixedSizedSedes[bytes, bytes]):
 
+    is_variable_length = False
+
     def __init__(self) -> None:
         super().__init__(1)
 

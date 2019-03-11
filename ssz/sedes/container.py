@@ -14,6 +14,9 @@ from mypy_extensions import (
     TypedDict,
 )
 
+from ssz.constants import (
+    LENGTH_PREFIX_SIZE,
+)
 from ssz.exceptions import (
     DeserializationError,
 )
@@ -22,19 +25,18 @@ from ssz.hash import (
 )
 from ssz.sedes.base import (
     BaseSedes,
-    LengthPrefixedSedes,
 )
 from ssz.utils import (
     get_duplicates,
+    get_length_prefix,
+    validate_content_length,
 )
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})
 TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)
 
 
-class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
-
-    length_bytes = 4
+class Container(BaseSedes[TAnyTypedDict, Dict[str, Any]]):
 
     def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
         field_names = tuple(field_name for field_name, field_sedes in fields)
@@ -46,11 +48,38 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
 
         self.fields = fields
 
+    #
+    # Serialization
+    #
+    def serialize(self, value: TAnyTypedDict) -> bytes:
+        content = self.serialize_content(value)
+
+        if not self.is_variable_length:
+            return content
+        else:
+            validate_content_length(content)
+            length_prefix = get_length_prefix(content)
+            return length_prefix + content
+
     def serialize_content(self, value: TAnyTypedDict) -> bytes:
         return b"".join(
             field_sedes.serialize(value[field_name])
             for field_name, field_sedes in self.fields
         )
+
+    #
+    # Deserialization
+    #
+    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[Dict[str, Any], int]:
+        if not self.is_variable_length:
+            content_size = self.get_fixed_length()
+            content, continuation_index = self.consume_bytes(data, start_index, content_size)
+            return self.deserialize_content(content), continuation_index
+        else:
+            prefix, content_start_index = self.consume_bytes(data, start_index, LENGTH_PREFIX_SIZE)
+            length = int.from_bytes(prefix, "little")
+            content, continuation_index = self.consume_bytes(data, content_start_index, length)
+            return self.deserialize_content(content), continuation_index
 
     @to_dict
     def deserialize_content(self, content: bytes) -> Generator[Tuple[str, Any], None, None]:
@@ -79,3 +108,16 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
             for field_name, field_sedes in self.fields
         ]
         return hash_eth2(b"".join(field_hashes))
+
+    #
+    # Container size
+    #
+    @property
+    def is_variable_length(self):
+        return any(field_sedes.is_variable_length for _, field_sedes in self.fields)
+
+    def get_fixed_length(self):
+        if self.is_variable_length:
+            raise ValueError("Container does not have a fixed length")
+
+        return sum(field_sedes.get_fixed_length() for _, field_sedes in self.fields)

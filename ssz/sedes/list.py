@@ -37,6 +37,10 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
     """
 
     length_bytes = 4
+    is_variable_length = True
+
+    def get_fixed_length(self):
+        raise ValueError("List has no fixed length")
 
     def __init__(self, element_sedes: BaseSedes[T, S] = None, empty: bool = False) -> None:
         if element_sedes and empty:

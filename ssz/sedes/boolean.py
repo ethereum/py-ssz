@@ -12,6 +12,8 @@ from ssz.sedes.base import (
 
 class Boolean(FixedSizedSedes[bool, bool]):
 
+    is_variable_length = False
+
     def __init__(self) -> None:
         super().__init__(length=1)
 

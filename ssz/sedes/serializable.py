@@ -365,6 +365,10 @@ class SerializableBase(abc.ABCMeta):
     def intermediate_tree_hash(cls: Type[TSerializable], value: TSerializable) -> bytes:
         return cls._meta.container_sedes.intermediate_tree_hash(value)
 
+    @property
+    def is_variable_length(cls):
+        return cls._meta.container_sedes.is_variable_length
+
 
 # Make any class created with SerializableBase an instance of BaseSedes
 BaseSedes.register(SerializableBase)

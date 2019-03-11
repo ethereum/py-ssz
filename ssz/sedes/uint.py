@@ -8,6 +8,8 @@ from ssz.sedes.base import (
 
 class UInt(FixedSizedSedes[int, int]):
 
+    is_variable_length = False
+
     def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:
             raise ValueError(

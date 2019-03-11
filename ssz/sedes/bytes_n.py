@@ -18,6 +18,8 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 class BytesN(FixedSizedSedes[BytesOrByteArray, bytes]):
 
+    is_variable_length = False
+
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
             raise SerializationError(
