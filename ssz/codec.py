@@ -4,8 +4,8 @@ from eth_utils import (
 
 from ssz.sedes import (
     Serializable,
-    sedes_by_name,
     infer_sedes,
+    sedes_by_name,
 )
 from ssz.sedes.base import (
     BaseSedes,
