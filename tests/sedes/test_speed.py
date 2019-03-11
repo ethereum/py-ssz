@@ -7,15 +7,15 @@ from ssz.sedes import (
     List,
     Serializable,
     bytes32,
-    uint24,
+    bytes48,
+    uint32,
     uint64,
-    uint384,
 )
 
 
 class ValidatorRecord(Serializable):
     fields = [
-        ('pubkey', uint384),
+        ('pubkey', bytes48),
         ('withdrawal_credentials', bytes32),
         ('randao_commitment', bytes32),
         ('randao_layers', uint64),
@@ -38,7 +38,7 @@ class CrosslinkRecord(Serializable):
 class ShardCommittee(Serializable):
     fields = [
         ('shard', uint64),
-        ('committee', List(uint24)),
+        ('committee', List(uint32)),
         ('total_validator_count', uint64),
     ]
 
@@ -52,7 +52,7 @@ class State(Serializable):
 
 
 validator_record = ValidatorRecord(
-    pubkey=123,
+    pubkey=b'\x56' * 48,
     withdrawal_credentials=b'\x56' * 32,
     randao_commitment=b'\x56' * 32,
     randao_layers=123,
