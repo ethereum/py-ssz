@@ -3,11 +3,6 @@ from .boolean import (  # noqa: F401
     Boolean,
 )
 
-from .bytes import (  # noqa: F401
-    bytes_sedes,
-    Bytes,
-)
-
 from .bytes_n import (  # noqa: F401
     bytes32,
     bytes48,
@@ -24,6 +19,16 @@ from .uint import (  # noqa: F401
     uint128,
     uint256,
     uint512,
+)
+
+from .byte import (  # noqa: F401
+    Byte,
+    byte,
+)
+
+from .byte_list import (  # noqa: F401
+    byte_list,
+    ByteList,
 )
 
 from .list import (  # noqa: F401
@@ -48,7 +53,6 @@ from .serializable import (  # noqa: F401
 
 sedes_by_name = {
     "boolean": boolean,
-    "bytes_sedes": bytes_sedes,
     "bytes32": bytes32,
     "bytes48": bytes48,
     "bytes96": bytes96,
@@ -61,4 +65,7 @@ sedes_by_name = {
     "uint128": uint128,
     "uint256": uint256,
     "uint512": uint512,
+
+    "byte": byte,
+    "byte_list": byte_list,
 }

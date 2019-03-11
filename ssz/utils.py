@@ -10,8 +10,8 @@ from ssz.sedes.base import (
 from ssz.sedes.boolean import (
     boolean,
 )
-from ssz.sedes.bytes import (
-    bytes_sedes,
+from ssz.sedes.byte_list import (
+    byte_list,
 )
 from ssz.sedes.list import (
     List,
@@ -46,7 +46,7 @@ def infer_sedes(value):
         raise TypeError("uint sedes object or uint string needs to be specified for ints")
 
     elif isinstance(value, (bytes, bytearray)):
-        return bytes_sedes
+        return byte_list
 
     elif isinstance(value, Sequence):
         return infer_list_sedes(value)

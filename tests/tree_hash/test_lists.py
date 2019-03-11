@@ -10,13 +10,13 @@ from ssz import (
 from ssz.sedes import (
     BytesN,
     List,
+    byte_list,
     bytes32,
-    bytes_sedes,
     uint32,
 )
 
 bytes32_list = List(bytes32)
-bytes_list = List(bytes_sedes)
+byte_list_list = List(byte_list)
 uint32_list = List(uint32)
 
 
@@ -120,9 +120,9 @@ def test_bytes_n_list_randomized(data, length, sequence_type):
         tuple,
     )
 )
-def test_bytes_sedes_list_sanity(items, sequence_type):
+def test_byte_list_list_sanity(items, sequence_type):
     value = sequence_type(items)
-    assert len(hash_tree_root(value, bytes_list)) == 32
+    assert len(hash_tree_root(value, byte_list_list)) == 32
 
 
 @given(items=st.lists(st.binary()))
@@ -133,6 +133,6 @@ def test_bytes_sedes_list_sanity(items, sequence_type):
         tuple,
     )
 )
-def test_bytes_sedes_list_randomized(items, sequence_type):
+def test_byte_list_list_randomized(items, sequence_type):
     value = sequence_type(items)
-    assert len(hash_tree_root(value, bytes_list)) == 32
+    assert len(hash_tree_root(value, byte_list_list)) == 32

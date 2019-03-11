@@ -12,7 +12,7 @@ from ssz.sedes.base import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bytes(LengthPrefixedSedes[BytesOrByteArray, bytes]):
+class ByteList(LengthPrefixedSedes[BytesOrByteArray, bytes]):
 
     length_bytes = 4
 
@@ -26,4 +26,4 @@ class Bytes(LengthPrefixedSedes[BytesOrByteArray, bytes]):
         return hash_eth2(self.serialize(value))
 
 
-bytes_sedes = Bytes()
+byte_list = ByteList()

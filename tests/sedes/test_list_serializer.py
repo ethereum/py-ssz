@@ -9,10 +9,10 @@ from ssz import (
 from ssz.sedes import (
     List,
     boolean,
+    byte_list,
     bytes32,
     bytes48,
     bytes96,
-    bytes_sedes,
     empty_list,
     uint32,
 )
@@ -21,7 +21,7 @@ boolean_list = List(boolean)
 bytes32_list = List(bytes32)
 bytes48_list = List(bytes48)
 bytes96_list = List(bytes96)
-bytes_list = List(bytes_sedes)
+byte_list_list = List(byte_list)
 uint32_list = List(uint32)
 
 
@@ -39,8 +39,8 @@ uint32_list = List(uint32)
         ((), bytes96_list, b'\x00\x00\x00\x00'),
         ([], boolean_list, b'\x00\x00\x00\x00'),
         ((), boolean_list, b'\x00\x00\x00\x00'),
-        ([], bytes_list, b'\x00\x00\x00\x00'),
-        ((), bytes_list, b'\x00\x00\x00\x00'),
+        ([], byte_list_list, b'\x00\x00\x00\x00'),
+        ((), byte_list_list, b'\x00\x00\x00\x00'),
 
         # Serialize uint32 Iterables
         (
@@ -87,15 +87,15 @@ uint32_list = List(uint32)
         ((True, False, True, False), boolean_list, b'\x04\x00\x00\x00\x01\x00\x01\x00'),
 
         # Serialize bytes Iterables
-        ([b'\x01'], bytes_list, b'\x05\x00\x00\x00\x01\x00\x00\x00\x01'),
+        ([b'\x01'], byte_list_list, b'\x05\x00\x00\x00\x01\x00\x00\x00\x01'),
         (
             [b'\x01', b'\x02'],
-            bytes_list,
+            byte_list_list,
             b'\x0a\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00\x02',
         ),
         (
             [b'\x01\x02', b'\x02\x03'],
-            bytes_list,
+            byte_list_list,
             b'\x0c\x00\x00\x00'
             b'\x02\x00\x00\x00\x01\x02'
             b'\x02\x00\x00\x00\x02\x03',
@@ -173,19 +173,19 @@ def test_list_serialize_bad_values(value, sedes):
 
         # Deserialize bytes Iterables
         # Serialize bytes Iterables
-        (b'\x05\x00\x00\x00\x01\x00\x00\x00\x01', bytes_list, (b'\x01',)),
+        (b'\x05\x00\x00\x00\x01\x00\x00\x00\x01', byte_list_list, (b'\x01',)),
         (
             b'\x0a\x00\x00\x00'
             b'\x01\x00\x00\x00\x01'
             b'\x01\x00\x00\x00\x02',
-            bytes_list,
+            byte_list_list,
             (b'\x01', b'\x02'),
         ),
         (
             b'\x0c\x00\x00\x00'
             b'\x02\x00\x00\x00\x01\x02'
             b'\x02\x00\x00\x00\x02\x03',
-            bytes_list,
+            byte_list_list,
             (b'\x01\x02', b'\x02\x03'),
         ),
     ),
@@ -250,9 +250,9 @@ def test_list_deserialize_bad_values(value, sedes):
         ((False, False, False, False), boolean_list),
         ((True, False, True, False), boolean_list),
 
-        ((b'\x01',), bytes_list),
-        ((b'\x01', b'\x02'), bytes_list),
-        ((b'\x01\x02', b'\x02\x03'), bytes_list),
+        ((b'\x01',), byte_list_list),
+        ((b'\x01', b'\x02'), byte_list_list),
+        ((b'\x01\x02', b'\x02\x03'), byte_list_list),
     ),
 )
 def test_list_round_trip(value, sedes):
@@ -282,10 +282,10 @@ def test_list_round_trip(value, sedes):
         ((False, False, False, False), boolean_list),
         ((True, False, True, False), boolean_list),
 
-        ((), bytes_list),
-        ((b'\x01',), bytes_list),
-        ((b'\x01', b'\x02'), bytes_list),
-        ((b'\x01\x02', b'\x02\x03'), bytes_list),
+        ((), byte_list_list),
+        ((b'\x01',), byte_list_list),
+        ((b'\x01', b'\x02'), byte_list_list),
+        ((b'\x01\x02', b'\x02\x03'), byte_list_list),
     ),
 )
 def test_list_round_trip_codec(value, sedes):

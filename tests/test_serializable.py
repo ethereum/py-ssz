@@ -12,7 +12,7 @@ from ssz.exceptions import (
 from ssz.sedes import (
     List,
     Serializable,
-    bytes_sedes,
+    byte_list,
     uint32,
 )
 from ssz.utils import (
@@ -25,7 +25,7 @@ uint32_list = List(uint32)
 class SSZType1(Serializable):
     fields = [
         ('field1', uint32),
-        ('field2', bytes_sedes),
+        ('field2', byte_list),
         ('field3', uint32_list)
     ]
 
@@ -461,9 +461,9 @@ def test_serializable_inheritance_with_sedes_overrides():
 
     class Child(Parent):
         fields = (
-            ('field_a', bytes_sedes),
-            ('field_b', bytes_sedes),
-            ('field_c', bytes_sedes),
+            ('field_a', byte_list),
+            ('field_b', byte_list),
+            ('field_c', byte_list),
         )
 
     parent = Parent(1, 2)

@@ -6,7 +6,7 @@ from ssz.hash import (
 from ssz.sedes import (
     List,
     Serializable,
-    bytes_sedes,
+    byte_list,
     uint32,
 )
 from ssz.tree_hash import (
@@ -19,7 +19,7 @@ uint32_list = List(uint32)
 class SSZType1(Serializable):
     fields = [
         ('field1', uint32),
-        ('field2', bytes_sedes),
+        ('field2', byte_list),
         ('field3', uint32_list),
     ]
 

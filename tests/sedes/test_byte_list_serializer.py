@@ -6,7 +6,7 @@ from ssz import (
     encode,
 )
 from ssz.sedes import (
-    bytes_sedes,
+    byte_list,
 )
 
 
@@ -20,8 +20,8 @@ from ssz.sedes import (
     ),
 )
 def test_bytes_serialize_values(value, expected):
-    assert bytes_sedes.serialize(value) == expected
-    assert bytes_sedes.serialize(bytearray(value)) == expected
+    assert byte_list.serialize(value) == expected
+    assert byte_list.serialize(bytearray(value)) == expected
 
 
 @pytest.mark.parametrize(
@@ -34,7 +34,7 @@ def test_bytes_serialize_values(value, expected):
     ),
 )
 def test_bytes_deserialize_values(value, expected):
-    assert bytes_sedes.deserialize(value) == expected
+    assert byte_list.deserialize(value) == expected
 
 
 @pytest.mark.parametrize(
@@ -52,7 +52,7 @@ def test_bytes_deserialize_values(value, expected):
 )
 def test_bytes_deserialization_bad_value(value):
     with pytest.raises(DeserializationError):
-        bytes_sedes.deserialize(value)
+        byte_list.deserialize(value)
 
 
 @pytest.mark.parametrize(
@@ -65,22 +65,22 @@ def test_bytes_deserialization_bad_value(value):
     ),
 )
 def test_bytes_round_trip(value, expected):
-    assert bytes_sedes.deserialize(bytes_sedes.serialize(value)) == expected
-    assert bytes_sedes.deserialize(bytes_sedes.serialize(bytearray(value))) == expected
+    assert byte_list.deserialize(byte_list.serialize(value)) == expected
+    assert byte_list.deserialize(byte_list.serialize(bytearray(value))) == expected
 
 
 @pytest.mark.parametrize(
     'value,sedes',
     (
-        (b"", 'bytes_sedes'),
-        (b"I", 'bytes_sedes'),
-        (b"foo", 'bytes_sedes'),
-        (b"hello", 'bytes_sedes'),
+        (b"", 'byte_list'),
+        (b"I", 'byte_list'),
+        (b"foo", 'byte_list'),
+        (b"hello", 'byte_list'),
 
-        (b"", bytes_sedes),
-        (b"I", bytes_sedes),
-        (b"foo", bytes_sedes),
-        (b"hello", bytes_sedes),
+        (b"", byte_list),
+        (b"I", byte_list),
+        (b"foo", byte_list),
+        (b"hello", byte_list),
     ),
 )
 def test_bytes_round_trip_codec(value, sedes):
@@ -101,4 +101,4 @@ def test_bytes_round_trip_codec(value, sedes):
     ),
 )
 def test_bytes_round_trip_no_sedes(value):
-    assert decode(encode(value), bytes_sedes) == value
+    assert decode(encode(value), byte_list) == value

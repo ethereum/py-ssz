@@ -12,7 +12,7 @@ from ssz.sedes import (
     BytesN,
     UInt,
     boolean,
-    bytes_sedes,
+    byte_list,
 )
 from ssz.tree_hash import (
     hash_tree_root,
@@ -73,8 +73,8 @@ def test_unsign_integers_more_than_32_bytes(data, num_bits):
 
 
 @given(value=st.binary())
-def test_bytes_sedes(value):
-    assert len(hash_tree_root(value, bytes_sedes)) == 32
+def test_byte_list(value):
+    assert len(hash_tree_root(value, byte_list)) == 32
 
 
 @given(data=st.data())

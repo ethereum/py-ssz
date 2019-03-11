@@ -30,9 +30,7 @@ from .sedes import (  # noqa: F401
     Boolean,
     boolean,
 
-    Bytes,
     BytesN,
-    bytes_sedes,
     bytes32,
     bytes48,
     bytes96,
@@ -45,4 +43,10 @@ from .sedes import (  # noqa: F401
     uint128,
     uint256,
     uint512,
+
+    Byte,
+    byte,
+
+    ByteList,
+    byte_list,
 )
