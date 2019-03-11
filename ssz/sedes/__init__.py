@@ -51,6 +51,10 @@ from .container import (  # noqa: F401
     Container,
 )
 
+from .tuple import (  # noqa: F401
+    Tuple,
+)
+
 from .serializable import (  # noqa: F401
     Serializable,
 )

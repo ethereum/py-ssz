@@ -27,6 +27,8 @@ from .sedes import (  # noqa: F401
     List,
     empty_list,
 
+    Tuple,
+
     Boolean,
     boolean,
 
