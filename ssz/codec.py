@@ -5,12 +5,10 @@ from eth_utils import (
 from ssz.sedes import (
     Serializable,
     sedes_by_name,
+    infer_sedes,
 )
 from ssz.sedes.base import (
     BaseSedes,
-)
-from ssz.utils import (
-    infer_sedes,
 )
 
 

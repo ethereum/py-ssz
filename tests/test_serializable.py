@@ -15,7 +15,7 @@ from ssz.sedes import (
     byte_list,
     uint32,
 )
-from ssz.utils import (
+from ssz.sedes import (
     infer_sedes,
 )
 

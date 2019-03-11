@@ -14,7 +14,6 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 class ByteList(LengthPrefixedSedes[BytesOrByteArray, bytes]):
 
-    length_bytes = 4
     is_variable_length = True
 
     def get_fixed_length(self):

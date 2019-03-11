@@ -8,12 +8,18 @@ from typing import (
     TypeVar,
 )
 
+from ssz.constants import (
+    LENGTH_PREFIX_SIZE,
+)
 from ssz.exceptions import (
     DeserializationError,
-    SerializationError,
 )
 from ssz.hash import (
     hash_eth2,
+)
+from ssz.utils import (
+    get_length_prefix,
+    validate_content_length,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -121,33 +127,12 @@ class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
 class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
 
     #
-    # Prefix helpers
-    #
-    @property
-    @abstractmethod
-    def length_bytes(self) -> int:
-        pass
-
-    @property
-    def max_content_length(self) -> int:
-        return 2 ** (self.length_bytes * 8) - 1
-
-    def get_length_prefix(self, content: bytes) -> bytes:
-        return len(content).to_bytes(self.length_bytes, "little")
-
-    def validate_content_length(self, content: bytes) -> None:
-        if len(content) >= self.max_content_length:
-            raise SerializationError(
-                f"Content is too big to be encoded in prefix of {self.length_bytes} bytes",
-            )
-
-    #
     # Serialization
     #
     def serialize(self, value: TSerializable) -> bytes:
         content = self.serialize_content(value)
-        self.validate_content_length(content)
-        return self.get_length_prefix(content) + content
+        validate_content_length(content)
+        return get_length_prefix(content) + content
 
     @abstractmethod
     def serialize_content(self, value: TSerializable) -> bytes:
@@ -157,7 +142,7 @@ class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
     # Deserialization
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        prefix, content_start_index = self.consume_bytes(data, start_index, self.length_bytes)
+        prefix, content_start_index = self.consume_bytes(data, start_index, LENGTH_PREFIX_SIZE)
         length = int.from_bytes(prefix, "little")
         content, continuation_index = self.consume_bytes(data, content_start_index, length)
         return self.deserialize_content(content), continuation_index

@@ -36,7 +36,6 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
     (This is because iteration in sets doesn't always happen in the same order)
     """
 
-    length_bytes = 4
     is_variable_length = True
 
     def get_fixed_length(self):

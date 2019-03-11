@@ -9,7 +9,7 @@ from eth_typing import (
 from ssz.sedes.base import (
     BaseSedes,
 )
-from ssz.utils import (
+from ssz.sedes import (
     infer_sedes,
 )
 
