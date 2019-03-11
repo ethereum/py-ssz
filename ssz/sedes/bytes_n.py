@@ -2,39 +2,53 @@ from typing import (
     Union,
 )
 
-from eth_utils import (
-    encode_hex,
-)
-
 from ssz.exceptions import (
     SerializationError,
 )
-from ssz.sedes.base import (
-    BasicSedes,
+from ssz.sedes.tuple import (
+    CompositeSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class BytesN(BasicSedes[BytesOrByteArray, bytes]):
+class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
 
-    is_variable_length = False
+    def __init__(self, length: int) -> None:
+        self.length = length
 
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
             raise SerializationError(
-                f"Can only serialize values of exactly {self.length} bytes, got"
-                f"{encode_hex(value)} which is {len(value)} bytes."
+                f"Cannot serialize {len(value)} elements as bytes{self.length}"
             )
+
         return value
 
+    #
+    # Deserialization
+    #
     def deserialize_content(self, content: bytes) -> bytes:
         return content
 
+    #
+    # Size
+    #
+    is_variable_length = False
+
+    def get_fixed_length(self):
+        return self.length
+
+    #
+    # Tree hashing
+    #
+    def intermediate_tree_hash(self, value: BytesOrByteArray) -> bytes:
+        pass  # TODO
+
 
 # Use case: for hashes and messages
-bytes32 = BytesN(32)
+bytes32 = ByteTuple(32)
 # Use case: for BLS public keys
-bytes48 = BytesN(48)
+bytes48 = ByteTuple(48)
 # Use case: for BLS signatures
-bytes96 = BytesN(96)
+bytes96 = ByteTuple(96)

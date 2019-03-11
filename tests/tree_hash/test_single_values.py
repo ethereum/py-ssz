@@ -9,7 +9,7 @@ from ssz.hash import (
 )
 from ssz.sedes import (
     Boolean,
-    BytesN,
+    ByteTuple,
     UInt,
     boolean,
     byte_list,
@@ -83,7 +83,7 @@ def test_byte_list(value):
     (32, 48, 96),
 )
 def test_bytes_n(data, length):
-    sedes = BytesN(length)
+    sedes = ByteTuple(length)
     value = data.draw(
         st.binary(
             min_size=length,

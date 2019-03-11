@@ -12,7 +12,7 @@ from .bytes_n import (  # noqa: F401
     bytes32,
     bytes48,
     bytes96,
-    BytesN,
+    ByteTuple,
 )
 
 from .uint import (  # noqa: F401
