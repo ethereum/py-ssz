@@ -16,11 +16,13 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.hash import (
-    merkle_hash,
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
 )
 from ssz.sedes.base import (
     BaseSedes,
+    BasicSedes,
     CompositeSedes,
 )
 
@@ -47,6 +49,14 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
         self.element_sedes = element_sedes
         # This empty bool indicates whether this sedes is meant for empty lists
         self.empty = empty
+
+    #
+    # Size
+    #
+    is_variable_length = True
+
+    def get_fixed_length(self):
+        raise ValueError("List has no fixed length")
 
     #
     # Serialization
@@ -97,17 +107,21 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
         if element_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
 
-    def intermediate_tree_hash(self, value: Iterable[TSerializable]) -> bytes:
-        element_hashes = [self.element_sedes.intermediate_tree_hash(element) for element in value]
-        return merkle_hash(element_hashes)
-
     #
-    # Size
+    # Tree hashing
     #
-    is_variable_length = True
-
-    def get_fixed_length(self):
-        raise ValueError("List has no fixed length")
+    def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
+        if isinstance(self.element_sedes, BasicSedes):
+            merkle_leaves = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+        else:
+            merkle_leaves = tuple(
+                self.element_sedes.hash_tree_root(element)
+                for element in value
+            )
+        return mix_in_length(merkleize(merkle_leaves), len(merkle_leaves))
 
 
 empty_list: List[None, None] = List(empty=True)

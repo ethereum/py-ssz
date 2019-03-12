@@ -2,8 +2,9 @@ from typing import (
     Union,
 )
 
-from ssz.hash import (
-    hash_eth2,
+from ssz.utils import (
+    merkleize,
+    pack,
 )
 from ssz.sedes.base import (
     CompositeSedes,
@@ -25,8 +26,9 @@ class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
     def deserialize_content(self, content: bytes) -> bytes:
         return content
 
-    def intermediate_tree_hash(self, value: BytesOrByteArray) -> bytes:
-        return hash_eth2(self.serialize(value))
+    def hash_tree_root(self, value: bytes) -> bytes:
+        serialized_value = value
+        return merkleize(pack((serialized_value,)))
 
 
 byte_list = ByteList()

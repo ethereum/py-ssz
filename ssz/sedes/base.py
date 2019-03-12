@@ -14,8 +14,9 @@ from ssz.constants import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.hash import (
-    hash_eth2,
+from ssz.utils import (
+    merkleize,
+    pack,
 )
 from ssz.utils import (
     get_length_prefix,
@@ -28,10 +29,28 @@ TDeserialized = TypeVar("TDeserialized")
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
+    #
+    # Length
+    #
+    @property
+    @abstractmethod
+    def is_variable_length(self) -> bool:
+        pass
+
+    @abstractmethod
+    def get_fixed_length(self) -> int:
+        pass
+
+    #
+    # Serialization
+    #
     @abstractmethod
     def serialize(self, value: TSerializable) -> bytes:
         pass
 
+    #
+    # Deserialization
+    #
     @abstractmethod
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         pass
@@ -67,17 +86,11 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
             continuation_index = start_index + num_bytes
             return data[start_index:start_index + num_bytes], continuation_index
 
+    #
+    # Tree hashing
+    #
     @abstractmethod
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
-        pass
-
-    @property
-    @abstractmethod
-    def is_variable_length(self) -> bool:
-        pass
-
-    @abstractmethod
-    def get_fixed_length(self) -> int:
+    def hash_tree_root(self, value: TSerializable) -> bytes:
         pass
 
 
@@ -90,7 +103,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         self.length = length
 
     #
-    # Size
+    # Length
     #
     is_variable_length = False
 
@@ -121,12 +134,9 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
-        serialized = self.serialize(value)
-        if self.length <= 32:
-            return serialized
-        else:
-            return hash_eth2(serialized)
+    def hash_tree_root(self, value: TSerializable) -> bytes:
+        serialized_value = self.serialize(value)
+        return merkleize(pack((serialized_value,)))
 
 
 class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):

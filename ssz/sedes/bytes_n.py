@@ -5,6 +5,10 @@ from typing import (
 from ssz.exceptions import (
     SerializationError,
 )
+from ssz.utils import (
+    merkleize,
+    pack,
+)
 from ssz.sedes.tuple import (
     CompositeSedes,
 )
@@ -17,6 +21,17 @@ class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, length: int) -> None:
         self.length = length
 
+    #
+    # Size
+    #
+    is_variable_length = False
+
+    def get_fixed_length(self):
+        return self.length
+
+    #
+    # Serialization
+    #
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
             raise SerializationError(
@@ -32,23 +47,13 @@ class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
         return content
 
     #
-    # Size
-    #
-    is_variable_length = False
-
-    def get_fixed_length(self):
-        return self.length
-
-    #
     # Tree hashing
     #
-    def intermediate_tree_hash(self, value: BytesOrByteArray) -> bytes:
-        pass  # TODO
+    def hash_tree_root(self, value: bytes) -> bytes:
+        serialized_value = self.serialize(value)
+        return merkleize(pack(serialized_value))
 
 
-# Use case: for hashes and messages
 bytes32 = ByteTuple(32)
-# Use case: for BLS public keys
 bytes48 = ByteTuple(48)
-# Use case: for BLS signatures
 bytes96 = ByteTuple(96)

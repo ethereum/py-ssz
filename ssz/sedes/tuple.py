@@ -9,12 +9,17 @@ from eth_utils import (
     to_tuple,
 )
 
+from ssz.utils import (
+    merkleize,
+    pack,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
     BaseSedes,
+    BasicSedes,
     CompositeSedes,
 )
 
@@ -30,6 +35,19 @@ class Tuple(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedEl
 
         self.number_of_elements = number_of_elements
         self.element_sedes = element_sedes
+
+    #
+    # Size
+    #
+    @property
+    def is_variable_length(self):
+        return self.number_of_elements > 0 and self.element_sedes.is_variable_length
+
+    def get_fixed_length(self):
+        if self.is_variable_length:
+            raise ValueError("Tuple does not have a fixed length")
+
+        return self.element_sedes.get_fixed_length()
 
     #
     # Serialization
@@ -72,18 +90,19 @@ class Tuple(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedEl
                 f"Serialized tuple ends with {len(content) - element_start_index} extra bytes"
             )
 
-    def intermediate_tree_hash(self, value: Sequence[TSerializableElement]) -> bytes:
-        pass  # TODO
-
     #
-    # Size
+    # Tree hashing
     #
-    @property
-    def is_variable_length(self):
-        return self.number_of_elements > 0 and self.element_sedes.is_variable_length
-
-    def get_fixed_length(self):
-        if self.is_variable_length:
-            raise ValueError("Tuple does not have a fixed length")
-
-        return self.element_sedes.get_fixed_length()
+    def hash_tree_root(self, value: Sequence[TSerializableElement]) -> bytes:
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_elements = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            return merkleize(pack(serialized_elements))
+        else:
+            element_tree_hashes = tuple(
+                self.element_sedes.hash_tree_root(element)
+                for element in value
+            )
+            return merkleize(element_tree_hashes)

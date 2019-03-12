@@ -17,8 +17,9 @@ from mypy_extensions import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.hash import (
-    hash_eth2,
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
 )
 from ssz.sedes.base import (
     BaseSedes,
@@ -26,8 +27,6 @@ from ssz.sedes.base import (
 )
 from ssz.utils import (
     get_duplicates,
-    get_length_prefix,
-    validate_content_length,
 )
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})
@@ -45,6 +44,29 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
             )
 
         self.fields = fields
+
+    #
+    # Container size
+    #
+    @property
+    def is_variable_length(self):
+        return any(field_sedes.is_variable_length for _, field_sedes in self.fields)
+
+    def get_fixed_length(self):
+        if self.is_variable_length:
+            raise ValueError("Container does not have a fixed length")
+
+        return sum(field_sedes.get_fixed_length() for _, field_sedes in self.fields)
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: TAnyTypedDict) -> bytes:
+        merkle_leaves = tuple(
+            field_sedes.serialize(value[field_name])
+            for field_name, field_sedes in self.fields
+        )
+        return mix_in_length(merkleize(merkle_leaves), len(merkle_leaves))
 
     #
     # Serialization
@@ -78,23 +100,3 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
 
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
-
-    def intermediate_tree_hash(self, value: TAnyTypedDict) -> bytes:
-        field_hashes = [
-            field_sedes.intermediate_tree_hash(value[field_name])
-            for field_name, field_sedes in self.fields
-        ]
-        return hash_eth2(b"".join(field_hashes))
-
-    #
-    # Container size
-    #
-    @property
-    def is_variable_length(self):
-        return any(field_sedes.is_variable_length for _, field_sedes in self.fields)
-
-    def get_fixed_length(self):
-        if self.is_variable_length:
-            raise ValueError("Container does not have a fixed length")
-
-        return sum(field_sedes.get_fixed_length() for _, field_sedes in self.fields)
