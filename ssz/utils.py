@@ -98,6 +98,9 @@ def pad_chunks(chunks: Sequence[bytes]) -> Tuple[bytes]:
 
 
 def hash_layer(child_layer: Sequence[bytes]) -> Tuple[bytes]:
+    if len(child_layer) % 2 != 0:
+        raise ValueError("Layer must have an even number of elements")
+
     child_pairs = partition(2, child_layer)
     parent_layer = tuple(
         hash_eth2(left_child + right_child)
@@ -111,10 +114,8 @@ def merkleize(chunks: Sequence[bytes]) -> bytes:
     number_of_layers = int(math.log2(len(padded_chunks))) + 1
 
     layers = take(number_of_layers, iterate(hash_layer, padded_chunks))
-    root_layer = last(layers)
-    if not len(root_layer) == 1:
-        raise Exception("Invariant: root level of merkle tree has single element")
-    return root_layer[0]
+    root, = last(layers)
+    return root
 
 
 def mix_in_length(root: bytes, length: int) -> bytes:
