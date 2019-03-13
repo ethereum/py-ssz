@@ -53,7 +53,7 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
     #
     # Size
     #
-    is_static_sized = True
+    is_static_sized = False
 
     def get_static_size(self):
         raise ValueError("List has no static size")
