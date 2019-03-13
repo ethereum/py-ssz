@@ -83,10 +83,11 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[bytes]:
     return full_chunks + (last_chunk.ljust(CHUNK_SIZE, b"\x00"),)
 
 
-def get_next_power_of_two(integer: int) -> int:
-    powers_of_two = (2**exponent for exponent in count(0))
-    greater_or_equal_powers = dropwhile(lambda power: power < integer, powers_of_two)
-    return first(greater_or_equal_powers)
+def get_next_power_of_two(value: int) -> int:
+    if value <= 0:
+        return 1
+    else:
+        return 2**(value - 1).bit_length()
 
 
 def pad_chunks(chunks: Sequence[bytes]) -> Tuple[bytes]:
