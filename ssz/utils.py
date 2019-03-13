@@ -1,8 +1,4 @@
 import collections
-from itertools import (
-    count,
-    dropwhile,
-)
 import math
 from typing import (
     Sequence,
