@@ -47,7 +47,7 @@ class Tuple(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedEl
         if not self.is_static_sized:
             raise ValueError("Tuple does not have a fixed length")
 
-        return self.element_sedes.get_static_size()
+        return self.number_of_elements * self.element_sedes.get_static_size()
 
     #
     # Serialization
