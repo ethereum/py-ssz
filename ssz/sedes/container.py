@@ -49,14 +49,14 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
     # Container size
     #
     @property
-    def is_variable_length(self):
-        return any(field_sedes.is_variable_length for _, field_sedes in self.fields)
+    def is_static_sized(self):
+        return all(field_sedes.is_static_sized for _, field_sedes in self.fields)
 
-    def get_fixed_length(self):
-        if self.is_variable_length:
-            raise ValueError("Container does not have a fixed length")
+    def get_static_size(self):
+        if self.is_static_sized:
+            raise ValueError("Container contains dynamically sized elements")
 
-        return sum(field_sedes.get_fixed_length() for _, field_sedes in self.fields)
+        return sum(field_sedes.get_static_size() for _, field_sedes in self.fields)
 
     #
     # Tree hashing

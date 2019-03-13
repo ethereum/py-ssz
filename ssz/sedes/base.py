@@ -9,7 +9,7 @@ from typing import (
 )
 
 from ssz.constants import (
-    LENGTH_PREFIX_SIZE,
+    SIZE_PREFIX_SIZE,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -19,8 +19,8 @@ from ssz.utils import (
     pack,
 )
 from ssz.utils import (
-    get_length_prefix,
-    validate_content_length,
+    get_size_prefix,
+    validate_content_size,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -30,15 +30,15 @@ TDeserialized = TypeVar("TDeserialized")
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
     #
-    # Length
+    # Size
     #
     @property
     @abstractmethod
-    def is_variable_length(self) -> bool:
+    def is_static_sized(self) -> bool:
         pass
 
     @abstractmethod
-    def get_fixed_length(self) -> int:
+    def get_static_size(self) -> int:
         pass
 
     #
@@ -96,19 +96,19 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
 
-    def __init__(self, length: int):
-        if length <= 0:
+    def __init__(self, size: int):
+        if size <= 0:
             raise ValueError("Length must be greater than 0")
 
-        self.length = length
+        self.size = size
 
     #
     # Length
     #
-    is_variable_length = False
+    is_static_sized = True
 
-    def get_fixed_length(self):
-        return self.length
+    def get_static_size(self):
+        return self.size
 
     #
     # Serialization
@@ -124,7 +124,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     # Deserialization
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        content, continuation_index = self.consume_bytes(data, start_index, self.length)
+        content, continuation_index = self.consume_bytes(data, start_index, self.size)
         return self.deserialize_content(content), continuation_index
 
     @abstractmethod
@@ -147,12 +147,12 @@ class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     def serialize(self, value: TSerializable) -> bytes:
         content = self.serialize_content(value)
 
-        if not self.is_variable_length:
+        if self.is_static_sized:
             return content
         else:
-            validate_content_length(content)
-            length_prefix = get_length_prefix(content)
-            return length_prefix + content
+            validate_content_size(content)
+            size_prefix = get_size_prefix(content)
+            return size_prefix + content
 
     @abstractmethod
     def serialize_content(self, value: TSerializable) -> bytes:
@@ -162,12 +162,12 @@ class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     # Deserialization
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        if not self.is_variable_length:
-            content_size = self.get_fixed_length()
+        if self.is_static_sized:
+            content_size = self.get_static_size()
             content, continuation_index = self.consume_bytes(data, start_index, content_size)
             return self.deserialize_content(content), continuation_index
         else:
-            prefix, content_start_index = self.consume_bytes(data, start_index, LENGTH_PREFIX_SIZE)
+            prefix, content_start_index = self.consume_bytes(data, start_index, SIZE_PREFIX_SIZE)
             length = int.from_bytes(prefix, "little")
             content, continuation_index = self.consume_bytes(data, content_start_index, length)
             return self.deserialize_content(content), continuation_index

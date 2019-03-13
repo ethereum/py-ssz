@@ -40,14 +40,14 @@ class Tuple(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedEl
     # Size
     #
     @property
-    def is_variable_length(self):
-        return self.number_of_elements > 0 and self.element_sedes.is_variable_length
+    def is_static_sized(self) -> bool:
+        return self.element_sedes.is_static_sized or self.number_of_elements == 0
 
-    def get_fixed_length(self):
-        if self.is_variable_length:
+    def get_static_size(self) -> int:
+        if not self.is_static_sized:
             raise ValueError("Tuple does not have a fixed length")
 
-        return self.element_sedes.get_fixed_length()
+        return self.element_sedes.get_static_size()
 
     #
     # Serialization

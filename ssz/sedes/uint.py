@@ -22,10 +22,10 @@ class UInt(BasicSedes[int, int]):
             )
 
         try:
-            return value.to_bytes(self.length, "little")
+            return value.to_bytes(self.size, "little")
         except OverflowError:
             raise SerializationError(
-                f"{value} is too large to be serialized in {self.length * 8} bits"
+                f"{value} is too large to be serialized in {self.size * 8} bits"
             )
 
     def deserialize_content(self, content: bytes) -> int:

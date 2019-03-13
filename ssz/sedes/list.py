@@ -53,10 +53,10 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
     #
     # Size
     #
-    is_variable_length = True
+    is_static_sized = True
 
-    def get_fixed_length(self):
-        raise ValueError("List has no fixed length")
+    def get_static_size(self):
+        raise ValueError("List has no static size")
 
     #
     # Serialization

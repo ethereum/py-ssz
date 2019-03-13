@@ -18,24 +18,24 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
 
-    def __init__(self, length: int) -> None:
-        self.length = length
+    def __init__(self, size: int) -> None:
+        self.size = size
 
     #
     # Size
     #
-    is_variable_length = False
+    is_static_sized = True
 
-    def get_fixed_length(self):
-        return self.length
+    def get_static_size(self):
+        return self.size
 
     #
     # Serialization
     #
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
-        if len(value) != self.length:
+        if len(value) != self.size:
             raise SerializationError(
-                f"Cannot serialize {len(value)} elements as bytes{self.length}"
+                f"Cannot serialize {len(value)} bytes as bytes{self.size}"
             )
 
         return value

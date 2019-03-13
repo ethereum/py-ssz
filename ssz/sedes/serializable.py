@@ -366,8 +366,11 @@ class SerializableBase(abc.ABCMeta):
         return cls._meta.container_sedes.hash_tree_root(value)
 
     @property
-    def is_variable_length(cls):
-        return cls._meta.container_sedes.is_variable_length
+    def is_static_sized(cls):
+        return cls._meta.container_sedes.is_static_sized
+
+    def get_static_size(cls):
+        return cls._meta.container_sedes.get_static_size()
 
 
 # Make any class created with SerializableBase an instance of BaseSedes

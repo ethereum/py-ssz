@@ -20,8 +20,8 @@ from eth_utils.toolz import (
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
-    LENGTH_PREFIX_SIZE,
-    MAX_CONTENT_LENGTH,
+    SIZE_PREFIX_SIZE,
+    MAX_CONTENT_SIZE,
 )
 from ssz.exceptions import (
     SerializationError,
@@ -31,14 +31,14 @@ from ssz.hash import (
 )
 
 
-def get_length_prefix(content: bytes) -> bytes:
-    return len(content).to_bytes(LENGTH_PREFIX_SIZE, "little")
+def get_size_prefix(content: bytes) -> bytes:
+    return len(content).to_bytes(SIZE_PREFIX_SIZE, "little")
 
 
-def validate_content_length(content: bytes) -> None:
-    if len(content) >= MAX_CONTENT_LENGTH:
+def validate_content_size(content: bytes) -> None:
+    if len(content) >= MAX_CONTENT_SIZE:
         raise SerializationError(
-            f"Content is too big to be encoded in prefix of {LENGTH_PREFIX_SIZE} bytes",
+            f"Content size is too large to be encoded in a {SIZE_PREFIX_SIZE} byte prefix",
         )
 
 

@@ -15,10 +15,10 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
 
-    is_variable_length = True
+    is_static_sized = False
 
-    def get_fixed_length(self):
-        raise ValueError("byte list has no fixed length")
+    def get_static_size(self):
+        raise ValueError("byte list has no static size")
 
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         return value
