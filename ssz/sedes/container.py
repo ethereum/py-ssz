@@ -53,7 +53,7 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
         return all(field_sedes.is_static_sized for _, field_sedes in self.fields)
 
     def get_static_size(self):
-        if self.is_static_sized:
+        if not self.is_static_sized:
             raise ValueError("Container contains dynamically sized elements")
 
         return sum(field_sedes.get_static_size() for _, field_sedes in self.fields)
