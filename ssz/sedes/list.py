@@ -16,14 +16,14 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.utils import (
-    merkleize,
-    mix_in_length,
-)
 from ssz.sedes.base import (
     BaseSedes,
     BasicSedes,
     CompositeSedes,
+)
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
 )
 
 TSerializable = TypeVar("TSerializable")

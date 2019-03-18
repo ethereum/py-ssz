@@ -17,16 +17,14 @@ from mypy_extensions import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.utils import (
-    merkleize,
-    mix_in_length,
-)
 from ssz.sedes.base import (
     BaseSedes,
     CompositeSedes,
 )
 from ssz.utils import (
     get_duplicates,
+    merkleize,
+    mix_in_length,
 )
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})

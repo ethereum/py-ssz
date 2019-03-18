@@ -1,5 +1,9 @@
 import pytest
 
+from ssz.constants import (
+    CHUNK_SIZE,
+    EMPTY_CHUNK,
+)
 from ssz.hash import (
     hash_eth2,
 )
@@ -8,11 +12,6 @@ from ssz.utils import (
     mix_in_length,
     pack,
 )
-from ssz.constants import (
-    CHUNK_SIZE,
-    EMPTY_CHUNK,
-)
-
 
 HALF_CHUNK_SIZE = CHUNK_SIZE // 2
 A_CHUNK = b"\xaa" * CHUNK_SIZE

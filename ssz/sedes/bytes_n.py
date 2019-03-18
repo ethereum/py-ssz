@@ -5,12 +5,12 @@ from typing import (
 from ssz.exceptions import (
     SerializationError,
 )
+from ssz.sedes.tuple import (
+    CompositeSedes,
+)
 from ssz.utils import (
     merkleize,
     pack,
-)
-from ssz.sedes.tuple import (
-    CompositeSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]

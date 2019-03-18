@@ -1,12 +1,12 @@
 import pytest
 
 from ssz.sedes import (
+    Container,
+    List,
+    Tuple,
     boolean,
     uint8,
     uint512,
-    Tuple,
-    Container,
-    List,
 )
 
 

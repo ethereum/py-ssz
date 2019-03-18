@@ -13,10 +13,8 @@ from ssz.sedes import (
     List,
     Serializable,
     byte_list,
-    uint32,
-)
-from ssz.sedes import (
     infer_sedes,
+    uint32,
 )
 
 uint32_list = List(uint32)

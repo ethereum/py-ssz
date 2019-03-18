@@ -4,15 +4,22 @@ from hypothesis import (
 )
 import pytest
 
+from ssz.constants import (
+    CHUNK_SIZE,
+    EMPTY_CHUNK,
+)
 from ssz.hash import (
     hash_eth2,
 )
 from ssz.sedes import (
-    Boolean,
     ByteTuple,
+    List,
+    Tuple,
     UInt,
-    boolean,
+    byte,
     byte_list,
+    uint8,
+    uint256,
 )
 from ssz.tree_hash import (
     hash_tree_root,

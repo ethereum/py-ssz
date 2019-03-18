@@ -15,11 +15,9 @@ from ssz.exceptions import (
     DeserializationError,
 )
 from ssz.utils import (
+    get_size_prefix,
     merkleize,
     pack,
-)
-from ssz.utils import (
-    get_size_prefix,
     validate_content_size,
 )
 

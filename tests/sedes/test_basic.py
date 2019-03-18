@@ -1,14 +1,13 @@
-import pytest
-
 from eth_utils import (
-    encode_hex,
     decode_hex,
+    encode_hex,
 )
+import pytest
 
 import ssz
 from ssz.sedes import (
-    boolean,
     UInt,
+    boolean,
 )
 
 
@@ -22,7 +21,6 @@ from ssz.sedes import (
 def test_boolean(value, serialized):
     assert encode_hex(ssz.encode(value, boolean)) == serialized
     assert ssz.decode(decode_hex(serialized), boolean) == value
-
 
 
 @pytest.mark.parametrize(

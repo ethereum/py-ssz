@@ -16,8 +16,8 @@ from eth_utils.toolz import (
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
-    SIZE_PREFIX_SIZE,
     MAX_CONTENT_SIZE,
+    SIZE_PREFIX_SIZE,
 )
 from ssz.exceptions import (
     SerializationError,

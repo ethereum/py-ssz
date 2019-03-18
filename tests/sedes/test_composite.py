@@ -1,17 +1,17 @@
-import pytest
-
 from eth_utils import (
     decode_hex,
     encode_hex,
 )
+import pytest
 
 import ssz
 from ssz.sedes import (
-    uint8,
     Container,
     List,
     Tuple,
+    uint8,
 )
+
 
 @pytest.mark.parametrize(
     ("value", "serialized"),

@@ -2,12 +2,12 @@ from typing import (
     Union,
 )
 
+from ssz.sedes.base import (
+    CompositeSedes,
+)
 from ssz.utils import (
     merkleize,
     pack,
-)
-from ssz.sedes.base import (
-    CompositeSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]

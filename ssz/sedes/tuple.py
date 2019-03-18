@@ -9,10 +9,6 @@ from eth_utils import (
     to_tuple,
 )
 
-from ssz.utils import (
-    merkleize,
-    pack,
-)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -21,6 +17,10 @@ from ssz.sedes.base import (
     BaseSedes,
     BasicSedes,
     CompositeSedes,
+)
+from ssz.utils import (
+    merkleize,
+    pack,
 )
 
 TSerializableElement = TypeVar("TSerializable")
