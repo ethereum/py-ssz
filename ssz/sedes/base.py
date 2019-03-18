@@ -165,12 +165,11 @@ class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
         if self.is_static_sized:
             content_size = self.get_static_size()
             content, continuation_index = self.consume_bytes(data, start_index, content_size)
-            return self.deserialize_content(content), continuation_index
         else:
             prefix, content_start_index = self.consume_bytes(data, start_index, SIZE_PREFIX_SIZE)
             length = int.from_bytes(prefix, "little")
             content, continuation_index = self.consume_bytes(data, content_start_index, length)
-            return self.deserialize_content(content), continuation_index
+        return self.deserialize_content(content), continuation_index
 
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:

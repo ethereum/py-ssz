@@ -12,6 +12,7 @@ from eth_typing import (
 
 from ssz.constants import (
     CHUNK_SIZE,
+    EMPTY_CHUNK,
 )
 
 
@@ -33,7 +34,7 @@ def merkle_hash(input_items: Sequence[Any]) -> Hash32:
     data_length = len(input_items).to_bytes(32, "little")
     if len(input_items) == 0:
         # Handle empty list case
-        chunks = (b'\x00' * CHUNK_SIZE,)
+        chunks = (EMPTY_CHUNK,)
     elif len(input_items[0]) < CHUNK_SIZE:
         # See how many items fit in a chunk
         items_per_chunk = CHUNK_SIZE // len(input_items[0])
@@ -54,7 +55,7 @@ def merkle_hash(input_items: Sequence[Any]) -> Hash32:
     # Tree-hash
     while len(chunks) > 1:
         if len(chunks) % 2 == 1:
-            chunks += (b'\x00' * CHUNK_SIZE, )
+            chunks += (EMPTY_CHUNK,)
         chunks = tuple(
             hash_eth2(chunks[i] + chunks[i + 1])
             for i in range(0, len(chunks), 2)
