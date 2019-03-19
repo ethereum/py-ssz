@@ -6,7 +6,7 @@ from ssz.sedes import (
     Vector,
     boolean,
     uint8,
-    uint512,
+    uint256,
 )
 
 
@@ -15,7 +15,7 @@ from ssz.sedes import (
     (
         (boolean, 1),
         (uint8, 1),
-        (uint512, 64),
+        (uint256, 32),
         (Vector(0, uint8), 0),
         (Vector(2, uint8), 2),
         (Container(()), 0),
