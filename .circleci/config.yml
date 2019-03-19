@@ -57,12 +57,6 @@ jobs:
       - image: circleci/python:3.6
         environment:
           TOXENV: py36-core
-  yaml:
-    <<: *common
-    docker:
-    - image: circleci/python:3.6
-      environment:
-        TOXENV: yaml
   benchmark:
     <<: *common
     docker:
@@ -76,5 +70,4 @@ workflows:
       - doctest
       - lint
       - py36
-      - yaml
       - benchmark
