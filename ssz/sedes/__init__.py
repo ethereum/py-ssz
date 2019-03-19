@@ -1,20 +1,41 @@
 from collections.abc import (
-    Sequence,
     Iterable,
+    Sequence,
 )
 
+from .base import (  # noqa: F401
+    BaseSedes,
+    BasicSedes,
+    CompositeSedes,
+)
 from .boolean import (  # noqa: F401
-    boolean,
     Boolean,
+    boolean,
 )
-
+from .byte import (  # noqa: F401
+    Byte,
+    byte,
+)
+from .byte_list import (  # noqa: F401
+    ByteList,
+    byte_list,
+)
 from .byte_vector import (  # noqa: F401
+    ByteVector,
     bytes32,
     bytes48,
     bytes96,
-    ByteVector,
 )
-
+from .container import (  # noqa: F401
+    Container,
+)
+from .list import (  # noqa: F401
+    List,
+    empty_list,
+)
+from .serializable import (  # noqa: F401
+    Serializable,
+)
 from .uint import (  # noqa: F401
     UInt,
     uint8,
@@ -24,40 +45,9 @@ from .uint import (  # noqa: F401
     uint128,
     uint256,
 )
-
-from .byte import (  # noqa: F401
-    Byte,
-    byte,
-)
-
-from .byte_list import (  # noqa: F401
-    byte_list,
-    ByteList,
-)
-
-from .list import (  # noqa: F401
-    empty_list,
-    List,
-)
-
-from .base import (  # noqa: F401
-    BaseSedes,
-    BasicSedes,
-    CompositeSedes,
-)
-
-from .container import (  # noqa: F401
-    Container,
-)
-
 from .vector import (  # noqa: F401
     Vector,
 )
-
-from .serializable import (  # noqa: F401
-    Serializable,
-)
-
 
 sedes_by_name = {
     "boolean": boolean,
