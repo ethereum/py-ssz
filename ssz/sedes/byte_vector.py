@@ -51,7 +51,8 @@ class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
     #
     def hash_tree_root(self, value: bytes) -> bytes:
         serialized_value = self.serialize(value)
-        return merkleize(pack(serialized_value))
+        elements = tuple(bytes([byte_value]) for byte_value in serialized_value)
+        return merkleize(pack(elements))
 
 
 bytes32 = ByteVector(32)

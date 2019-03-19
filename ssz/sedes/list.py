@@ -24,6 +24,7 @@ from ssz.sedes.base import (
 from ssz.utils import (
     merkleize,
     mix_in_length,
+    pack,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -112,16 +113,19 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
     #
     def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
         if isinstance(self.element_sedes, BasicSedes):
-            merkle_leaves = tuple(
+            serialized_items = tuple(
                 self.element_sedes.serialize(element)
                 for element in value
             )
+            length = len(serialized_items)
+            merkle_leaves = pack(serialized_items)
         else:
             merkle_leaves = tuple(
                 self.element_sedes.hash_tree_root(element)
                 for element in value
             )
-        return mix_in_length(merkleize(merkle_leaves), len(merkle_leaves))
+            length = len(merkle_leaves)
+        return mix_in_length(merkleize(merkle_leaves), length)
 
 
 empty_list: List[None, None] = List(empty=True)

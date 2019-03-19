@@ -48,8 +48,10 @@ def get_duplicates(values):
 
 
 def get_items_per_chunk(item_size: int) -> int:
-    if item_size <= 0:
+    if item_size < 0:
         raise ValueError("Item size must be positive integer")
+    elif item_size == 0:
+        return 1
     elif CHUNK_SIZE % item_size != 0:
         raise ValueError("Item size must be a divisor of chunk size")
     elif item_size <= CHUNK_SIZE:

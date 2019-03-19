@@ -61,10 +61,10 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
     #
     def hash_tree_root(self, value: TAnyTypedDict) -> bytes:
         merkle_leaves = tuple(
-            field_sedes.serialize(value[field_name])
+            field_sedes.hash_tree_root(value[field_name])
             for field_name, field_sedes in self.fields
         )
-        return mix_in_length(merkleize(merkle_leaves), len(merkle_leaves))
+        return merkleize(merkle_leaves)
 
     #
     # Serialization
