@@ -13,6 +13,7 @@ from ssz.constants import (
 )
 from ssz.exceptions import (
     DeserializationError,
+    SerializationError,
 )
 from ssz.utils import (
     get_size_prefix,
@@ -112,7 +113,10 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     # Serialization
     #
     def serialize(self, value: TSerializable) -> bytes:
-        return self.serialize_content(value)
+        serialized_content = self.serialize_content(value)
+        if len(serialized_content) != self.size:
+            raise SerializationError(f"Cannot serialize {value} in {self.size} bytes")
+        return serialized_content
 
     @abstractmethod
     def serialize_content(self, value: TSerializable) -> bytes:
