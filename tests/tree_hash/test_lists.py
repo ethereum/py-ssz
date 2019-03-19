@@ -8,7 +8,7 @@ from ssz import (
     hash_tree_root,
 )
 from ssz.sedes import (
-    ByteTuple,
+    ByteVector,
     List,
     byte_list,
     bytes32,
@@ -92,7 +92,7 @@ def test_bytes_32_list_sanity(items, sequence_type):
     )
 )
 def test_bytes_n_list_randomized(data, length, sequence_type):
-    sedes = List(ByteTuple(length))
+    sedes = List(ByteVector(length))
     items = data.draw(
         st.lists(
             st.binary(

@@ -5,7 +5,7 @@ from typing import (
 from ssz.exceptions import (
     SerializationError,
 )
-from ssz.sedes.tuple import (
+from ssz.sedes.vector import (
     CompositeSedes,
 )
 from ssz.utils import (
@@ -16,7 +16,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
+class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
 
     def __init__(self, size: int) -> None:
         self.size = size
@@ -54,6 +54,6 @@ class ByteTuple(CompositeSedes[BytesOrByteArray, bytes]):
         return merkleize(pack(serialized_value))
 
 
-bytes32 = ByteTuple(32)
-bytes48 = ByteTuple(48)
-bytes96 = ByteTuple(96)
+bytes32 = ByteVector(32)
+bytes48 = ByteVector(48)
+bytes96 = ByteVector(96)

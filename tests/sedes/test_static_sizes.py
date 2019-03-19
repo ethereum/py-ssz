@@ -3,7 +3,7 @@ import pytest
 from ssz.sedes import (
     Container,
     List,
-    Tuple,
+    Vector,
     boolean,
     uint8,
     uint512,
@@ -16,12 +16,12 @@ from ssz.sedes import (
         (boolean, 1),
         (uint8, 1),
         (uint512, 64),
-        (Tuple(0, uint8), 0),
-        (Tuple(2, uint8), 2),
+        (Vector(0, uint8), 0),
+        (Vector(2, uint8), 2),
         (Container(()), 0),
-        (Container((("a", uint8), ("b", Tuple(4, uint8)))), 5),
-        (Tuple(0, List(uint8)), 0),
-        (Tuple(4, Container((("a", uint8), ("b", Tuple(4, uint8))))), 20),
+        (Container((("a", uint8), ("b", Vector(4, uint8)))), 5),
+        (Vector(0, List(uint8)), 0),
+        (Vector(4, Container((("a", uint8), ("b", Vector(4, uint8))))), 20),
     ),
 )
 def test_static_size(sedes, size):
@@ -32,14 +32,14 @@ def test_static_size(sedes, size):
 @pytest.mark.parametrize(
     "sedes",
     (
-        List(uint8),
-        List(Tuple(2, uint8)),
-        List(List(uint8)),
-        List(Container((("a", uint8), ("b", Tuple(4, uint8))))),
-        Tuple(2, List(uint8)),
-        Container((("a", List(uint8)),)),
-        Container((("a", uint8), ("b", List(uint8)), ("c", uint8))),
-        Container((("a", Container((("a", List(uint8)),))),)),
+            List(uint8),
+            List(Vector(2, uint8)),
+            List(List(uint8)),
+            List(Container((("a", uint8), ("b", Vector(4, uint8))))),
+            Vector(2, List(uint8)),
+            Container((("a", List(uint8)),)),
+            Container((("a", uint8), ("b", List(uint8)), ("c", uint8))),
+            Container((("a", Container((("a", List(uint8)),))),)),
     ),
 )
 def test_dynamic_size(sedes):

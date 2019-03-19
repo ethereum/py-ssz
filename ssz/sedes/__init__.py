@@ -8,11 +8,11 @@ from .boolean import (  # noqa: F401
     Boolean,
 )
 
-from .bytes_n import (  # noqa: F401
+from .byte_vector import (  # noqa: F401
     bytes32,
     bytes48,
     bytes96,
-    ByteTuple,
+    ByteVector,
 )
 
 from .uint import (  # noqa: F401
@@ -51,8 +51,8 @@ from .container import (  # noqa: F401
     Container,
 )
 
-from .tuple import (  # noqa: F401
-    Tuple,
+from .vector import (  # noqa: F401
+    Vector,
 )
 
 from .serializable import (  # noqa: F401

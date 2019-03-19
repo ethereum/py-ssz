@@ -30,9 +30,9 @@ from .sedes import (  # noqa: F401
     Boolean,
     boolean,
 
-    Tuple,
+    Vector,
 
-    ByteTuple,
+    ByteVector,
     bytes32,
     bytes48,
     bytes96,

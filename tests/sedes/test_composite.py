@@ -8,7 +8,7 @@ import ssz
 from ssz.sedes import (
     Container,
     List,
-    Tuple,
+    Vector,
     uint8,
 )
 
@@ -38,7 +38,7 @@ def test_list(value, serialized):
     ),
 )
 def test_tuple_of_static_sized_entries(value, serialized):
-    sedes = Tuple(len(value), uint8)
+    sedes = Vector(len(value), uint8)
     assert encode_hex(ssz.encode(value, sedes)) == serialized
     assert ssz.decode(decode_hex(serialized), sedes) == value
 
@@ -57,7 +57,7 @@ def test_tuple_of_static_sized_entries(value, serialized):
     )
 )
 def test_tuple_of_dynamic_sized_entries(value, serialized):
-    sedes = Tuple(len(value), List(uint8))
+    sedes = Vector(len(value), List(uint8))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
     assert ssz.decode(decode_hex(serialized), sedes) == value
 
