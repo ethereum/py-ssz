@@ -44,7 +44,6 @@ from .sedes import (  # noqa: F401
     uint64,
     uint128,
     uint256,
-    uint512,
 
     Byte,
     byte,

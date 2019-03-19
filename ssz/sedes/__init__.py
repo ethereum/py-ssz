@@ -23,7 +23,6 @@ from .uint import (  # noqa: F401
     uint64,
     uint128,
     uint256,
-    uint512,
 )
 
 from .byte import (  # noqa: F401
@@ -73,7 +72,6 @@ sedes_by_name = {
     "uint64": uint64,
     "uint128": uint128,
     "uint256": uint256,
-    "uint512": uint512,
 
     "byte": byte,
     "byte_list": byte_list,
