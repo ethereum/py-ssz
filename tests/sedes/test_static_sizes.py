@@ -32,14 +32,14 @@ def test_static_size(sedes, size):
 @pytest.mark.parametrize(
     "sedes",
     (
-            List(uint8),
-            List(Vector(2, uint8)),
-            List(List(uint8)),
-            List(Container((("a", uint8), ("b", Vector(4, uint8))))),
-            Vector(2, List(uint8)),
-            Container((("a", List(uint8)),)),
-            Container((("a", uint8), ("b", List(uint8)), ("c", uint8))),
-            Container((("a", Container((("a", List(uint8)),))),)),
+        List(uint8),
+        List(Vector(2, uint8)),
+        List(List(uint8)),
+        List(Container((("a", uint8), ("b", Vector(4, uint8))))),
+        Vector(2, List(uint8)),
+        Container((("a", List(uint8)),)),
+        Container((("a", uint8), ("b", List(uint8)), ("c", uint8))),
+        Container((("a", Container((("a", List(uint8)),))),)),
     ),
 )
 def test_dynamic_size(sedes):

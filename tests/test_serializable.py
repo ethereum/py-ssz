@@ -119,9 +119,9 @@ def test_initialization_with_invalid_arguments(args, kwargs):
 @pytest.mark.parametrize(
     ("args", "kwargs"),
     (
-            ((1, 2), {}),
-            ((1,), {"field2": 2}),
-            ((), {"field1": 1, "field2": 2}),
+        ((1, 2), {}),
+        ((1,), {"field2": 2}),
+        ((), {"field1": 1, "field2": 2}),
     )
 )
 def test_initialization_with_valid_arguments(args, kwargs):

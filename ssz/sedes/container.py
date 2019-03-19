@@ -24,7 +24,6 @@ from ssz.sedes.base import (
 from ssz.utils import (
     get_duplicates,
     merkleize,
-    mix_in_length,
 )
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})

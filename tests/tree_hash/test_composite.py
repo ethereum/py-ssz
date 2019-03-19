@@ -9,13 +9,12 @@ from ssz.hash import (
     hash_eth2,
 )
 from ssz.sedes import (
-    uint128,
     ByteVector,
     Container,
     List,
     Vector,
+    uint128,
 )
-
 
 bytes16 = ByteVector(16)
 EMPTY_BYTES = b"\x00" * 16

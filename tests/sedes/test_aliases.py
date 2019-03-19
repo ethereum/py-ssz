@@ -6,11 +6,11 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes import (
-    byte,
-    byte_list,
     ByteVector,
     List,
     Vector,
+    byte,
+    byte_list,
 )
 
 

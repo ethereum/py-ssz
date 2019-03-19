@@ -1,17 +1,17 @@
-import pytest
-
 from hypothesis import (
     given,
     strategies as st,
 )
+import pytest
 
 import ssz
 from ssz.sedes import (
-    byte,
-    byte_list,
     ByteVector,
     List,
     Vector,
+    byte,
+    byte_list,
+    uint8,
 )
 
 
