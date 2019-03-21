@@ -6,14 +6,14 @@ from ssz.exceptions import (
     DeserializationError,
 )
 from ssz.sedes.base import (
-    FixedSizedSedes,
+    BasicSedes,
 )
 
 
-class Boolean(FixedSizedSedes[bool, bool]):
+class Boolean(BasicSedes[bool, bool]):
 
     def __init__(self) -> None:
-        super().__init__(length=1)
+        super().__init__(size=1)
 
     def serialize_content(self, value: bool) -> bytes:
         if value is False:
