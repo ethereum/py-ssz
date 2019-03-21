@@ -35,7 +35,6 @@ from .uint import (  # noqa: F401
     uint64,
     uint128,
     uint256,
-    uint512,
 )
 
 sedes_by_name = {
@@ -52,5 +51,4 @@ sedes_by_name = {
     "uint64": uint64,
     "uint128": uint128,
     "uint256": uint256,
-    "uint512": uint512,
 }

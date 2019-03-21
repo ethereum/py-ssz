@@ -33,7 +33,6 @@ from .sedes import (  # noqa: F401
     uint64,
     uint128,
     uint256,
-    uint512,
 )
 from .tree_hash import (  # noqa: F401
     hash_tree_root,
