@@ -5,6 +5,8 @@ from collections.abc import (
 
 from .base import (  # noqa: F401
     BaseSedes,
+    BasicSedes,
+    CompositeSedes,
     FixedSizedSedes,
     LengthPrefixedSedes,
 )
@@ -40,6 +42,9 @@ from .uint import (  # noqa: F401
     uint64,
     uint128,
     uint256,
+)
+from .vector import (  # noqa: F401
+    Vector,
 )
 
 sedes_by_name = {
