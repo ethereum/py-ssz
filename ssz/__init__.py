@@ -19,8 +19,6 @@ from .sedes import (  # noqa: F401
     ByteVector,
     CompositeSedes,
     Container,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
     List,
     Serializable,
     UInt,

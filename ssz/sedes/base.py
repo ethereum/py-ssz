@@ -169,13 +169,3 @@ class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:
         pass
-
-
-class LengthPrefixedSedes(Generic[TSerializable, TDeserialized]):
-    pass
-
-
-class FixedSizedSedes(Generic[TSerializable, TDeserialized]):
-
-    def __init__(self, size):
-        pass

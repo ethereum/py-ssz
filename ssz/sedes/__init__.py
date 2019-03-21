@@ -7,8 +7,6 @@ from .base import (  # noqa: F401
     BaseSedes,
     BasicSedes,
     CompositeSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
 )
 from .boolean import (  # noqa: F401
     Boolean,
