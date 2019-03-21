@@ -82,7 +82,6 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    @abstractmethod
     def hash_tree_root(self, value: TSerializable) -> bytes:
         return EMPTY_CHUNK
 
