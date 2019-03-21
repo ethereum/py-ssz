@@ -1,8 +1,8 @@
 import collections
 
 from ssz.constants import (
-    SIZE_PREFIX_SIZE,
     MAX_CONTENT_SIZE,
+    SIZE_PREFIX_SIZE,
 )
 from ssz.exceptions import (
     SerializationError,
