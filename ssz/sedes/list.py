@@ -18,7 +18,13 @@ from ssz.exceptions import (
 )
 from ssz.sedes.base import (
     BaseSedes,
+    BasicSedes,
     CompositeSedes,
+)
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
+    pack,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -103,6 +109,25 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
 
         if element_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_items = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            length = len(serialized_items)
+            merkle_leaves = pack(serialized_items)
+        else:
+            merkle_leaves = tuple(
+                self.element_sedes.hash_tree_root(element)
+                for element in value
+            )
+            length = len(merkle_leaves)
+        return mix_in_length(merkleize(merkle_leaves), length)
 
 
 empty_list: List[None, None] = List(empty=True)

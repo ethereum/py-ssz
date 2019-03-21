@@ -9,7 +9,6 @@ from typing import (
 )
 
 from ssz.constants import (
-    EMPTY_CHUNK,
     SIZE_PREFIX_SIZE,
 )
 from ssz.exceptions import (
@@ -18,6 +17,8 @@ from ssz.exceptions import (
 )
 from ssz.utils import (
     get_size_prefix,
+    merkleize,
+    pack,
     validate_content_size,
 )
 
@@ -87,8 +88,9 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
+    @abstractmethod
     def hash_tree_root(self, value: TSerializable) -> bytes:
-        return EMPTY_CHUNK
+        pass
 
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
@@ -132,6 +134,13 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:
         pass
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: TSerializable) -> bytes:
+        serialized_value = self.serialize(value)
+        return merkleize(pack((serialized_value,)))
 
 
 class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):

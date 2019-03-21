@@ -5,6 +5,11 @@ from typing import (
 from ssz.sedes.base import (
     CompositeSedes,
 )
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
+    pack,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 
@@ -21,6 +26,11 @@ class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
 
     def deserialize_content(self, content: bytes) -> bytes:
         return content
+
+    def hash_tree_root(self, value: bytes) -> bytes:
+        merkle_leaves = pack(tuple(bytes([byte_value]) for byte_value in value))
+        merkleized = merkleize(merkle_leaves)
+        return mix_in_length(merkleized, len(value))
 
 
 byte_list = ByteList()

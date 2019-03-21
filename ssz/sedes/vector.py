@@ -15,7 +15,12 @@ from ssz.exceptions import (
 )
 from ssz.sedes.base import (
     BaseSedes,
+    BasicSedes,
     CompositeSedes,
+)
+from ssz.utils import (
+    merkleize,
+    pack,
 )
 
 TSerializableElement = TypeVar("TSerializable")
@@ -87,3 +92,20 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             raise DeserializationError(
                 f"Serialized tuple ends with {len(content) - element_start_index} extra bytes"
             )
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: Sequence[TSerializableElement]) -> bytes:
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_elements = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            return merkleize(pack(serialized_elements))
+        else:
+            element_tree_hashes = tuple(
+                self.element_sedes.hash_tree_root(element)
+                for element in value
+            )
+            return merkleize(element_tree_hashes)
