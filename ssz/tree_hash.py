@@ -9,12 +9,12 @@ from eth_typing import (
 from ssz.sedes.base import (
     BaseSedes,
 )
-from ssz.utils import (
+from ssz.sedes import (
     infer_sedes,
 )
 
 
-def hash_tree_root(value: Any, sedes: BaseSedes=None) -> Hash32:
+def hash_tree_root(value: Any, sedes: BaseSedes = None) -> Hash32:
     if sedes is None:
         sedes = infer_sedes(value)
 

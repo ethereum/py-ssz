@@ -5,12 +5,10 @@ from eth_utils import (
 from ssz.sedes import (
     Serializable,
     sedes_by_name,
+    infer_sedes,
 )
 from ssz.sedes.base import (
     BaseSedes,
-)
-from ssz.utils import (
-    infer_sedes,
 )
 
 
@@ -35,10 +33,7 @@ def encode(value, sedes=None, cache=True):
         if sedes is None and cached_ssz is not None:
             return cached_ssz
         else:
-            really_cache = (
-                cache and
-                sedes is None
-            )
+            really_cache = cache and sedes is None
     else:
         really_cache = False
 
