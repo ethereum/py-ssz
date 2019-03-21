@@ -7,10 +7,10 @@ from ssz.sedes import (
     Vector,
     boolean,
     byte,
+    byte_list,
     bytes32,
     bytes48,
     bytes96,
-    byte_list,
     uint8,
     uint256,
 )
