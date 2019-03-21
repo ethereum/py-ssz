@@ -2,11 +2,11 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes.base import (
-    FixedSizedSedes,
+    BasicSedes,
 )
 
 
-class UInt(FixedSizedSedes[int, int]):
+class UInt(BasicSedes[int, int]):
 
     def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:
@@ -22,10 +22,10 @@ class UInt(FixedSizedSedes[int, int]):
             )
 
         try:
-            return value.to_bytes(self.length, "little")
+            return value.to_bytes(self.size, "little")
         except OverflowError:
             raise SerializationError(
-                f"{value} is too large to be serialized in {self.length * 8} bits"
+                f"{value} is too large to be serialized in {self.size * 8} bits"
             )
 
     def deserialize_content(self, content: bytes) -> int:
@@ -38,4 +38,3 @@ uint32 = UInt(32)
 uint64 = UInt(64)
 uint128 = UInt(128)
 uint256 = UInt(256)
-uint512 = UInt(512)
