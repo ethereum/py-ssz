@@ -1,20 +1,32 @@
+from .base import (  # noqa: F401
+    BaseSedes,
+    FixedSizedSedes,
+    LengthPrefixedSedes,
+)
 from .boolean import (  # noqa: F401
-    boolean,
     Boolean,
+    boolean,
 )
-
 from .bytes import (  # noqa: F401
-    bytes_sedes,
     Bytes,
+    bytes_sedes,
 )
-
 from .bytes_n import (  # noqa: F401
+    BytesN,
     bytes32,
     bytes48,
     bytes96,
-    BytesN,
 )
-
+from .container import (  # noqa: F401
+    Container,
+)
+from .list import (  # noqa: F401
+    List,
+    empty_list,
+)
+from .serializable import (  # noqa: F401
+    Serializable,
+)
 from .uint import (  # noqa: F401
     UInt,
     uint8,
@@ -25,26 +37,6 @@ from .uint import (  # noqa: F401
     uint256,
     uint512,
 )
-
-from .list import (  # noqa: F401
-    empty_list,
-    List,
-)
-
-from .base import (  # noqa: F401
-    BaseSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
-)
-
-from .container import (  # noqa: F401
-    Container,
-)
-
-from .serializable import (  # noqa: F401
-    Serializable,
-)
-
 
 sedes_by_name = {
     "boolean": boolean,

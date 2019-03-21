@@ -1,43 +1,32 @@
-from .codec import (  # noqa: F401
-    encode,
-    decode
-)
-
-from .exceptions import (  # noqa: F401
-    SSZException,
-    SerializationError,
-    DeserializationError,
-)
-
-from .tree_hash import (  # noqa: F401
-    hash_tree_root,
-)
-
 #
 # sedes
 #
+from .codec import (  # noqa: F401
+    decode,
+    encode,
+)
+from .exceptions import (  # noqa: F401
+    DeserializationError,
+    SerializationError,
+    SSZException,
+)
 from .sedes import (  # noqa: F401
     BaseSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
-
-    Container,
-    Serializable,
-
-    List,
-    empty_list,
-
     Boolean,
-    boolean,
-
     Bytes,
     BytesN,
-    bytes_sedes,
+    Container,
+    FixedSizedSedes,
+    LengthPrefixedSedes,
+    List,
+    Serializable,
+    UInt,
+    boolean,
     bytes32,
     bytes48,
     bytes96,
-
-    UInt,
+    bytes_sedes,
+    empty_list,
     uint8,
     uint16,
     uint32,
@@ -45,4 +34,7 @@ from .sedes import (  # noqa: F401
     uint128,
     uint256,
     uint512,
+)
+from .tree_hash import (  # noqa: F401
+    hash_tree_root,
 )
