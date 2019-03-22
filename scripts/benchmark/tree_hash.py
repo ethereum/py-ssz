@@ -1,17 +1,22 @@
+import cProfile
+import random
 import time
 
-from ssz import (
-    hash_tree_root,
-)
+import ssz
 from ssz.sedes import (
     List,
     Serializable,
+    ByteVector,
+    byte_list,
     bytes32,
     bytes48,
     uint32,
     uint64,
 )
 
+random.seed(0)
+
+do_profiling = False
 TOLERABLE_PERFORMANCE = 15  # Seconds
 
 
@@ -84,23 +89,77 @@ def make_state(num_validators):
     return state
 
 
-def run():
-    state = make_state(2**18)
+def prepare_byte_vector_benchmark():
+    size = 512
+    repetitions = 10000
+    byte_vector = ByteVector(size)
+    data = tuple(
+        bytes(random.getrandbits(8) for _ in range(size))
+        for _ in range(repetitions)
+    )
 
-    start_time = time.time()
+    def benchmark():
+        for data_item in data:
+            ssz.hash_tree_root(data_item, byte_vector)
 
-    hash_tree_root(state)
+    return benchmark
 
-    actual_performance = time.time() - start_time
 
-    print("Performance of hash_tree_root", actual_performance)
+def prepare_byte_list_benchmark():
+    size_range = (0, 1000)
+    repetitions = 10000
 
-    if actual_performance > TOLERABLE_PERFORMANCE:
-        raise TimeoutError("hash_tree_root is not fast enough. Tolerable: {}, Actual: {}".format(
-            TOLERABLE_PERFORMANCE,
-            actual_performance,
-        ))
+    sizes = tuple(random.randint(*size_range) for _ in range(repetitions))
+    data = tuple(
+        bytes(random.getrandbits(8) for _ in range(size))
+        for size in sizes
+    )
+
+    def benchmark():
+        for data_item in data:
+            ssz.hash_tree_root(data_item, byte_list)
+
+    return benchmark
+
+
+def prepare_state_benchmark():
+    state = make_state(2**15)
+
+    def benchmark():
+        ssz.hash_tree_root(state)
+
+    return benchmark
 
 
 if __name__ == '__main__':
-    run()
+    benchmarks = {
+        # "byte_vector": prepare_byte_vector_benchmark(),
+        # "byte_list": prepare_byte_list_benchmark(),
+        "state": prepare_state_benchmark(),
+    }
+    results = {}
+
+    for name, benchmark in benchmarks.items():
+        if do_profiling:
+            profile = cProfile.Profile()
+            profile.enable()
+
+        start_time = time.time()
+        benchmark()
+        end_time = time.time()
+
+        if do_profiling:
+            profile.disable()
+            profile.print_stats(sort="tottime")
+
+        duration = end_time - start_time
+        results[name] = duration
+        print(f"{name}: {duration:.2f}s")
+
+    if "state" not in results:
+        raise RuntimeError("state benchmark has not been run")
+    elif results["state"] > TOLERABLE_PERFORMANCE:
+        raise TimeoutError("hash_tree_root is not fast enough. Tolerable: {}, Actual: {}".format(
+            TOLERABLE_PERFORMANCE,
+            results["state"],
+        ))
