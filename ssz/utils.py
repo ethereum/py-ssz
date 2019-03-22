@@ -84,6 +84,25 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return full_chunks + (Hash32(last_chunk.ljust(CHUNK_SIZE, b"\x00")),)
 
 
+def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
+    size = len(byte_string)
+    if size == 0:
+        return (EMPTY_CHUNK,)
+
+    number_of_full_chunks = size // CHUNK_SIZE
+    last_chunk_is_full = size % CHUNK_SIZE == 0
+
+    full_chunks = tuple(
+        byte_string[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
+        for chunk_index in range(number_of_full_chunks)
+    )
+    if last_chunk_is_full:
+        return full_chunks
+    else:
+        last_chunk = byte_string[number_of_full_chunks * CHUNK_SIZE:].ljust(CHUNK_SIZE, b"\x00")
+        return full_chunks + (last_chunk,)
+
+
 def get_next_power_of_two(value: int) -> int:
     if value <= 0:
         return 1

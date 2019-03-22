@@ -1,5 +1,10 @@
 import pytest
 
+from hypothesis import (
+    given,
+    strategies as st,
+)
+
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
@@ -11,6 +16,7 @@ from ssz.utils import (
     merkleize,
     mix_in_length,
     pack,
+    pack_bytes,
 )
 
 HALF_CHUNK_SIZE = CHUNK_SIZE // 2
@@ -36,6 +42,12 @@ D_CHUNK = b"\xdd" * CHUNK_SIZE
 ))
 def test_pack(values, packed):
     assert pack(values) == packed
+
+
+@given(st.binary())
+def test_pack_bytes(data):
+    byte_list = tuple(bytes([byte]) for byte in data)
+    assert pack_bytes(data) == pack(byte_list)
 
 
 @pytest.mark.parametrize(("chunks", "root"), (

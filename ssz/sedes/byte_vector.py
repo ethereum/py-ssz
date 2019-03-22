@@ -10,7 +10,7 @@ from ssz.sedes.base import (
 )
 from ssz.utils import (
     merkleize,
-    pack,
+    pack_bytes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
@@ -51,8 +51,7 @@ class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
     #
     def hash_tree_root(self, value: bytes) -> bytes:
         serialized_value = self.serialize(value)
-        elements = tuple(bytes([byte_value]) for byte_value in serialized_value)
-        return merkleize(pack(elements))
+        return merkleize(pack_bytes(serialized_value))
 
 
 bytes4 = ByteVector(4)
