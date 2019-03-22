@@ -28,6 +28,7 @@ from .sedes import (  # noqa: F401
     byte_vector,
     bytes32,
     bytes48,
+    bytes64,
     bytes96,
     empty_list,
     uint8,

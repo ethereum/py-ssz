@@ -24,6 +24,7 @@ from .byte_vector import (  # noqa: F401
     ByteVector,
     bytes32,
     bytes48,
+    bytes64,
     bytes96,
 )
 from .container import (  # noqa: F401
@@ -55,6 +56,7 @@ sedes_by_name = {
     "byte": byte,
     "bytes32": bytes32,
     "bytes48": bytes48,
+    "bytes64": bytes64,
     "bytes96": bytes96,
     "byte_list": byte_list,
     "empty_list": empty_list,
