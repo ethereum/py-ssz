@@ -43,7 +43,7 @@ class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
         return content
 
 
+bytes4 = ByteVector(4)
 bytes32 = ByteVector(32)
 bytes48 = ByteVector(48)
-bytes64 = ByteVector(64)
 bytes96 = ByteVector(96)
