@@ -76,5 +76,4 @@ workflows:
       - doctest
       - lint
       - py36
-      - yaml
       - benchmark

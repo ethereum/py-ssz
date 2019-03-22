@@ -4,7 +4,6 @@ import os
 from eth_utils import (
     to_tuple,
 )
-
 from ruamel.yaml import (
     YAML,
 )
