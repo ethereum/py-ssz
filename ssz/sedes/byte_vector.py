@@ -5,7 +5,7 @@ from typing import (
 from ssz.exceptions import (
     SerializationError,
 )
-from ssz.sedes.vector import (
+from ssz.sedes.base import (
     CompositeSedes,
 )
 
