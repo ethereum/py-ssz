@@ -97,7 +97,9 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Size
     #
-    is_static_sized = True
+    @property
+    def is_static_sized(self):
+        return True
 
     def get_static_size(self):
         return self.size
