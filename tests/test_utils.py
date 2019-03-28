@@ -1,9 +1,8 @@
-import pytest
-
 from hypothesis import (
     given,
     strategies as st,
 )
+import pytest
 
 from ssz.constants import (
     CHUNK_SIZE,

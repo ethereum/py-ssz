@@ -4,9 +4,9 @@ import time
 
 import ssz
 from ssz.sedes import (
+    ByteVector,
     List,
     Serializable,
-    ByteVector,
     byte_list,
     bytes32,
     bytes48,
