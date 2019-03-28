@@ -8,12 +8,12 @@ from typing import (
     TypeVar,
 )
 
+from ssz.constants import (
+    EMPTY_CHUNK,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
-)
-from ssz.hash import (
-    hash_eth2,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -22,10 +22,28 @@ TDeserialized = TypeVar("TDeserialized")
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
+    #
+    # Size
+    #
+    @property
+    @abstractmethod
+    def is_static_sized(self) -> bool:
+        pass
+
+    @abstractmethod
+    def get_static_size(self) -> int:
+        pass
+
+    #
+    # Serialization
+    #
     @abstractmethod
     def serialize(self, value: TSerializable) -> bytes:
         pass
 
+    #
+    # Deserialization
+    #
     @abstractmethod
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         pass
@@ -61,81 +79,39 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
             continuation_index = start_index + num_bytes
             return data[start_index:start_index + num_bytes], continuation_index
 
-    @abstractmethod
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
-        pass
-
-
-class FixedSizedSedes(BaseSedes[TSerializable, TDeserialized]):
-
-    def __init__(self, length: int):
-        if length <= 0:
-            raise ValueError("Length must be greater than 0")
-
-        self.length = length
-
-    #
-    # Serialization
-    #
-    def serialize(self, value: TSerializable) -> bytes:
-        return self.serialize_content(value)
-
-    @abstractmethod
-    def serialize_content(self, value: TSerializable) -> bytes:
-        pass
-
-    #
-    # Deserialization
-    #
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        content, continuation_index = self.consume_bytes(data, start_index, self.length)
-        return self.deserialize_content(content), continuation_index
-
-    @abstractmethod
-    def deserialize_content(self, content: bytes) -> TDeserialized:
-        pass
-
     #
     # Tree hashing
     #
-    def intermediate_tree_hash(self, value: TSerializable) -> bytes:
-        serialized = self.serialize(value)
-        if self.length <= 32:
-            return serialized
-        else:
-            return hash_eth2(serialized)
+    def hash_tree_root(self, value: TSerializable) -> bytes:
+        return EMPTY_CHUNK
 
 
-class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
+class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
+
+    def __init__(self, size: int):
+        if size <= 0:
+            raise ValueError("Length must be greater than 0")
+
+        self.size = size
 
     #
-    # Prefix helpers
+    # Size
     #
     @property
-    @abstractmethod
-    def length_bytes(self) -> int:
-        pass
+    def is_static_sized(self):
+        return True
 
-    @property
-    def max_content_length(self) -> int:
-        return 2 ** (self.length_bytes * 8) - 1
-
-    def get_length_prefix(self, content: bytes) -> bytes:
-        return len(content).to_bytes(self.length_bytes, "little")
-
-    def validate_content_length(self, content: bytes) -> None:
-        if len(content) >= self.max_content_length:
-            raise SerializationError(
-                f"Content is too big to be encoded in prefix of {self.length_bytes} bytes",
-            )
+    def get_static_size(self):
+        return self.size
 
     #
     # Serialization
     #
     def serialize(self, value: TSerializable) -> bytes:
-        content = self.serialize_content(value)
-        self.validate_content_length(content)
-        return self.get_length_prefix(content) + content
+        serialized_content = self.serialize_content(value)
+        if len(serialized_content) != self.size:
+            raise SerializationError(f"Cannot serialize {value} in {self.size} bytes")
+        return serialized_content
 
     @abstractmethod
     def serialize_content(self, value: TSerializable) -> bytes:
@@ -145,11 +121,19 @@ class LengthPrefixedSedes(BaseSedes[TSerializable, TDeserialized]):
     # Deserialization
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        prefix, content_start_index = self.consume_bytes(data, start_index, self.length_bytes)
-        length = int.from_bytes(prefix, "little")
-        content, continuation_index = self.consume_bytes(data, content_start_index, length)
+        content, continuation_index = self.consume_bytes(data, start_index, self.size)
         return self.deserialize_content(content), continuation_index
 
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:
+        pass
+
+
+class LengthPrefixedSedes(Generic[TSerializable, TDeserialized]):
+    pass
+
+
+class FixedSizedSedes(Generic[TSerializable, TDeserialized]):
+
+    def __init__(self, size):
         pass
