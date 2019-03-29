@@ -28,7 +28,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
                  element_sedes: BaseSedes[TSerializableElement, TDeserializedElement],
                  length: int) -> None:
 
-        self.number_of_elements = length
+        self.length = length
         self.element_sedes = element_sedes
 
     #
@@ -36,16 +36,16 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
     #
     @property
     def is_static_sized(self) -> bool:
-        return self.element_sedes.is_static_sized or self.number_of_elements == 0
+        return self.element_sedes.is_static_sized or self.length == 0
 
     def get_static_size(self) -> int:
         if not self.is_static_sized:
             raise ValueError("Tuple does not have a fixed length")
 
-        if self.number_of_elements == 0:
+        if self.length == 0:
             return 0
         else:
-            return self.number_of_elements * self.element_sedes.get_static_size()
+            return self.length * self.element_sedes.get_static_size()
 
     #
     # Serialization
@@ -54,9 +54,9 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
         if isinstance(value, (bytes, bytearray, str)):
             raise SerializationError("Can not serialize strings as tuples")
 
-        if len(value) != self.number_of_elements:
+        if len(value) != self.length:
             raise SerializationError(
-                f"Cannot serialize {len(value)} elements as {self.number_of_elements}-tuple"
+                f"Cannot serialize {len(value)} elements as {self.length}-tuple"
             )
 
         return b"".join(
@@ -69,7 +69,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
     @to_tuple
     def deserialize_content(self, content: bytes) -> Generator[TDeserializedElement, None, None]:
         element_start_index = 0
-        for element_index in range(self.number_of_elements):
+        for element_index in range(self.length):
             element, next_element_start_index = self.element_sedes.deserialize_segment(
                 content,
                 element_start_index,
