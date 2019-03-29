@@ -25,10 +25,10 @@ TDeserializedElement = TypeVar("TDeserialized")
 class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]]):
 
     def __init__(self,
-                 number_of_elements: int,
-                 element_sedes: BaseSedes[TSerializableElement, TDeserializedElement]) -> None:
+                 element_sedes: BaseSedes[TSerializableElement, TDeserializedElement],
+                 length: int) -> None:
 
-        self.number_of_elements = number_of_elements
+        self.number_of_elements = length
         self.element_sedes = element_sedes
 
     #
