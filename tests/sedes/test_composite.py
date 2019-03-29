@@ -65,7 +65,7 @@ def test_tuple_of_dynamic_sized_entries(value, serialized):
 @pytest.mark.parametrize(
     ("value", "serialized"),
     (
-        # ((), "0x"),
+        ((), "0x"),
         ((0xaa,), "0xaa"),
         ((0xaa, 0xbb, 0xcc), "0xaabbcc"),
     ),
