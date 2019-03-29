@@ -10,10 +10,15 @@ from typing import (
 
 from ssz.constants import (
     EMPTY_CHUNK,
+    SIZE_PREFIX_SIZE,
 )
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
+)
+from ssz.utils import (
+    get_size_prefix,
+    validate_content_size,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -122,6 +127,43 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
         content, continuation_index = self.consume_bytes(data, start_index, self.size)
+        return self.deserialize_content(content), continuation_index
+
+    @abstractmethod
+    def deserialize_content(self, content: bytes) -> TDeserialized:
+        pass
+
+
+class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+
+    #
+    # Serialization
+    #
+    def serialize(self, value: TSerializable) -> bytes:
+        content = self.serialize_content(value)
+
+        if self.is_static_sized:
+            return content
+        else:
+            validate_content_size(content)
+            size_prefix = get_size_prefix(content)
+            return size_prefix + content
+
+    @abstractmethod
+    def serialize_content(self, value: TSerializable) -> bytes:
+        pass
+
+    #
+    # Deserialization
+    #
+    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
+        if self.is_static_sized:
+            content_size = self.get_static_size()
+            content, continuation_index = self.consume_bytes(data, start_index, content_size)
+        else:
+            prefix, content_start_index = self.consume_bytes(data, start_index, SIZE_PREFIX_SIZE)
+            length = int.from_bytes(prefix, "little")
+            content, continuation_index = self.consume_bytes(data, content_start_index, length)
         return self.deserialize_content(content), continuation_index
 
     @abstractmethod

@@ -12,15 +12,18 @@ from .exceptions import (  # noqa: F401
 )
 from .sedes import (  # noqa: F401
     BaseSedes,
+    BasicSedes,
     Boolean,
     Bytes,
     BytesN,
+    CompositeSedes,
     Container,
     FixedSizedSedes,
     LengthPrefixedSedes,
     List,
     Serializable,
     UInt,
+    Vector,
     boolean,
     bytes32,
     bytes48,

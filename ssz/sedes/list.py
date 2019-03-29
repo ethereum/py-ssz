@@ -16,29 +16,20 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.hash import (
-    merkle_hash,
-)
 from ssz.sedes.base import (
     BaseSedes,
-    LengthPrefixedSedes,
+    CompositeSedes,
 )
 
-T = TypeVar("T")
-S = TypeVar("S")
+TSerializable = TypeVar("TSerializable")
+TDeserialized = TypeVar("TDeserialized")
 
 
-class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
-    """
-    A sedes for lists.
+class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
 
-    WARNING: Avoid sets if possible, may not always lead to expected results
-    (This is because iteration in sets doesn't always happen in the same order)
-    """
-
-    length_bytes = 4
-
-    def __init__(self, element_sedes: BaseSedes[T, S] = None, empty: bool = False) -> None:
+    def __init__(self,
+                 element_sedes: BaseSedes[TSerializable, TDeserialized] = None,
+                 empty: bool = False) -> None:
         if element_sedes and empty:
             raise ValueError(
                 "Either one of Element Sedes or Empty has to be specified"
@@ -54,7 +45,20 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
         # This empty bool indicates whether this sedes is meant for empty lists
         self.empty = empty
 
-    def serialize_content(self, value: Iterable[T]) -> bytes:
+    #
+    # Size
+    #
+    @property
+    def is_static_sized(self):
+        return False
+
+    def get_static_size(self):
+        raise ValueError("List has no static size")
+
+    #
+    # Serialization
+    #
+    def serialize_content(self, value: Iterable[TSerializable]) -> bytes:
         if isinstance(value, (bytes, bytearray, str)):
             raise SerializationError("Can not serialize strings as lists")
 
@@ -66,7 +70,7 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
         )
 
     @staticmethod
-    def _validate_emptiness(value: Iterable[T]) -> None:
+    def _validate_emptiness(value: Iterable[TSerializable]) -> None:
         try:
             first(value)
         except StopIteration:
@@ -76,8 +80,11 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
                 "Can only serialize empty Iterables"
             )
 
+    #
+    # Deserialization
+    #
     @to_tuple
-    def deserialize_content(self, content: bytes) -> Generator[S, None, None]:
+    def deserialize_content(self, content: bytes) -> Generator[TDeserialized, None, None]:
         if self.empty and len(content) > 0:
             raise DeserializationError(f"Serialized list is not empty")
 
@@ -96,10 +103,6 @@ class List(LengthPrefixedSedes[Iterable[T], Tuple[S, ...]]):
 
         if element_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
-
-    def intermediate_tree_hash(self, value: Iterable[T]) -> bytes:
-        element_hashes = [self.element_sedes.intermediate_tree_hash(element) for element in value]
-        return merkle_hash(element_hashes)
 
 
 empty_list: List[None, None] = List(empty=True)

@@ -17,12 +17,9 @@ from mypy_extensions import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.hash import (
-    hash_eth2,
-)
 from ssz.sedes.base import (
     BaseSedes,
-    LengthPrefixedSedes,
+    CompositeSedes,
 )
 from ssz.utils import (
     get_duplicates,
@@ -32,9 +29,7 @@ AnyTypedDict = TypedDict("AnyTypedDict", {})
 TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)
 
 
-class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
-
-    length_bytes = 4
+class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
 
     def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
         field_names = tuple(field_name for field_name, field_sedes in fields)
@@ -46,12 +41,31 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
 
         self.fields = fields
 
+    #
+    # Size
+    #
+    @property
+    def is_static_sized(self):
+        return all(field_sedes.is_static_sized for _, field_sedes in self.fields)
+
+    def get_static_size(self):
+        if not self.is_static_sized:
+            raise ValueError("Container contains dynamically sized elements")
+
+        return sum(field_sedes.get_static_size() for _, field_sedes in self.fields)
+
+    #
+    # Serialization
+    #
     def serialize_content(self, value: TAnyTypedDict) -> bytes:
         return b"".join(
             field_sedes.serialize(value[field_name])
             for field_name, field_sedes in self.fields
         )
 
+    #
+    # Deserialization
+    #
     @to_dict
     def deserialize_content(self, content: bytes) -> Generator[Tuple[str, Any], None, None]:
         field_start_index = 0
@@ -72,10 +86,3 @@ class Container(LengthPrefixedSedes[TAnyTypedDict, Dict[str, Any]]):
 
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
-
-    def intermediate_tree_hash(self, value: TAnyTypedDict) -> bytes:
-        field_hashes = [
-            field_sedes.intermediate_tree_hash(value[field_name])
-            for field_name, field_sedes in self.fields
-        ]
-        return hash_eth2(b"".join(field_hashes))
