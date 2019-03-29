@@ -67,7 +67,7 @@ def test_byte_vector(value):
     serialized_value = ssz.encode(value, byte_vector)
     assert serialized_value == ssz.encode(
         tuple(bytes([byte_value]) for byte_value in value),
-        Vector(len(value), byte),
+        Vector(byte, len(value)),
     )
     assert ssz.decode(serialized_value, byte_vector) == value
 
