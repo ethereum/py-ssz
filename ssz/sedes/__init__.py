@@ -7,19 +7,22 @@ from .base import (  # noqa: F401
     BaseSedes,
     BasicSedes,
     CompositeSedes,
-    FixedSizedSedes,
-    LengthPrefixedSedes,
 )
 from .boolean import (  # noqa: F401
     Boolean,
     boolean,
 )
-from .bytes import (  # noqa: F401
-    Bytes,
-    bytes_sedes,
+from .byte import (  # noqa: F401
+    Byte,
+    byte,
 )
-from .bytes_n import (  # noqa: F401
-    BytesN,
+from .byte_list import (  # noqa: F401
+    ByteList,
+    byte_list,
+)
+from .byte_vector import (  # noqa: F401
+    ByteVector,
+    bytes4,
     bytes32,
     bytes48,
     bytes96,
@@ -49,10 +52,13 @@ from .vector import (  # noqa: F401
 
 sedes_by_name = {
     "boolean": boolean,
-    "bytes_sedes": bytes_sedes,
+
+    "byte": byte,
+    "bytes4": bytes4,
     "bytes32": bytes32,
     "bytes48": bytes48,
     "bytes96": bytes96,
+    "byte_list": byte_list,
     "empty_list": empty_list,
 
     "uint8": uint8,
@@ -87,7 +93,7 @@ def infer_sedes(value):
     elif isinstance(value, int):
         raise TypeError("uint sedes object or uint string needs to be specified for ints")
     elif isinstance(value, (bytes, bytearray)):
-        return bytes_sedes
+        return byte_list
     elif isinstance(value, Sequence):
         return infer_list_sedes(value)
     elif isinstance(value, Iterable):

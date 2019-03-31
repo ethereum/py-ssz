@@ -2,19 +2,19 @@ from typing import (
     Union,
 )
 
-from ssz.hash import (
-    hash_eth2,
-)
 from ssz.sedes.base import (
-    LengthPrefixedSedes,
+    CompositeSedes,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bytes(LengthPrefixedSedes[BytesOrByteArray, bytes]):
+class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
 
-    length_bytes = 4
+    is_static_sized = False
+
+    def get_static_size(self):
+        raise ValueError("byte list has no static size")
 
     def serialize_content(self, value: BytesOrByteArray) -> bytes:
         return value
@@ -22,8 +22,5 @@ class Bytes(LengthPrefixedSedes[BytesOrByteArray, bytes]):
     def deserialize_content(self, content: bytes) -> bytes:
         return content
 
-    def intermediate_tree_hash(self, value: BytesOrByteArray) -> bytes:
-        return hash_eth2(self.serialize(value))
 
-
-bytes_sedes = Bytes()
+byte_list = ByteList()
