@@ -33,5 +33,5 @@ def test_byte_list(value):
 @given(st.binary())
 def test_byte_vector(value):
     byte_sequence = tuple(bytes([byte_value]) for byte_value in value)
-    expected_vector_root = ssz.hash_tree_root(byte_sequence, Vector(len(value), byte))
+    expected_vector_root = ssz.hash_tree_root(byte_sequence, Vector(byte, len(value)))
     assert ssz.hash_tree_root(value, ByteVector(len(value))) == expected_vector_root

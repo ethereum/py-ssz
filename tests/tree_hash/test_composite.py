@@ -45,7 +45,7 @@ E_BYTES = b"\xee" * 16
     )
 )
 def test_vector_of_basics(serialized_uints128, result):
-    sedes = Vector(len(serialized_uints128), uint128)
+    sedes = Vector(uint128, len(serialized_uints128))
     int_values = tuple(ssz.decode(value, uint128) for value in serialized_uints128)
     assert ssz.hash_tree_root(int_values, sedes) == result
 
@@ -108,7 +108,7 @@ def test_list_of_basic(serialized_uints128, result):
     )
 )
 def test_vector_of_composite(bytes16_vector, result):
-    sedes = Vector(len(bytes16_vector), ByteVector(16))
+    sedes = Vector(ByteVector(16), len(bytes16_vector))
     assert ssz.hash_tree_root(bytes16_vector, sedes) == result
 
 
