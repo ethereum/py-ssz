@@ -25,6 +25,7 @@ from .sedes import (  # noqa: F401
     Vector,
     boolean,
     byte_list,
+    byte_vector,
     bytes4,
     bytes32,
     bytes48,

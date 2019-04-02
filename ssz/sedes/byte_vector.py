@@ -8,6 +8,10 @@ from ssz.exceptions import (
 from ssz.sedes.base import (
     CompositeSedes,
 )
+from ssz.utils import (
+    merkleize,
+    pack_bytes,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 
@@ -41,6 +45,13 @@ class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
     #
     def deserialize_content(self, content: bytes) -> bytes:
         return content
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: bytes) -> bytes:
+        serialized_value = self.serialize(value)
+        return merkleize(pack_bytes(serialized_value))
 
 
 bytes4 = ByteVector(4)

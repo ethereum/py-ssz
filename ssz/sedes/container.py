@@ -23,6 +23,7 @@ from ssz.sedes.base import (
 )
 from ssz.utils import (
     get_duplicates,
+    merkleize,
 )
 
 AnyTypedDict = TypedDict("AnyTypedDict", {})
@@ -86,3 +87,13 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
 
         if field_start_index > len(content):
             raise Exception("Invariant: must not consume more data than available")
+
+    #
+    # Tree hashing
+    #
+    def hash_tree_root(self, value: TAnyTypedDict) -> bytes:
+        merkle_leaves = tuple(
+            field_sedes.hash_tree_root(value[field_name])
+            for field_name, field_sedes in self.fields
+        )
+        return merkleize(merkle_leaves)
