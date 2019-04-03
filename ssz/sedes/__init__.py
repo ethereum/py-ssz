@@ -51,7 +51,7 @@ from .vector import (  # noqa: F401
 )
 
 sedes_by_name = {
-    "boolean": boolean,
+    "bool": boolean,
 
     "byte": byte,
     "bytes4": bytes4,
