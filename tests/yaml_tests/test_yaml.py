@@ -8,18 +8,28 @@ from ruamel.yaml import (
     YAML,
 )
 from yaml_test_execution import (
-    execute_test_case,
+    execute_ssz_test_case,
+    execute_tree_hash_test_case
 )
 
-YAML_BASE_DIR = os.path.abspath(os.path.join(__file__, "../../eth2.0-tests/ssz"))
-YAML_FILES = glob.glob(os.path.join(YAML_BASE_DIR, "**/*.yaml"), recursive=True)
+YAML_BASE_DIR = os.path.abspath(os.path.join(__file__, "../../eth2.0-tests/"))
+SSZ_TEST_FILES = glob.glob(os.path.join(
+    YAML_BASE_DIR,
+    "ssz",
+    "**/*.yaml"
+), recursive=True)
+TREE_HASH_TEST_FILES = glob.glob(os.path.join(
+    YAML_BASE_DIR,
+    "tree_hash",
+    "**/*.yaml"
+), recursive=True)
 
 
 @to_tuple
 def load_test_cases(filenames):
     yaml = YAML()
 
-    for filename in filenames:
+    for filename in sorted(filenames):
         with open(filename) as f:
             test = yaml.load(f)
 
@@ -32,14 +42,24 @@ def make_test_id(filename, test_case):
 
 
 def pytest_generate_tests(metafunc):
-    test_cases_with_ids = load_test_cases(YAML_FILES)
-    if len(test_cases_with_ids) > 0:
-        test_cases, test_ids = zip(*load_test_cases(YAML_FILES))
-    else:
-        test_cases, test_ids = (), ()
+    fixture_to_test_files = {
+        "ssz_test_case": SSZ_TEST_FILES,
+        "tree_hash_test_case": TREE_HASH_TEST_FILES,
+    }
+    for fixture_name, test_files in fixture_to_test_files.items():
+        if fixture_name in metafunc.fixturenames:
+            test_cases_with_ids = load_test_cases(test_files)
+            if len(test_cases_with_ids) > 0:
+                test_cases, test_ids = zip(*test_cases_with_ids)
+            else:
+                test_cases, test_ids = (), ()
 
-    metafunc.parametrize("test_case", test_cases, ids=test_ids)
+            metafunc.parametrize(fixture_name, test_cases, ids=test_ids)
 
 
-def test_yaml_test_case(test_case):
-    execute_test_case(test_case)
+def test_ssz(ssz_test_case):
+    execute_ssz_test_case(ssz_test_case)
+
+
+def test_tree_hash(tree_hash_test_case):
+    execute_tree_hash_test_case(tree_hash_test_case)
