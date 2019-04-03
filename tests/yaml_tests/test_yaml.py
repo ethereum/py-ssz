@@ -9,7 +9,7 @@ from ruamel.yaml import (
 )
 from yaml_test_execution import (
     execute_ssz_test_case,
-    execute_tree_hash_test_case
+    execute_tree_hash_test_case,
 )
 
 YAML_BASE_DIR = os.path.abspath(os.path.join(__file__, "../../eth2.0-tests/"))
