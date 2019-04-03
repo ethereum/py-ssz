@@ -33,14 +33,16 @@ TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)
 class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
 
     def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
-        field_names = tuple(field_name for field_name, field_sedes in fields)
-        duplicate_field_names = get_duplicates(field_names)
+        self.fields = fields
+        self.field_names = tuple(field_name for field_name, _ in self.fields)
+        self.field_sedes_objects = tuple(field_sedes for _, field_sedes in self.fields)
+        self.field_name_to_sedes = dict(self.fields)
+
+        duplicate_field_names = get_duplicates(self.field_names)
         if duplicate_field_names:
             raise ValueError(
                 f"The following fields are duplicated {','.join(sorted(duplicate_field_names))}"
             )
-
-        self.fields = fields
 
     #
     # Size
