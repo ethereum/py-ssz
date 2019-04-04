@@ -5,7 +5,6 @@ from collections.abc import (
 
 from eth_utils import (
     decode_hex,
-    is_hex,
 )
 
 import ssz
@@ -15,11 +14,10 @@ from ssz.exceptions import (
 from ssz.sedes import (
     BaseSedes,
     Boolean,
-    Bytes,
-    BytesN,
     Container,
     List,
     UInt,
+    Vector,
     sedes_by_name,
 )
 
@@ -28,17 +26,17 @@ class FailedTestCase(Exception):
     pass
 
 
-def execute_test_case(test_case):
+def execute_ssz_test_case(test_case):
     sedes = parse_type_definition(test_case["type"])
     valid = test_case["valid"]
 
     if valid:
-        execute_valid_test(test_case, sedes)
+        execute_valid_ssz_test(test_case, sedes)
     else:
-        execute_invalid_test(test_case, sedes)
+        execute_invalid_ssz_test(test_case, sedes)
 
 
-def execute_valid_test(test_case, sedes):
+def execute_valid_ssz_test(test_case, sedes):
     value = parse_value(test_case["value"], sedes)
     serial = decode_hex(test_case["ssz"])
 
@@ -59,7 +57,7 @@ def execute_valid_test(test_case, sedes):
             raise FailedTestCase(f"Serializing value retunred wrong result {encoded}")
 
 
-def execute_invalid_test(test_case, sedes):
+def execute_invalid_ssz_test(test_case, sedes):
     if "value" in test_case and "ssz" in test_case:
         raise ValueError("Test case for invalid inputs contains both value and ssz")
 
@@ -85,30 +83,46 @@ def execute_invalid_test(test_case, sedes):
         raise ValueError("Test case for invalid inputs contains neither value nor ssz")
 
 
+def execute_tree_hash_test_case(test_case):
+    sedes = parse_type_definition(test_case["type"])
+    value = parse_value(test_case["value"], sedes)
+    expected_root = decode_hex(test_case["root"])
+    calculated_root = ssz.hash_tree_root(value, sedes)
+    assert calculated_root == expected_root
+
+
 def parse_type_definition(type_definition):
+    error_message = f"Could not parse type definition {type_definition}"
+
     if isinstance(type_definition, str):
         try:
             sedes = sedes_by_name[type_definition]
         except KeyError:
-            raise ValueError(f"Could not parse type definition {type_definition}")
+            raise ValueError(error_message)
         else:
             return sedes
 
     elif isinstance(type_definition, Sequence):
-        if len(type_definition) != 1:
-            raise ValueError(
-                f"List type definition must have exactly one element, not f{len(type_definition)}"
-            )
-        return List(parse_type_definition(type_definition[0]))
+        if len(type_definition) == 1:
+            return List(parse_type_definition(type_definition[0]))
+        elif len(type_definition) == 2:
+            element_type = parse_type_definition(type_definition[0])
+            try:
+                length = int(type_definition[1])
+            except ValueError:
+                raise ValueError(error_message)
+            return Vector(element_type, length)
+        else:
+            raise ValueError(error_message)
 
     elif isinstance(type_definition, Mapping):
-        return Container({
-            field_name: parse_type_definition(field_type)
+        return Container(tuple(
+            (field_name, parse_type_definition(field_type))
             for field_name, field_type in type_definition.items()
-        })
+        ))
 
     else:
-        raise ValueError(f"Could not parse type definition {type_definition}")
+        raise ValueError(error_message)
 
 
 def parse_value(value, sedes):
@@ -122,14 +136,16 @@ def parse_value(value, sedes):
             raise ValueError(f"Expected value of type str, got {type(value)}")
         return int(value)
 
-    elif isinstance(sedes, (Bytes, BytesN)):
-        if not isinstance(value, str) or not is_hex(value):
-            raise ValueError(f"Expected hex string, got {type(value)}")
-        return decode_hex(value)
-
     elif isinstance(sedes, List):
         if not isinstance(value, Sequence):
             raise ValueError(f"Expected list, got {type(value)}")
+        return tuple(parse_value(element, sedes.element_sedes) for element in value)
+
+    elif isinstance(sedes, Vector):
+        if not isinstance(value, Sequence):
+            raise ValueError(f"Expected list, got {type(value)}")
+        if not len(value) == sedes.length:
+            raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
         return tuple(parse_value(element, sedes.element_sedes) for element in value)
 
     elif isinstance(sedes, Container):
