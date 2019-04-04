@@ -1,10 +1,9 @@
 from typing import (
-    Mapping,
     Sequence,
 )
 
 from eth_utils import (
-    to_dict,
+    to_tuple,
 )
 
 from ssz.sedes import (
@@ -86,23 +85,20 @@ def dump_vector(value, sedes, codec):
     return tuple(dump(element, sedes.element_sedes, codec) for element in value)
 
 
-@to_dict
+@to_tuple
 def dump_container(value, sedes, codec):
-    if not isinstance(value, Mapping):
-        raise ValueError(f"Expected mapping, got {type(value)}")
-    field_names_got = set(value.keys())
-    field_names_expected = set(field_name for field_name, _ in sedes.fields)
-    if field_names_got != field_names_expected:
-        raise ValueError(
-            f"Unexpected fields: {field_names_got.difference(field_names_expected)}"
-        )
-    for field_name, field_value in value.items():
-        yield field_name, dump(
-            field_value,
-            sedes.field_name_to_sedes[field_name],
+    if not isinstance(value, Sequence):
+        raise ValueError(f"Expected Sequence, got {type(value)}")
+    elif not len(value) == len(sedes.field_sedes):
+        raise ValueError(f"Expected {len(sedes.field_sedes)} elements, got {len(value)}")
+
+    for element, element_sedes in zip(value, sedes.field_sedes):
+        yield dump(
+            element,
+            element_sedes,
             codec,
         )
 
 
 def dump_serializable(value, codec):
-    return dump(value.as_dict(), value._meta.container_sedes)
+    return dump(tuple(value), value._meta.container_sedes)

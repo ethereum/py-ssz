@@ -1,4 +1,5 @@
 from ssz.exceptions import (
+    DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
@@ -14,7 +15,7 @@ class UInt(BasicSedes[int, int]):
             )
         super().__init__(num_bits // 8)
 
-    def serialize_content(self, value: int) -> bytes:
+    def serialize(self, value: int) -> bytes:
         if value < 0:
             raise SerializationError(
                 f"Can only serialize non-negative integers, got {value}",
@@ -27,8 +28,12 @@ class UInt(BasicSedes[int, int]):
                 f"{value} is too large to be serialized in {self.size * 8} bits"
             )
 
-    def deserialize_content(self, content: bytes) -> int:
-        return int.from_bytes(content, "little")
+    def deserialize(self, data: bytes) -> int:
+        if len(data) != self.size:
+            raise DeserializationError(
+                f"Cannot deserialize length {len(data)} byte-string as uint{self.size*8}"
+            )
+        return int.from_bytes(data, "little")
 
 
 uint8 = UInt(8)

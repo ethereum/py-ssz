@@ -42,7 +42,7 @@ class MetaSignedSerializable(MetaSerializable):
                     f"{cls._meta.field_names[-1]}"
                 )
 
-            signed_container_sedes = Container(cls._meta.fields[:-1])
+            signed_container_sedes = Container(cls._meta.container_sedes.field_sedes[:-1])
         else:
             signed_container_sedes = None
 

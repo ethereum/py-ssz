@@ -2,24 +2,34 @@ from abc import (
     ABC,
     abstractmethod,
 )
+import io
+import itertools
+import operator
 from typing import (
+    IO,
+    Any,
     Generic,
+    Iterable,
+    Sequence,
     Tuple,
     TypeVar,
 )
 
-from ssz.constants import (
-    SIZE_PREFIX_SIZE,
+from eth_utils.toolz import (
+    accumulate,
+    concatv,
+)
+
+from ssz import (
+    constants,
 )
 from ssz.exceptions import (
     DeserializationError,
-    SerializationError,
 )
 from ssz.utils import (
-    get_size_prefix,
+    encode_offset,
     merkleize,
     pack,
-    validate_content_size,
 )
 
 TSerializable = TypeVar("TSerializable")
@@ -32,11 +42,11 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     #
     @property
     @abstractmethod
-    def is_static_sized(self) -> bool:
+    def is_fixed_sized(self) -> bool:
         pass
 
     @abstractmethod
-    def get_static_size(self) -> int:
+    def get_fixed_size(self) -> int:
         pass
 
     #
@@ -50,39 +60,8 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     # Deserialization
     #
     @abstractmethod
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        pass
-
     def deserialize(self, data: bytes) -> TDeserialized:
-        value, end_index = self.deserialize_segment(data, 0)
-
-        num_leftover_bytes = len(data) - end_index
-        if num_leftover_bytes > 0:
-            raise DeserializationError(
-                f"The given string ends with {num_leftover_bytes} superfluous bytes",
-                data,
-            )
-        elif num_leftover_bytes < 0:
-            raise Exception(
-                "Invariant: End index cannot exceed size of data"
-            )
-
-        return value
-
-    @staticmethod
-    def consume_bytes(data: bytes, start_index: int, num_bytes: int) -> Tuple[bytes, int]:
-        if start_index < 0:
-            raise ValueError("Start index must not be negative")
-        elif num_bytes < 0:
-            raise ValueError("Number of bytes to read must not be negative")
-        elif start_index + num_bytes > len(data):
-            raise DeserializationError(
-                f"Tried to read {num_bytes} bytes starting at index {start_index} but the string "
-                f"is only {len(data)} bytes long"
-            )
-        else:
-            continuation_index = start_index + num_bytes
-            return data[start_index:start_index + num_bytes], continuation_index
+        pass
 
     #
     # Tree hashing
@@ -90,6 +69,9 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     @abstractmethod
     def hash_tree_root(self, value: TSerializable) -> bytes:
         pass
+
+
+TSedes = BaseSedes[Any, Any]
 
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
@@ -102,36 +84,10 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Size
     #
-    @property
-    def is_static_sized(self):
-        return True
+    is_fixed_sized = True
 
-    def get_static_size(self):
+    def get_fixed_size(self):
         return self.size
-
-    #
-    # Serialization
-    #
-    def serialize(self, value: TSerializable) -> bytes:
-        serialized_content = self.serialize_content(value)
-        if len(serialized_content) != self.size:
-            raise SerializationError(f"Cannot serialize {value} in {self.size} bytes")
-        return serialized_content
-
-    @abstractmethod
-    def serialize_content(self, value: TSerializable) -> bytes:
-        pass
-
-    #
-    # Deserialization
-    #
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        content, continuation_index = self.consume_bytes(data, start_index, self.size)
-        return self.deserialize_content(content), continuation_index
-
-    @abstractmethod
-    def deserialize_content(self, content: bytes) -> TDeserialized:
-        pass
 
     #
     # Tree hashing
@@ -141,37 +97,96 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         return merkleize(pack((serialized_value,)))
 
 
-class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+    pass
+
+
+def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
+    return sum(
+        sedes.get_fixed_size() if sedes.is_fixed_sized else constants.OFFSET_SIZE
+        for sedes in element_sedes
+    )
+
+
+class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
+    @abstractmethod
+    def _get_item_sedes_pairs(self,
+                              value: Sequence[TSerializable],
+                              ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
+        pass
+
+    def _validate_serializable(self, value: Any) -> None:
+        pass
+
+    def serialize(self, value: TSerializable) -> bytes:
+        self._validate_serializable(value)
+
+        if not len(value):
+            return b''
+
+        pairs = self._get_item_sedes_pairs(value)
+        element_sedes = tuple(sedes for element, sedes in pairs)
+
+        fixed_size_section_length = _compute_fixed_size_section_length(element_sedes)
+
+        variable_size_section_parts = tuple(
+            sedes.serialize(item)
+            for item, sedes
+            in pairs
+            if not sedes.is_fixed_sized
+        )
+
+        if variable_size_section_parts:
+            offsets = tuple(accumulate(
+                operator.add,
+                map(len, variable_size_section_parts[:-1]),
+                fixed_size_section_length,
+            ))
+        else:
+            offsets = ()
+
+        offsets_iter = iter(offsets)
+
+        fixed_size_section_parts = tuple(
+            sedes.serialize(item) if sedes.is_fixed_sized else encode_offset(next(offsets_iter))
+            for item, sedes
+            in pairs
+        )
+
+        try:
+            next(offsets_iter)
+        except StopIteration:
+            pass
+        else:
+            raise DeserializationError("Did not consume all offsets while decoding value")
+
+        return b"".join(concatv(
+            fixed_size_section_parts,
+            variable_size_section_parts,
+        ))
+
+    def deserialize(self, data: bytes) -> TDeserialized:
+        stream = io.BytesIO(data)
+        value = self._deserialize_stream(stream)
+        extra_data = stream.read()
+        if extra_data:
+            raise DeserializationError(f"Got {len(extra_data)} superfluous bytes")
+        return value
+
+    @abstractmethod
+    def _deserialize_stream(self, stream: IO[bytes]) -> TDeserialized:
+        pass
+
+
+TSerializableElement = TypeVar("TSerializableElement")
+TDeserializedElement = TypeVar("TDeserializedElement")
+
+
+class HomogenousSequence(CompositeSedes[Sequence[Any], Tuple[Any]]):
+    element_sedes: TSedes
+
     #
     # Serialization
     #
-    def serialize(self, value: TSerializable) -> bytes:
-        content = self.serialize_content(value)
-
-        if self.is_static_sized:
-            return content
-        else:
-            validate_content_size(content)
-            size_prefix = get_size_prefix(content)
-            return size_prefix + content
-
-    @abstractmethod
-    def serialize_content(self, value: TSerializable) -> bytes:
-        pass
-
-    #
-    # Deserialization
-    #
-    def deserialize_segment(self, data: bytes, start_index: int) -> Tuple[TDeserialized, int]:
-        if self.is_static_sized:
-            content_size = self.get_static_size()
-            content, continuation_index = self.consume_bytes(data, start_index, content_size)
-        else:
-            prefix, content_start_index = self.consume_bytes(data, start_index, SIZE_PREFIX_SIZE)
-            length = int.from_bytes(prefix, "little")
-            content, continuation_index = self.consume_bytes(data, content_start_index, length)
-        return self.deserialize_content(content), continuation_index
-
-    @abstractmethod
-    def deserialize_content(self, content: bytes) -> TDeserialized:
-        pass
+    def _get_item_sedes_pairs(self, value: Sequence[Any]) -> Tuple[Tuple[Any, TSedes], ...]:
+        return tuple(zip(value, itertools.repeat(self.element_sedes)))

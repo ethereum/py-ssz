@@ -1,6 +1,8 @@
+import itertools
 from typing import (
-    Generator,
+    IO,
     Iterable,
+    Sequence,
     Tuple,
     TypeVar,
 )
@@ -9,14 +11,20 @@ from eth_utils import (
     to_tuple,
 )
 from eth_utils.toolz import (
-    first,
+    cons,
+    partition,
+    sliding_window,
 )
 
+from ssz.constants import (
+    OFFSET_SIZE,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
+    BaseCompositeSedes,
     BaseSedes,
     BasicSedes,
     CompositeSedes,
@@ -25,95 +33,109 @@ from ssz.utils import (
     merkleize,
     mix_in_length,
     pack,
+    read_exact,
+    s_decode_offset,
 )
 
 TSerializable = TypeVar("TSerializable")
 TDeserialized = TypeVar("TDeserialized")
 
+EMPTY_LIST_HASH_TRIES_ROOT = mix_in_length(merkleize(pack([])), 0)
 
-class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
+
+class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
+    is_fixed_sized = False
+
+    def get_fixed_size(self):
+        raise NotImplementedError("Empty list does not implement `get_fixed_size`")
+
+    def serialize(self, value: Sequence[TSerializable]):
+        if len(value):
+            raise SerializationError("Cannot serialize non-empty sequence using `EmptyList` sedes")
+        return b''
+
+    def deserialize(self, data: bytes) -> Tuple[TDeserialized, ...]:
+        if data:
+            raise DeserializationError("Cannot deserialize non-empty bytes using `EmptyList` sedes")
+        return tuple()
+
+    def hash_tree_root(self, value: Sequence[TSerializable]) -> bytes:
+        if len(value):
+            raise ValueError("Cannot compute trie hash for non-empty value using `EmptyList` sedes")
+        return EMPTY_LIST_HASH_TRIES_ROOT
+
+
+empty_list = EmptyList()
+
+
+TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
+
+
+class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
                  element_sedes: BaseSedes[TSerializable, TDeserialized] = None,
-                 empty: bool = False) -> None:
-        if element_sedes and empty:
-            raise ValueError(
-                "Either one of Element Sedes or Empty has to be specified"
-            )
-
-        elif not element_sedes and not empty:
-            raise ValueError(
-                "Either Element Sedes or Empty has to be specified"
-            )
-
+                 ) -> None:
         # This sedes object corresponds to each element of the iterable
         self.element_sedes = element_sedes
-        # This empty bool indicates whether this sedes is meant for empty lists
-        self.empty = empty
 
     #
     # Size
     #
-    @property
-    def is_static_sized(self):
-        return False
+    is_fixed_sized = False
 
-    def get_static_size(self):
+    def get_fixed_size(self):
         raise ValueError("List has no static size")
-
-    #
-    # Serialization
-    #
-    def serialize_content(self, value: Iterable[TSerializable]) -> bytes:
-        if isinstance(value, (bytes, bytearray, str)):
-            raise SerializationError("Can not serialize strings as lists")
-
-        if self.empty:
-            self._validate_emptiness(value)
-
-        return b"".join(
-            self.element_sedes.serialize(element) for element in value
-        )
-
-    @staticmethod
-    def _validate_emptiness(value: Iterable[TSerializable]) -> None:
-        try:
-            first(value)
-        except StopIteration:
-            pass
-        else:
-            raise SerializationError(
-                "Can only serialize empty Iterables"
-            )
 
     #
     # Deserialization
     #
+    def _get_item_sedes_pairs(self, value: Sequence[TSerializable]) -> TSedesPairs:
+        return tuple(zip(value, itertools.repeat(self.element_sedes)))
+
     @to_tuple
-    def deserialize_content(self, content: bytes) -> Generator[TDeserialized, None, None]:
-        if self.empty and len(content) > 0:
-            raise DeserializationError(f"Serialized list is not empty")
+    def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:
+        if self.element_sedes.is_fixed_sized:
+            element_size = self.element_sedes.get_fixed_size()
+            data = stream.read()
+            if len(data) % element_size != 0:
+                raise DeserializationError("TODO: INVALID LENGTH")
+            for segment in partition(element_size, data):
+                yield self.element_sedes.deserialize(segment)
+        else:
+            try:
+                first_offset = s_decode_offset(stream)
+            except DeserializationError:
+                # Empty list
+                return
 
-        element_start_index = 0
-        while element_start_index < len(content):
-            element, next_element_start_index = self.element_sedes.deserialize_segment(
-                content,
-                element_start_index,
-            )
+            num_remaining_offset_bytes = first_offset - stream.tell()
+            if num_remaining_offset_bytes % OFFSET_SIZE != 0:
+                raise DeserializationError(
+                    f"Offset bytes was not a multiple of {OFFSET_SIZE}.  Got "
+                    f"{num_remaining_offset_bytes}"
+                )
 
-            if next_element_start_index <= element_start_index:
-                raise Exception("Invariant: must always make progress")
-            element_start_index = next_element_start_index
+            num_remaining_offsets = num_remaining_offset_bytes // OFFSET_SIZE
+            tail_offsets = tuple(s_decode_offset(stream) for _ in range(num_remaining_offsets))
 
-            yield element
+            offsets = tuple(cons(first_offset, tail_offsets))
 
-        if element_start_index > len(content):
-            raise Exception("Invariant: must not consume more data than available")
+            for left_offset, right_offset in sliding_window(2, offsets):
+                element_length = right_offset - left_offset
+                element_data = read_exact(element_length, stream)
+                yield self.element_sedes.deserialize(element_data)
+
+            # simply reading to the end of the current stream gives us all of the final element data
+            final_element_data = stream.read()
+            yield self.element_sedes.deserialize(final_element_data)
 
     #
     # Tree hashing
     #
     def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
-        if isinstance(self.element_sedes, BasicSedes):
+        if len(value) == 0:
+            return EMPTY_LIST_HASH_TRIES_ROOT
+        elif isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element)
                 for element in value
@@ -126,7 +148,5 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
                 for element in value
             )
             length = len(merkle_leaves)
+
         return mix_in_length(merkleize(merkle_leaves), length)
-
-
-empty_list: List[None, None] = List(empty=True)
