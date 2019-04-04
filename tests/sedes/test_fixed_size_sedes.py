@@ -24,9 +24,9 @@ from ssz.sedes import (
         (uint256, 32),
         (Vector(uint8, 0), 0),
         (Vector(uint8, 2), 2),
-        (Container((("a", uint8), ("b", Vector(uint8, 4)))), 5),
+        (Container((uint8, Vector(uint8, 4))), 5),
         (Vector(List(uint8), 0), 0),
-        (Vector(Container((("a", uint8), ("b", Vector(uint8, 4)))), 4), 20),
+        (Vector(Container((uint8, Vector(uint8, 4))), 4), 20),
         (byte, 1),
         (ByteVector(0), 0),
         (bytes32, 32),
@@ -34,9 +34,9 @@ from ssz.sedes import (
         (bytes96, 96),
     ),
 )
-def test_static_size(sedes, size):
-    assert sedes.is_static_sized
-    assert sedes.get_static_size() == size
+def test_fixed_size(sedes, size):
+    assert sedes.is_fixed_sized
+    assert sedes.get_fixed_size() == size
 
 
 @pytest.mark.parametrize(
@@ -45,15 +45,15 @@ def test_static_size(sedes, size):
         List(uint8),
         List(Vector(uint8, 2)),
         List(List(uint8)),
-        List(Container((("a", uint8), ("b", Vector(uint8, 4))))),
+        List(Container((uint8, Vector(uint8, 4)))),
         Vector(List(uint8), 2),
-        Container((("a", List(uint8)),)),
-        Container((("a", uint8), ("b", List(uint8)), ("c", uint8))),
-        Container((("a", Container((("a", List(uint8)),))),)),
+        Container((List(uint8),)),
+        Container((uint8, List(uint8), uint8)),
+        Container((Container((List(uint8),)),)),
         byte_list,
     ),
 )
 def test_dynamic_size(sedes):
-    assert not sedes.is_static_sized
+    assert not sedes.is_fixed_sized
     with pytest.raises(ValueError):
-        sedes.get_static_size()
+        sedes.get_fixed_size()

@@ -3,7 +3,7 @@ from typing import (
 )
 
 from ssz.sedes.base import (
-    CompositeSedes,
+    BaseCompositeSedes,
 )
 from ssz.utils import (
     merkleize,
@@ -14,17 +14,18 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
-    is_static_sized = False
+class ByteList(BaseCompositeSedes[BytesOrByteArray, bytes]):
 
-    def get_static_size(self):
+    is_fixed_sized = False
+
+    def get_fixed_size(self):
         raise ValueError("byte list has no static size")
 
-    def serialize_content(self, value: BytesOrByteArray) -> bytes:
+    def serialize(self, value: BytesOrByteArray) -> bytes:
         return value
 
-    def deserialize_content(self, content: bytes) -> bytes:
-        return content
+    def deserialize(self, data: bytes) -> bytes:
+        return data
 
     def hash_tree_root(self, value: bytes) -> bytes:
         merkle_leaves = pack_bytes(value)

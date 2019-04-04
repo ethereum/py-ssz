@@ -1,6 +1,7 @@
 import collections
 import math
 from typing import (
+    IO,
     Sequence,
     Tuple,
 )
@@ -19,11 +20,10 @@ from eth_utils.toolz import (
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
-    MAX_CONTENT_SIZE,
-    SIZE_PREFIX_SIZE,
+    OFFSET_SIZE,
 )
 from ssz.exceptions import (
-    SerializationError,
+    DeserializationError,
 )
 from ssz.hash import (
     hash_eth2,
@@ -39,15 +39,24 @@ def get_duplicates(values):
     )
 
 
-def get_size_prefix(content: bytes) -> bytes:
-    return len(content).to_bytes(SIZE_PREFIX_SIZE, "little")
+def read_exact(num_bytes: int, stream: IO[bytes]) -> bytes:
+    data = stream.read(num_bytes)
+    if len(data) != num_bytes:
+        raise DeserializationError(f"Tried to read {num_bytes}. Only got {len(data)} bytes")
+    return data
 
 
-def validate_content_size(content: bytes) -> None:
-    if len(content) >= MAX_CONTENT_SIZE:
-        raise SerializationError(
-            f"Content size is too large to be encoded in a {SIZE_PREFIX_SIZE} byte prefix",
-        )
+def encode_offset(offset: int) -> bytes:
+    return offset.to_bytes(OFFSET_SIZE, 'little')
+
+
+def decode_offset(data: bytes) -> int:
+    return int.from_bytes(data, 'little')
+
+
+def s_decode_offset(stream: IO[bytes]) -> int:
+    data = read_exact(4, stream)
+    return decode_offset(data)
 
 
 def get_items_per_chunk(item_size: int) -> int:
