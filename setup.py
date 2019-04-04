@@ -7,8 +7,8 @@ from setuptools import (
 
 extras_require = {
     'test': [
-        "pytest>=3.6,<3.7",
-        "pytest-xdist",
+        "pytest==4.4.0",
+        "pytest-xdist==1.28.0",
         "tox>=2.9.1,<3",
         "hypothesis==3.69.5",
         "ruamel.yaml==0.15.87",
