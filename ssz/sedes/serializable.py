@@ -183,17 +183,20 @@ def _mk_field_attrs(field_names, extra_namespace):
                 yield field
                 break
 
+@to_tuple
+def _mk_field_props(field_names, field_attrs):
+    # we can't just define the getter in the loop as attr in the getter scope would not refer to
+    # the current value of the loop variable, but always the last one (see
+    # https://stackoverflow.com/q/233673)
+    def getter_factory(attr):
 
-def _mk_field_property(field, attr):
-    def field_fn_getter(self):
-        return getattr(self, attr)
+        def getter(self):
+            return getattr(self, attr)
 
-    def field_fn_setter(self, value):
-        raise AttributeError(
-            "Created Object is Immutable, can't set attribute"
-        )
+        return getter
 
-    return property(field_fn_getter, field_fn_setter)
+    for field, attr in zip(field_names, field_attrs):
+        yield field, property(getter_factory(attr))
 
 
 IDENTIFIER_REGEX = re.compile(r"^[^\d\W]\w*\Z", re.UNICODE)
@@ -321,12 +324,7 @@ class MetaSerializable(abc.ABCMeta):
         )
         namespace['_meta'] = meta
 
-        # construct `property` attributes for read only access to the fields.
-        field_props = tuple(
-            (field, _mk_field_property(field, attr))
-            for field, attr
-            in zip(meta.field_names, meta.field_attrs)
-        )
+        field_props = _mk_field_props(meta.field_names, meta.field_attrs)
 
         return super().__new__(
             mcls,
