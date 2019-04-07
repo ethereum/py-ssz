@@ -370,7 +370,7 @@ class MetaSerializable(abc.ABCMeta):
         return cls._meta.container_sedes.hash_tree_root(value)
 
 
-# Make any class created with SerializableBase an instance of BaseSedes
+# Make any class created with MetaSerializable an instance of BaseSedes
 BaseSedes.register(MetaSerializable)
 
 
