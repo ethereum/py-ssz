@@ -214,12 +214,12 @@ def _get_class_namespace(cls):
         yield from cls.__slots__
 
 
-class SerializableBase(abc.ABCMeta):
+class MetaSerializable(abc.ABCMeta):
 
     def __new__(cls, name, bases, attrs):
-        super_new = super(SerializableBase, cls).__new__
+        super_new = super(MetaSerializable, cls).__new__
 
-        serializable_bases = tuple(b for b in bases if isinstance(b, SerializableBase))
+        serializable_bases = tuple(b for b in bases if isinstance(b, MetaSerializable))
         has_multiple_serializable_parents = len(serializable_bases) > 1
         is_serializable_subclass = any(serializable_bases)
         declares_fields = 'fields' in attrs
@@ -371,10 +371,10 @@ class SerializableBase(abc.ABCMeta):
 
 
 # Make any class created with SerializableBase an instance of BaseSedes
-BaseSedes.register(SerializableBase)
+BaseSedes.register(MetaSerializable)
 
 
-class Serializable(BaseSerializable, metaclass=SerializableBase):
+class Serializable(BaseSerializable, metaclass=MetaSerializable):
     """
     The base class for serializable objects.
     """
