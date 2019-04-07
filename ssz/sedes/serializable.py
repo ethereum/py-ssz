@@ -216,16 +216,16 @@ def _get_class_namespace(cls):
 
 class MetaSerializable(abc.ABCMeta):
 
-    def __new__(cls, name, bases, attrs):
+    def __new__(mcls, name, bases, namespace):
         serializable_bases = tuple(b for b in bases if isinstance(b, MetaSerializable))
         has_multiple_serializable_parents = len(serializable_bases) > 1
-        is_serializable_subclass = any(serializable_bases)
-        declares_fields = 'fields' in attrs
+        is_serializable_subclass = len(serializable_bases) != 0
+        declares_fields = 'fields' in namespace
 
         if not is_serializable_subclass:
             # If this is the original creation of the `Serializable` class,
             # just create the class.
-            return super().__new__(cls, name, bases, attrs)
+            return super().__new__(mcls, name, bases, namespace)
         elif not declares_fields:
             if has_multiple_serializable_parents:
                 raise TypeError(
@@ -245,7 +245,7 @@ class MetaSerializable(abc.ABCMeta):
         else:
             # ensure that the `fields` property is a tuple of tuples to ensure
             # immutability.
-            fields = tuple(tuple(field) for field in attrs.pop('fields'))
+            fields = tuple(tuple(field) for field in namespace.pop('fields'))
 
         # split the fields into names and sedes
         if fields:
@@ -297,7 +297,7 @@ class MetaSerializable(abc.ABCMeta):
         # the actual field values are stored in separate *private* attributes.
         # This computes attribute names that don't conflict with other
         # attributes already present on the class.
-        reserved_namespace = set(attrs.keys()).union(
+        reserved_namespace = set(namespace.keys()).union(
             attr
             for base in bases
             for parent_cls in base.__mro__
@@ -313,13 +313,13 @@ class MetaSerializable(abc.ABCMeta):
             'container_sedes': Container(fields),
         }
 
-        meta_base = attrs.pop('_meta', MetaBase)
+        meta_base = namespace.pop('_meta', MetaBase)
         meta = type(
             'Meta',
             (meta_base,),
             meta_namespace,
         )
-        attrs['_meta'] = meta
+        namespace['_meta'] = meta
 
         # construct `property` attributes for read only access to the fields.
         field_props = tuple(
@@ -329,10 +329,10 @@ class MetaSerializable(abc.ABCMeta):
         )
 
         return super().__new__(
-            cls,
+            mcls,
             name,
             bases,
-            dict(field_props + tuple(attrs.items())),
+            dict(field_props + tuple(namespace.items())),
         )
 
     #
