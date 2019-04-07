@@ -217,8 +217,6 @@ def _get_class_namespace(cls):
 class MetaSerializable(abc.ABCMeta):
 
     def __new__(cls, name, bases, attrs):
-        super_new = super(MetaSerializable, cls).__new__
-
         serializable_bases = tuple(b for b in bases if isinstance(b, MetaSerializable))
         has_multiple_serializable_parents = len(serializable_bases) > 1
         is_serializable_subclass = any(serializable_bases)
@@ -227,7 +225,7 @@ class MetaSerializable(abc.ABCMeta):
         if not is_serializable_subclass:
             # If this is the original creation of the `Serializable` class,
             # just create the class.
-            return super_new(cls, name, bases, attrs)
+            return super().__new__(cls, name, bases, attrs)
         elif not declares_fields:
             if has_multiple_serializable_parents:
                 raise TypeError(
@@ -330,7 +328,7 @@ class MetaSerializable(abc.ABCMeta):
             in zip(meta.field_names, meta.field_attrs)
         )
 
-        return super_new(
+        return super().__new__(
             cls,
             name,
             bases,
