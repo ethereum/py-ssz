@@ -87,20 +87,21 @@ class BaseSerializable(collections.Sequence):
     _cached_ssz = None
 
     def __init__(self, *args, **kwargs):
-        validate_args_and_kwargs(args, kwargs, self._meta.field_names)
-        field_values = merge_kwargs_to_args(args, kwargs, self._meta.field_names)
+        arg_names = self._meta.field_names or ()
+        validate_args_and_kwargs(args, kwargs, arg_names)
+        field_values = merge_kwargs_to_args(args, kwargs, arg_names)
 
         # Ensure that all the fields have been given values in initialization
-        if len(field_values) != len(self._meta.field_names):
+        if len(field_values) != len(arg_names):
             raise TypeError(
                 'Argument count mismatch. expected {0} - got {1} - missing {2}'.format(
-                    len(self._meta.field_names),
+                    len(arg_names),
                     len(field_values),
-                    ','.join(self._meta.field_names[len(field_values):]),
+                    ','.join(arg_names[len(field_values):]),
                 )
             )
 
-        for value, attr in zip(field_values, self._meta.field_attrs):
+        for value, attr in zip(field_values, self._meta.field_attrs or ()):
             setattr(self, attr, make_immutable(value))
 
     def as_dict(self):
@@ -191,6 +192,7 @@ def _mk_field_attrs(field_names, extra_namespace):
                 namespace.add(field)
                 yield field
                 break
+
 
 @to_dict
 def _mk_field_props(field_names, field_attrs):
