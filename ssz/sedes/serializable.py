@@ -3,15 +3,22 @@ import collections
 import copy
 import re
 from typing import (
+    NamedTuple,
+    Optional,
     Tuple,
     Type,
     TypeVar,
+    Sequence,
 )
 
 from eth_utils import (
     to_dict,
     to_set,
     to_tuple,
+)
+from eth_utils.toolz import (
+    assoc,
+    merge,
 )
 
 from ssz.sedes.base import (
@@ -27,11 +34,13 @@ from ssz.utils import (
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 
 
-class MetaBase:
-    fields = None
-    field_names = None
-    field_attrs = None
-    container_sedes = None
+class Meta(NamedTuple):
+
+    has_fields: bool
+    fields: Optional[Tuple[Tuple[str, BaseSedes]]]
+    container_sedes: Optional[Container]
+    field_names: Optional[Tuple[str]]
+    field_attrs: Optional[Tuple[str]]
 
 
 def validate_args_and_kwargs(args, kwargs, arg_names):
@@ -183,7 +192,7 @@ def _mk_field_attrs(field_names, extra_namespace):
                 yield field
                 break
 
-@to_tuple
+@to_dict
 def _mk_field_props(field_names, field_attrs):
     # we can't just define the getter in the loop as attr in the getter scope would not refer to
     # the current value of the loop variable, but always the last one (see
@@ -220,41 +229,62 @@ def _get_class_namespace(cls):
 class MetaSerializable(abc.ABCMeta):
 
     def __new__(mcls, name, bases, namespace):
-        serializable_bases = tuple(b for b in bases if isinstance(b, MetaSerializable))
-        has_multiple_serializable_parents = len(serializable_bases) > 1
-        is_serializable_subclass = len(serializable_bases) != 0
-        declares_fields = 'fields' in namespace
+        declares_fields = "fields" in namespace
 
-        if not is_serializable_subclass:
-            # If this is the original creation of the `Serializable` class,
-            # just create the class.
-            return super().__new__(mcls, name, bases, namespace)
-        elif not declares_fields:
-            if has_multiple_serializable_parents:
-                raise TypeError(
-                    "Cannot create subclass from multiple parent `Serializable` "
-                    "classes without explicit `fields` declaration."
-                )
+        if declares_fields:
+            has_fields = True
+            fields = namespace.pop("fields")
+            try:
+                sedes = Container(fields)
+            except ValueError as exception:
+                raise TypeError(exception)
+
+        else:
+            serializable_bases = tuple(base for base in bases if isinstance(base, MetaSerializable))
+            bases_with_fields = tuple(base for base in serializable_bases if base._meta.has_fields)
+
+            if len(bases_with_fields) == 0:
+                has_fields = False
+                fields = None
+                sedes = None
+            elif len(bases_with_fields) == 1:
+                has_fields = True
+                fields = bases_with_fields[0]._meta.fields
+                sedes = bases_with_fields[0]._meta.container_sedes
             else:
-                # This is just a vanilla subclass of a `Serializable` parent class.
-                parent_serializable = serializable_bases[0]
+                raise TypeError(
+                    "Fields need to be declared explicitly as class has multiple `Serializable` "
+                    "parents with fields themselves"
+                )
 
-                if hasattr(parent_serializable, '_meta'):
-                    fields = parent_serializable._meta.fields
-                else:
-                    # This is a subclass of `Serializable` which has no
-                    # `fields`, likely intended for further subclassing.
-                    fields = ()
-        else:
-            # ensure that the `fields` property is a tuple of tuples to ensure
-            # immutability.
-            fields = tuple(tuple(field) for field in namespace.pop('fields'))
+        # create the class without any fields as neither the class itself nor any of its ancestors
+        # have defined fields
+        if not has_fields:
+            meta = Meta(
+                has_fields=False,
+                fields=None,
+                container_sedes=None,
+                field_names=None,
+                field_attrs=None,
+            )
+            return super().__new__(
+                mcls,
+                name,
+                bases,
+                assoc(
+                    namespace,
+                    "_meta",
+                    meta,
+                )
+            )
 
-        # split the fields into names and sedes
-        if fields:
-            field_names, sedes = zip(*fields)
-        else:
-            field_names = ()
+        # from here on, we can assume that we've got fields and a sedes object
+        if sedes is None:
+            raise Exception("Invariant: sedes has been initialized earlier")
+        if len(fields) == 0:
+            raise Exception("Invariant: number of fields has been checked at initializion of sedes")
+
+        field_names, _ = zip(*fields)
 
         # check that field names are unique
         duplicate_field_names = get_duplicates(field_names)
@@ -279,24 +309,6 @@ class MetaSerializable(abc.ABCMeta):
                 )
             )
 
-        # extract all of the fields from parent `Serializable` classes.
-        parent_field_names = {
-            field_name
-            for base in serializable_bases if hasattr(base, '_meta')
-            for field_name in base._meta.field_names
-        }
-
-        # check that all fields from parent serializable classes are
-        # represented on this class.
-        missing_fields = parent_field_names.difference(field_names)
-        if missing_fields:
-            raise TypeError(
-                "Subclasses of `Serializable` **must** contain a full superset "
-                "of the fields defined in their parent classes.  The following "
-                "fields are missing: "
-                "{0}".format(",".join(sorted(missing_fields)))
-            )
-
         # the actual field values are stored in separate *private* attributes.
         # This computes attribute names that don't conflict with other
         # attributes already present on the class.
@@ -307,30 +319,32 @@ class MetaSerializable(abc.ABCMeta):
             for attr in _get_class_namespace(parent_cls)
         )
         field_attrs = _mk_field_attrs(field_names, reserved_namespace)
+        field_props = _mk_field_props(field_names, field_attrs)
 
-        # construct the Meta object to store field information for the class
-        meta_namespace = {
-            'fields': fields,
-            'field_attrs': field_attrs,
-            'field_names': field_names,
-            'container_sedes': Container(fields),
-        }
+        if namespace.keys() & set(field_props.keys()):
+            raise Exception(
+                "Invariant: field property names have been constructed to not overlap with "
+                "existing attributes"
+            )
 
-        meta_base = namespace.pop('_meta', MetaBase)
-        meta = type(
-            'Meta',
-            (meta_base,),
-            meta_namespace,
+        meta = Meta(
+            has_fields=True,
+            fields=fields,
+            container_sedes=sedes,
+            field_names=field_names,
+            field_attrs=field_attrs,
         )
-        namespace['_meta'] = meta
-
-        field_props = _mk_field_props(meta.field_names, meta.field_attrs)
-
         return super().__new__(
             mcls,
             name,
             bases,
-            dict(field_props + tuple(namespace.items())),
+            merge(
+                namespace,
+                field_props,
+                {
+                    "_meta": meta,
+                }
+            )
         )
 
     #
