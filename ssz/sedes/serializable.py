@@ -208,6 +208,31 @@ def _mk_field_props(field_names, field_attrs):
         yield field, property(getter_factory(attr))
 
 
+def _validate_field_names(field_names: Sequence[str]) -> None:
+    # check that field names are unique
+    duplicate_field_names = get_duplicates(field_names)
+    if duplicate_field_names:
+        raise TypeError(
+            "The following fields are duplicated in the `fields` "
+            "declaration: "
+            "{0}".format(",".join(sorted(duplicate_field_names)))
+        )
+
+    # check that field names are valid identifiers
+    invalid_field_names = {
+        field_name
+        for field_name
+        in field_names
+        if not _is_valid_identifier(field_name)
+    }
+    if invalid_field_names:
+        raise TypeError(
+            "The following field names are not valid python identifiers: {0}".format(
+                ",".join("`{0}`".format(item) for item in sorted(invalid_field_names))
+            )
+        )
+
+
 IDENTIFIER_REGEX = re.compile(r"^[^\d\W]\w*\Z", re.UNICODE)
 
 
@@ -285,29 +310,7 @@ class MetaSerializable(abc.ABCMeta):
             raise Exception("Invariant: number of fields has been checked at initializion of sedes")
 
         field_names, _ = zip(*fields)
-
-        # check that field names are unique
-        duplicate_field_names = get_duplicates(field_names)
-        if duplicate_field_names:
-            raise TypeError(
-                "The following fields are duplicated in the `fields` "
-                "declaration: "
-                "{0}".format(",".join(sorted(duplicate_field_names)))
-            )
-
-        # check that field names are valid identifiers
-        invalid_field_names = {
-            field_name
-            for field_name
-            in field_names
-            if not _is_valid_identifier(field_name)
-        }
-        if invalid_field_names:
-            raise TypeError(
-                "The following field names are not valid python identifiers: {0}".format(
-                    ",".join("`{0}`".format(item) for item in sorted(invalid_field_names))
-                )
-            )
+        _validate_field_names(field_names)
 
         # the actual field values are stored in separate *private* attributes.
         # This computes attribute names that don't conflict with other
