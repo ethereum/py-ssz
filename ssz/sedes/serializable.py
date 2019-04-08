@@ -5,10 +5,10 @@ import re
 from typing import (
     NamedTuple,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypeVar,
-    Sequence,
 )
 
 from eth_utils import (
