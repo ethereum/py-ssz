@@ -140,3 +140,14 @@ def test_equality():
     assert test_b1 == test_a1
     assert test_c1 == test_a1
     assert test_c2 != test_a1
+
+
+def test_root():
+    class Test(ssz.Serializable):
+        fields = (
+            ("field1", uint8),
+            ("field2", uint8),
+        )
+
+    test = Test(1, 2)
+    assert test.root == ssz.hash_tree_root(test, Test)

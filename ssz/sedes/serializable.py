@@ -23,6 +23,7 @@ from eth_utils.toolz import (
     merge,
 )
 
+import ssz
 from ssz.sedes.base import (
     BaseSedes,
 )
@@ -175,6 +176,10 @@ class BaseSerializable(collections.Sequence):
 
     def __deepcopy__(self, *args):
         return self.copy()
+
+    @property
+    def root(self):
+        return ssz.hash_tree_root(self)
 
 
 def make_immutable(value):
