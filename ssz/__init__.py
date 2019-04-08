@@ -21,6 +21,7 @@ from .sedes import (  # noqa: F401
     Container,
     List,
     Serializable,
+    SignedSerializable,
     UInt,
     Vector,
     boolean,
