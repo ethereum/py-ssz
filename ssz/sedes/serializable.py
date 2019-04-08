@@ -345,7 +345,7 @@ class SerializableBase(abc.ABCMeta):
         return cls._meta.container_sedes.is_static_sized
 
     def get_static_size(cls):
-        cls._meta.container_sedes.get_static_size()
+        return cls._meta.container_sedes.get_static_size()
 
     def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
         return cls._meta.container_sedes.serialize(value)
