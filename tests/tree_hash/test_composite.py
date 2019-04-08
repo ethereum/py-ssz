@@ -144,7 +144,6 @@ def test_list_of_composite(bytes16_list, result):
 @pytest.mark.parametrize(
     ("bytes16_fields", "result"),
     (
-        ((), EMPTY_CHUNK),
         ((A_BYTES,), A_BYTES + EMPTY_BYTES),
         (
             (A_BYTES, B_BYTES),

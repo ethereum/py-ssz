@@ -38,6 +38,9 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
         self.field_sedes_objects = tuple(field_sedes for _, field_sedes in self.fields)
         self.field_name_to_sedes = dict(self.fields)
 
+        if len(fields) == 0:
+            raise ValueError("Cannot define container without any fields")
+
         duplicate_field_names = get_duplicates(self.field_names)
         if duplicate_field_names:
             raise ValueError(
