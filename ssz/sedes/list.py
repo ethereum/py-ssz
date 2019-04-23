@@ -32,7 +32,6 @@ TDeserialized = TypeVar("TDeserialized")
 
 
 class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
-
     def __init__(self,
                  element_sedes: BaseSedes[TSerializable, TDeserialized] = None,
                  empty: bool = False) -> None:

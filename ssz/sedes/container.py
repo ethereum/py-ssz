@@ -32,7 +32,6 @@ TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)
 
 
 class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
-
     def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
         self.fields = fields
         self.field_names = tuple(field_name for field_name, _ in self.fields)

@@ -27,7 +27,6 @@ TDeserialized = TypeVar("TDeserialized")
 
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
-
     #
     # Size
     #
@@ -94,7 +93,6 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
-
     def __init__(self, size: int):
         if size <= 0:
             raise ValueError("Length must be greater than 0")
@@ -144,7 +142,6 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
 
 
 class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
-
     #
     # Serialization
     #

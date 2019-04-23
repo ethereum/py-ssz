@@ -11,7 +11,6 @@ from ssz.sedes.base import (
 
 
 class Boolean(BasicSedes[bool, bool]):
-
     def __init__(self) -> None:
         super().__init__(size=1)
 

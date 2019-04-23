@@ -37,6 +37,9 @@ from .list import (  # noqa: F401
 from .serializable import (  # noqa: F401
     Serializable,
 )
+from .signed_serializable import (  # noqa: F401
+    SignedSerializable,
+)
 from .uint import (  # noqa: F401
     UInt,
     uint8,

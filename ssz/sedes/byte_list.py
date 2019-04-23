@@ -15,7 +15,6 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 
 class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
-
     is_static_sized = False
 
     def get_static_size(self):

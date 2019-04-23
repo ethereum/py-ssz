@@ -7,7 +7,6 @@ from ssz.sedes.base import (
 
 
 class UInt(BasicSedes[int, int]):
-
     def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:
             raise ValueError(
