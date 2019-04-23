@@ -37,3 +37,15 @@ v0.1.0-alpha.4
 Released 2018-04-09
 
 - Fix bug in serializable class - `#56 <https://github.com/ethereum/py-ssz/pull/56>`_
+
+
+v0.1.0-alpha.5
+--------------
+
+Released 2018-04-23
+
+- Slight change in serializable inheritance rules -
+  `#57 <https://github.com/ethereum/py-ssz/pull/57>`_
+- Add root property to serializable - `#57 <https://github.com/ethereum/py-ssz/pull/57>`_
+- Add SignedSerializable base class with signing-root property -
+  `#57 <https://github.com/ethereum/py-ssz/pull/57>`_
