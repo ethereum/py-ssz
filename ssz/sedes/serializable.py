@@ -248,11 +248,12 @@ def _get_class_namespace(cls):
 class MetaSerializable(abc.ABCMeta):
 
     def __new__(mcls, name, bases, namespace):
-        declares_fields = "fields" in namespace
+        fields_attr_name = "fields"
+        declares_fields = fields_attr_name in namespace
 
         if declares_fields:
             has_fields = True
-            fields = namespace.pop("fields")
+            fields = namespace.pop(fields_attr_name)
             try:
                 sedes = Container(fields)
             except ValueError as exception:
