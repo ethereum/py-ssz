@@ -1,6 +1,7 @@
 import abc
 import collections
 import copy
+import operator
 import re
 from typing import (
     NamedTuple,
@@ -196,18 +197,9 @@ def _mk_field_attrs(field_names, extra_namespace):
 
 @to_dict
 def _mk_field_props(field_names, field_attrs):
-    # we can't just define the getter in the loop as attr in the getter scope would not refer to
-    # the current value of the loop variable, but always the last one (see
-    # https://stackoverflow.com/q/233673)
-    def getter_factory(attr):
-
-        def getter(self):
-            return getattr(self, attr)
-
-        return getter
-
     for field, attr in zip(field_names, field_attrs):
-        yield field, property(getter_factory(attr))
+        getter = operator.attrgetter(attr)
+        yield field, property(getter)
 
 
 def _validate_field_names(field_names: Sequence[str]) -> None:
