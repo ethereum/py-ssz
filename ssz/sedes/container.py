@@ -8,8 +8,8 @@ from typing import (
 )
 
 from eth_utils import (
-    to_dict,
     ValidationError,
+    to_dict,
 )
 from mypy_extensions import (
     TypedDict,

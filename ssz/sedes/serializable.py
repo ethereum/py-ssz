@@ -13,10 +13,10 @@ from typing import (
 )
 
 from eth_utils import (
+    ValidationError,
     to_dict,
     to_set,
     to_tuple,
-    ValidationError,
 )
 from eth_utils.toolz import (
     assoc,
