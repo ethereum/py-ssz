@@ -25,8 +25,8 @@ class SignedMeta(NamedTuple):
     fields: Optional[Tuple[Tuple[str, BaseSedes]]]
     container_sedes: Optional[Container]
     signed_container_sedes: Optional[Container]
-    field_names: Optional[Tuple[str]]
-    field_attrs: Optional[Tuple[str]]
+    field_names: Optional[Tuple[str, ...]]
+    field_attrs: Optional[Tuple[str, ...]]
 
 
 class MetaSignedSerializable(MetaSerializable):
