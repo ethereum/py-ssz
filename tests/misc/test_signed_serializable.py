@@ -41,7 +41,7 @@ def test_field_name_check():
             )
 
 
-def test_signed_root():
+def test_signing_root():
     class Signed(ssz.SignedSerializable):
         fields = (
             ("field1", uint8),
@@ -57,4 +57,4 @@ def test_signed_root():
 
     signed = Signed(123, b"\xaa", b"\x00")
     unsigned = Unsigned(123, b"\xaa")
-    assert signed.signed_root == unsigned.root
+    assert signed.signing_root == unsigned.root
