@@ -382,6 +382,13 @@ class MetaSerializable(abc.ABCMeta):
     def hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
         return cls._meta.container_sedes.hash_tree_root(value)
 
+    def serialize_text(cls, value) -> str:
+        return cls._meta.container_sedes.serialize_text(value)
+
+    def deserialize_text(cls, data) -> Tuple[TSerializable, int]:
+        deserialized_field_dict = cls._meta.container_sedes.deserialize_text(data)
+        return cls(**deserialized_field_dict)
+
 
 # Make any class created with MetaSerializable an instance of BaseSedes
 BaseSedes.register(MetaSerializable)

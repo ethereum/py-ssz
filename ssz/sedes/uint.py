@@ -1,3 +1,8 @@
+from eth_utils import (
+    decode_hex,
+    encode_hex,
+)
+
 from ssz.exceptions import (
     SerializationError,
 )
@@ -29,6 +34,12 @@ class UInt(BasicSedes[int, int]):
 
     def deserialize_content(self, content: bytes) -> int:
         return int.from_bytes(content, "little")
+
+    def serialize_text(self, value: int) -> str:
+        return encode_hex(self.serialize_content(value))
+
+    def deserialize_text(self, content: str) -> int:
+        return self.deserialize_content(decode_hex(content))
 
 
 uint8 = UInt(8)

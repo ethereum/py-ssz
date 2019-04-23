@@ -102,3 +102,15 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
             for field_name, field_sedes in self.fields
         )
         return merkleize(merkle_leaves)
+
+    def serialize_text(self, value: TAnyTypedDict):
+        return dict(
+            (field_name, field_sedes.serialize_text(value[field_name]))
+            for field_name, field_sedes in self.fields
+        )
+
+    @to_dict
+    def deserialize_text(self, content: TAnyTypedDict)-> Generator[Tuple[str, Any], None, None]:
+        for field_name, field_sedes in self.fields:
+            field_value = field_sedes.deserialize_text(content[field_name])
+            yield field_name, field_value

@@ -128,5 +128,11 @@ class List(CompositeSedes[Iterable[TSerializable], Tuple[TDeserialized, ...]]):
             length = len(merkle_leaves)
         return mix_in_length(merkleize(merkle_leaves), length)
 
+    def serialize_text(self, value):
+        return tuple(self.element_sedes.serialize_text(element) for element in value)
+
+    def deserialize_text(self, content):
+        return tuple(self.element_sedes.deserialize_text(element) for element in content)
+
 
 empty_list: List[None, None] = List(empty=True)

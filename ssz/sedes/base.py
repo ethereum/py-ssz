@@ -3,7 +3,9 @@ from abc import (
     abstractmethod,
 )
 from typing import (
+    Any,
     Generic,
+    Sequence,
     Tuple,
     TypeVar,
 )
@@ -91,6 +93,14 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     def hash_tree_root(self, value: TSerializable) -> bytes:
         pass
 
+    @abstractmethod
+    def serialize_text(self, value):
+        pass
+
+    @abstractmethod
+    def deserialize_text(self, content):
+        pass
+
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     def __init__(self, size: int):
@@ -175,3 +185,16 @@ class CompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
     def deserialize_content(self, content: bytes) -> TDeserialized:
         pass
+
+    def serialize_text(self, value: Sequence[TSerializable]) -> Tuple[Any, ...]:
+        pairs = self._get_item_sedes_pairs(value)
+
+        return tuple(
+            sedes.serialize_text(item)
+            for item, sedes
+            in pairs
+        )
+
+    def deserialize_text(self, content: Sequence[Any]) -> Tuple[TDeserialized, ...]:
+        pairs = self._get_item_sedes_pairs(content)
+        return tuple(sedes.deserialize_text(item) for item, sedes in pairs)

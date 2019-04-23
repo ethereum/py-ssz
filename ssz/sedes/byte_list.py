@@ -2,6 +2,11 @@ from typing import (
     Union,
 )
 
+from eth_utils import (
+    decode_hex,
+    encode_hex,
+)
+
 from ssz.sedes.base import (
     CompositeSedes,
 )
@@ -30,6 +35,12 @@ class ByteList(CompositeSedes[BytesOrByteArray, bytes]):
         merkle_leaves = pack_bytes(value)
         merkleized = merkleize(merkle_leaves)
         return mix_in_length(merkleized, len(value))
+
+    def serialize_text(self, value: bytes) -> str:
+        return encode_hex(value)
+
+    def deserialize_text(self, content: str) -> bytes:
+        return decode_hex(content)
 
 
 byte_list = ByteList()

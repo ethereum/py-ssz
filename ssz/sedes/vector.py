@@ -108,3 +108,9 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
                 for element in value
             )
             return merkleize(element_tree_hashes)
+
+    def serialize_text(self, value):
+        return tuple(self.element_sedes.serialize_text(element) for element in value)
+
+    def deserialize_text(self, content):
+        return tuple(self.element_sedes.deserialize_text(element) for element in content)

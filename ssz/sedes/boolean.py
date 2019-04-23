@@ -33,5 +33,11 @@ class Boolean(BasicSedes[bool, bool]):
                 f"{encode_hex(content)})",
             )
 
+    def serialize_text(self, value: bool) -> bool:
+        return value
+
+    def deserialize_text(self, content: bool) -> bool:
+        return content
+
 
 boolean = Boolean()

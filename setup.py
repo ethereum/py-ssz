@@ -11,7 +11,6 @@ extras_require = {
         "pytest-xdist==1.28.0",
         "tox>=2.9.1,<3",
         "hypothesis==3.69.5",
-        "ruamel.yaml==0.15.87",
     ],
     'lint': [
         "flake8==3.4.1",
@@ -51,6 +50,7 @@ setup(
         "eth-utils>=1,<2",
         "eth-hash[pycryptodome]",
         "mypy-extensions>=0.4.1,<1.0.0",
+        "ruamel.yaml==0.15.87",
     ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',
