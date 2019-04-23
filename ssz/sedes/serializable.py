@@ -16,6 +16,7 @@ from eth_utils import (
     to_dict,
     to_set,
     to_tuple,
+    ValidationError,
 )
 from eth_utils.toolz import (
     assoc,
@@ -256,7 +257,9 @@ class MetaSerializable(abc.ABCMeta):
             fields = namespace.pop(fields_attr_name)
             try:
                 sedes = Container(fields)
-            except ValueError as exception:
+            except ValidationError as exception:
+                # catch empty or duplicate fields and reraise as a TypeError as this would be an
+                # invalid class definition
                 raise TypeError(exception)
 
         else:
