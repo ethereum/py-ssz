@@ -40,8 +40,8 @@ class Meta(NamedTuple):
     has_fields: bool
     fields: Optional[Tuple[Tuple[str, BaseSedes]]]
     container_sedes: Optional[Container]
-    field_names: Optional[Tuple[str]]
-    field_attrs: Optional[Tuple[str]]
+    field_names: Optional[Tuple[str, ...]]
+    field_attrs: Optional[Tuple[str, ...]]
 
 
 def validate_args_and_kwargs(args, kwargs, arg_names):
