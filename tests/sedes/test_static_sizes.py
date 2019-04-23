@@ -24,7 +24,6 @@ from ssz.sedes import (
         (uint256, 32),
         (Vector(uint8, 0), 0),
         (Vector(uint8, 2), 2),
-        (Container(()), 0),
         (Container((("a", uint8), ("b", Vector(uint8, 4)))), 5),
         (Vector(List(uint8), 0), 0),
         (Vector(Container((("a", uint8), ("b", Vector(uint8, 4)))), 4), 20),

@@ -8,6 +8,7 @@ from typing import (
 )
 
 from eth_utils import (
+    ValidationError,
     to_dict,
 )
 from mypy_extensions import (
@@ -38,9 +39,12 @@ class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
         self.field_sedes_objects = tuple(field_sedes for _, field_sedes in self.fields)
         self.field_name_to_sedes = dict(self.fields)
 
+        if len(fields) == 0:
+            raise ValidationError("Cannot define container without any fields")
+
         duplicate_field_names = get_duplicates(self.field_names)
         if duplicate_field_names:
-            raise ValueError(
+            raise ValidationError(
                 f"The following fields are duplicated {','.join(sorted(duplicate_field_names))}"
             )
 
