@@ -96,7 +96,9 @@ def test_valid_inheritance(structure):
         field_names = field_names_dict[class_name]
 
         kwargs = {field_name: 0 for field_name in field_names}
-        class_(**kwargs)
+        instance = class_(**kwargs)
+        for field_name in field_names:
+            assert hasattr(instance, field_name)
 
 
 @pytest.mark.parametrize("structure", (
