@@ -17,7 +17,6 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 
 class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
-
     def __init__(self, size: int) -> None:
         self.size = size
 

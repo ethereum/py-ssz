@@ -30,7 +30,6 @@ class SignedMeta(NamedTuple):
 
 
 class MetaSignedSerializable(MetaSerializable):
-
     def __new__(mcls, name, bases, namespace):
         cls = super().__new__(mcls, name, bases, namespace)
 
@@ -64,7 +63,6 @@ BaseSedes.register(MetaSignedSerializable)
 
 
 class SignedSerializable(BaseSerializable, metaclass=MetaSignedSerializable):
-
     @property
     def signing_root(self):
         return ssz.hash_tree_root(self, self._meta.signed_container_sedes)

@@ -4,7 +4,6 @@ from ssz.sedes.base import (
 
 
 class Byte(BasicSedes[bytes, bytes]):
-
     def __init__(self) -> None:
         super().__init__(1)
 

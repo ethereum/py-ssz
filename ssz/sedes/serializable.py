@@ -38,7 +38,6 @@ TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 
 
 class Meta(NamedTuple):
-
     has_fields: bool
     fields: Optional[Tuple[Tuple[str, BaseSedes]]]
     container_sedes: Optional[Container]
@@ -86,7 +85,6 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 
 
 class BaseSerializable(collections.Sequence):
-
     _cached_ssz = None
 
     def __init__(self, *args, **kwargs):
@@ -252,7 +250,6 @@ def _get_class_namespace(cls):
 
 
 class MetaSerializable(abc.ABCMeta):
-
     def __new__(mcls, name, bases, namespace):
         fields_attr_name = "fields"
         declares_fields = fields_attr_name in namespace
