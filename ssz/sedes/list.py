@@ -40,7 +40,7 @@ from ssz.utils import (
 TSerializable = TypeVar("TSerializable")
 TDeserialized = TypeVar("TDeserialized")
 
-EMPTY_LIST_HASH_TRIES_ROOT = mix_in_length(merkleize(pack([])), 0)
+EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
 
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
@@ -61,8 +61,8 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
 
     def hash_tree_root(self, value: Sequence[TSerializable]) -> bytes:
         if len(value):
-            raise ValueError("Cannot compute trie hash for non-empty value using `EmptyList` sedes")
-        return EMPTY_LIST_HASH_TRIES_ROOT
+            raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
+        return EMPTY_LIST_HASH_TREE_ROOT
 
 
 empty_list = EmptyList()
@@ -98,15 +98,24 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             element_size = self.element_sedes.get_fixed_size()
             data = stream.read()
             if len(data) % element_size != 0:
-                raise DeserializationError("TODO: INVALID LENGTH")
+                raise DeserializationError(
+                    f"Invalid length. List is comprised of a fixed size sedes "
+                    f"but total serialized data is not an even multiple of the "
+                    f"element size. data length: {len(data)}  element size: "
+                    f"{element_size}"
+                )
             for segment in partition(element_size, data):
                 yield self.element_sedes.deserialize(segment)
         else:
+            stream_zero_loc = stream.tell()
             try:
                 first_offset = s_decode_offset(stream)
             except DeserializationError:
-                # Empty list
-                return
+                if stream.tell() == stream_zero_loc:
+                    # Empty list
+                    return
+                else:
+                    raise
 
             num_remaining_offset_bytes = first_offset - stream.tell()
             if num_remaining_offset_bytes % OFFSET_SIZE != 0:
@@ -134,7 +143,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     #
     def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
         if len(value) == 0:
-            return EMPTY_LIST_HASH_TRIES_ROOT
+            return EMPTY_LIST_HASH_TREE_ROOT
         elif isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element)

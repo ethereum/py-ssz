@@ -3,7 +3,6 @@ from abc import (
     abstractmethod,
 )
 import io
-import itertools
 import operator
 from typing import (
     IO,
@@ -176,17 +175,3 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
     @abstractmethod
     def _deserialize_stream(self, stream: IO[bytes]) -> TDeserialized:
         pass
-
-
-TSerializableElement = TypeVar("TSerializableElement")
-TDeserializedElement = TypeVar("TDeserializedElement")
-
-
-class HomogenousSequence(CompositeSedes[Sequence[Any], Tuple[Any]]):
-    element_sedes: TSedes
-
-    #
-    # Serialization
-    #
-    def _get_item_sedes_pairs(self, value: Sequence[Any]) -> Tuple[Tuple[Any, TSedes], ...]:
-        return tuple(zip(value, itertools.repeat(self.element_sedes)))
