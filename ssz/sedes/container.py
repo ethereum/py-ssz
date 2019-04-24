@@ -44,8 +44,6 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def __init__(self, field_sedes: Sequence[TSedes]) -> None:
         if len(field_sedes) == 0:
             raise ValidationError("Cannot define container without any fields")
-        from ssz.sedes.base import BaseSedes
-        assert all(isinstance(sedes, BaseSedes) for sedes in field_sedes)
         self.field_sedes = tuple(field_sedes)
 
     #

@@ -55,7 +55,7 @@ def decode_offset(data: bytes) -> int:
 
 
 def s_decode_offset(stream: IO[bytes]) -> int:
-    data = read_exact(4, stream)
+    data = read_exact(OFFSET_SIZE, stream)
     return decode_offset(data)
 
 
