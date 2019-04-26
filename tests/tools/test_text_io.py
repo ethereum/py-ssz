@@ -1,10 +1,10 @@
 import pytest
 
+import ssz
 from ssz.examples import (
     State,
     state,
 )
-import ssz.tools
 
 
 @pytest.mark.parametrize(

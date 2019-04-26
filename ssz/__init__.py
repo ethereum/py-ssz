@@ -39,6 +39,12 @@ from .sedes import (  # noqa: F401
     uint128,
     uint256,
 )
+from .tools.text_io import (  # noqa: F401
+    from_json,
+    from_yaml,
+    to_json,
+    to_yaml,
+)
 from .tree_hash import (  # noqa: F401
     hash_tree_root,
 )
