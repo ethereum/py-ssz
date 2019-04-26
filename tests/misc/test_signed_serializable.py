@@ -58,3 +58,19 @@ def test_signing_root():
     signed = Signed(123, b"\xaa", b"\x00")
     unsigned = Unsigned(123, b"\xaa")
     assert signed.signing_root == unsigned.root
+
+
+def test_eq():
+    class Signed(ssz.SignedSerializable):
+        fields = (
+            ("field1", uint8),
+            ("field2", byte_list),
+            ("signature", byte_list),
+        )
+
+    signed_a = Signed(123, b"\xaa", b"\x00")
+    signed_b = signed_a.copy()
+    assert signed_a == signed_b
+
+    signed_b = signed_b.copy(field1=456)
+    assert signed_a != signed_b
