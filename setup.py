@@ -50,7 +50,7 @@ setup(
         "eth-utils>=1,<2",
         "eth-hash[pycryptodome]",
         "mypy-extensions>=0.4.1,<1.0.0",
-        "ruamel.yaml==0.15.87",
+        "ruamel.yaml<=0.15",
     ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',
