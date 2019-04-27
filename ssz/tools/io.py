@@ -15,11 +15,11 @@ from ssz.sedes import (
     ByteVector,
     Container,
     List,
-    Serializable,
     UInt,
     Vector,
 )
 from ssz.sedes.serializable import (
+    BaseSerializable,
     MetaSerializable,
 )
 
@@ -102,9 +102,9 @@ class FormattedDictIO:
             raise TypeError("Expected BaseSedes")
 
     def dump_value(self, value, sedes=None):
-        if sedes is None or isinstance(value, Serializable):
-            if not isinstance(value, Serializable):
-                raise ValueError(f"Expected value is a Serializable, got {type(value)}")
+        if sedes is None or isinstance(value, BaseSerializable):
+            if not isinstance(value, BaseSerializable):
+                raise ValueError(f"Expected value is a BaseSerializable, got {type(value)}")
             return self.dump_value(value.as_dict(), value._meta.container_sedes)
 
         elif isinstance(sedes, Boolean):

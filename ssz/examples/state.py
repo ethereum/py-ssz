@@ -1,10 +1,12 @@
 from ssz.sedes import (
     List,
     Serializable,
+    SignedSerializable,
     Vector,
     boolean,
     bytes32,
     bytes48,
+    bytes96,
     uint64,
 )
 
@@ -20,10 +22,12 @@ class Validator(Serializable):
     ]
 
 
-class Crosslink(Serializable):
+class Crosslink(SignedSerializable):
     fields = [
         ('slot', uint64),
         ('shard_block_root', bytes32),
+        # FIXME: Crosslink is not an example of SignedSerializable
+        ('signature', bytes96),
     ]
 
 
@@ -40,7 +44,11 @@ validator = Validator(
     exit_epoch=123,
     slashed=False,
 )
-crosslink = Crosslink(slot=12847, shard_block_root=b'\x67' * 32)
+crosslink = Crosslink(
+    slot=12847,
+    shard_block_root=b'\x67' * 32,
+    signature=b'\x99' * 96,
+)
 crosslink_record_stubs = [crosslink for i in range(SHARDCOUNT)]
 
 state = State(
