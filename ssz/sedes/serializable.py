@@ -179,6 +179,17 @@ class BaseSerializable(collections.Sequence):
     def root(self):
         return ssz.hash_tree_root(self)
 
+    def to_formatted_dict(self, int_as="int"):
+        from ssz.tools.io import FormattedDictIO
+        io = FormattedDictIO(int_as=int_as)
+        return io.dump_value(self)
+
+    @classmethod
+    def from_formatted_dict(cls, value, int_as="int"):
+        from ssz.tools.io import FormattedDictIO
+        io = FormattedDictIO(int_as=int_as)
+        return io.parse_value(value, cls)
+
 
 def make_immutable(value):
     if isinstance(value, list):

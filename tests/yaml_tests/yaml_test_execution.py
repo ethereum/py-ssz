@@ -12,13 +12,13 @@ from ssz.exceptions import (
     SSZException,
 )
 from ssz.sedes import (
-    BaseSedes,
-    Boolean,
     Container,
     List,
-    UInt,
     Vector,
     sedes_by_name,
+)
+from ssz.tools.io import (
+    FormattedDictIO,
 )
 
 
@@ -37,7 +37,8 @@ def execute_ssz_test_case(test_case):
 
 
 def execute_valid_ssz_test(test_case, sedes):
-    value = parse_value(test_case["value"], sedes)
+    io = FormattedDictIO(int_as="str")
+    value = io.parse_value(test_case["value"], sedes)
     serial = decode_hex(test_case["ssz"])
 
     try:
@@ -62,7 +63,8 @@ def execute_invalid_ssz_test(test_case, sedes):
         raise ValueError("Test case for invalid inputs contains both value and ssz")
 
     if "value" in test_case:
-        value = parse_value(test_case["value"], sedes)
+        io = FormattedDictIO(int_as="str")
+        value = io.parse_value(test_case["value"], sedes)
         try:
             ssz.encode(value, sedes)
         except SSZException:
@@ -85,7 +87,8 @@ def execute_invalid_ssz_test(test_case, sedes):
 
 def execute_tree_hash_test_case(test_case):
     sedes = parse_type_definition(test_case["type"])
-    value = parse_value(test_case["value"], sedes)
+    io = FormattedDictIO(int_as="str")
+    value = io.parse_value(test_case["value"], sedes)
     expected_root = decode_hex(test_case["root"])
     calculated_root = ssz.hash_tree_root(value, sedes)
     assert calculated_root == expected_root
@@ -123,47 +126,3 @@ def parse_type_definition(type_definition):
 
     else:
         raise ValueError(error_message)
-
-
-def parse_value(value, sedes):
-    if isinstance(sedes, Boolean):
-        if not isinstance(value, bool):
-            raise ValueError(f"Expected value of type bool, got {type(value)}")
-        return value
-
-    elif isinstance(sedes, UInt):
-        if not isinstance(value, str):
-            raise ValueError(f"Expected value of type str, got {type(value)}")
-        return int(value)
-
-    elif isinstance(sedes, List):
-        if not isinstance(value, Sequence):
-            raise ValueError(f"Expected list, got {type(value)}")
-        return tuple(parse_value(element, sedes.element_sedes) for element in value)
-
-    elif isinstance(sedes, Vector):
-        if not isinstance(value, Sequence):
-            raise ValueError(f"Expected list, got {type(value)}")
-        if not len(value) == sedes.length:
-            raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
-        return tuple(parse_value(element, sedes.element_sedes) for element in value)
-
-    elif isinstance(sedes, Container):
-        if not isinstance(value, Mapping):
-            raise ValueError(f"Expected mapping, got {type(value)}")
-        field_names_got = set(value.keys())
-        field_names_expected = set(field_name for field_name, _ in sedes.fields)
-        if field_names_got != field_names_expected:
-            raise ValueError(
-                f"Unexpected fields: Got {field_names_got} instead of {field_names_expected}"
-            )
-        return {
-            field_name: parse_value(field_value, sedes.field_name_to_sedes[field_name])
-            for field_name, field_value in value.items()
-        }
-
-    elif isinstance(sedes, BaseSedes):
-        raise Exception("Unreachable: All sedes types have been checked")
-
-    else:
-        raise TypeError("Expected BaseSedes")
