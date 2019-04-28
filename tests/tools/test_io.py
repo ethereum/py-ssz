@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from ssz.examples.state import (
-    State,
-    state,
+from ssz.examples.zoo import (
+    Zoo,
+    zoo,
 )
 
 
@@ -16,10 +16,9 @@ from ssz.examples.state import (
     )
 )
 def test_import_export(tmpdir, int_as):
-    path = tmpdir / "state.dump"
+    path = tmpdir / "zoo.dump"
     with open(path, "w") as f:
-        json.dump(state.to_formatted_dict(int_as=int_as), f)
+        json.dump(zoo.to_formatted_dict(int_as=int_as), f)
     with open(path, "r") as f:
-        read_state = State.from_formatted_dict(json.load(f), int_as=int_as)
-    assert read_state.validator_registry[0].pubkey == state.validator_registry[0].pubkey
-    assert read_state.validator_registry[0].exit_epoch == state.validator_registry[0].exit_epoch
+        read_zoo = Zoo.from_formatted_dict(json.load(f), int_as=int_as)
+    assert read_zoo.animals[0].clock_in_records[0].epoch == zoo.animals[0].clock_in_records[0].epoch
