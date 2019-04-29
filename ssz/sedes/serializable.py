@@ -22,6 +22,7 @@ from eth_utils.toolz import (
     assoc,
     merge,
 )
+
 import ssz
 from ssz.sedes.base import (
     BaseSedes,
@@ -29,7 +30,6 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
-
 from ssz.utils import (
     get_duplicates,
 )
@@ -180,12 +180,14 @@ class BaseSerializable(collections.Sequence):
         return ssz.hash_tree_root(self)
 
     def to_formatted_dict(self, int_as="int"):
+        # Import here to prevent circular import
         from ssz.tools.io import FormattedDictIO
         io = FormattedDictIO(int_as=int_as)
         return io.dump_value(self)
 
     @classmethod
     def from_formatted_dict(cls, value, int_as="int"):
+        # Import here to prevent circular import
         from ssz.tools.io import FormattedDictIO
         io = FormattedDictIO(int_as=int_as)
         return io.parse_value(value, cls)
