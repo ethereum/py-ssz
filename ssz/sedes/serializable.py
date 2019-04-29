@@ -22,7 +22,6 @@ from eth_utils.toolz import (
     assoc,
     merge,
 )
-
 import ssz
 from ssz.sedes.base import (
     BaseSedes,
@@ -30,6 +29,7 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
+
 from ssz.utils import (
     get_duplicates,
 )

@@ -15,10 +15,7 @@ from ssz.examples.zoo import (
         "hex",
     )
 )
-def test_import_export(tmpdir, int_as):
-    path = tmpdir / "zoo.dump"
-    with open(path, "w") as f:
-        json.dump(zoo.to_formatted_dict(int_as=int_as), f)
-    with open(path, "r") as f:
-        read_zoo = Zoo.from_formatted_dict(json.load(f), int_as=int_as)
+def test_import_export(int_as):
+    json_str = json.dumps(zoo.to_formatted_dict(int_as=int_as))
+    read_zoo = Zoo.from_formatted_dict(json.loads(json_str), int_as=int_as)
     assert read_zoo == zoo
