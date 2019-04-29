@@ -88,7 +88,7 @@ class FormattedDictIO:
             field_names_expected = set(field_name for field_name, _ in sedes.fields)
             if field_names_got != field_names_expected:
                 raise ValueError(
-                    f"Unexpected fields: Got {field_names_got} instead of {field_names_expected}"
+                    f"Unexpected fields: {field_names_got.difference(field_names_expected)}"
                 )
             return {
                 field_name: self.parse_value(field_value, sedes.field_name_to_sedes[field_name])
@@ -137,7 +137,7 @@ class FormattedDictIO:
             field_names_expected = set(field_name for field_name, _ in sedes.fields)
             if field_names_got != field_names_expected:
                 raise ValueError(
-                    f"Unexpected fields: Got {field_names_got} instead of {field_names_expected}"
+                    f"Unexpected fields: {field_names_got.difference(field_names_expected)}"
                 )
             return {
                 field_name: self.dump_value(field_value, sedes.field_name_to_sedes[field_name])
