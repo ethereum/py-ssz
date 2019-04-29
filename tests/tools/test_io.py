@@ -21,4 +21,4 @@ def test_import_export(tmpdir, int_as):
         json.dump(zoo.to_formatted_dict(int_as=int_as), f)
     with open(path, "r") as f:
         read_zoo = Zoo.from_formatted_dict(json.load(f), int_as=int_as)
-    assert read_zoo.animals[0].clock_in_records[0].epoch == zoo.animals[0].clock_in_records[0].epoch
+    assert read_zoo == zoo
