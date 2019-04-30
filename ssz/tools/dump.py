@@ -37,7 +37,8 @@ def dump(value, sedes=None, codec=DefaultCodec):
             return dump_serializable(value, codec)
         else:
             raise ValueError("must provide sedes for non-Serializable")
-    elif isinstance(sedes, Boolean):
+
+    if isinstance(sedes, Boolean):
         return dump_boolean(value, sedes, codec)
     elif isinstance(sedes, UInt):
         return dump_integer(value, sedes, codec)
