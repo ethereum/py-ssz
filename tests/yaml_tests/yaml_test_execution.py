@@ -17,8 +17,8 @@ from ssz.sedes import (
     Vector,
     sedes_by_name,
 )
-from ssz.toolz import (
-    DefaultFormatter,
+from ssz.tools import (
+    DefaultCodec,
     from_formatted_dict,
 )
 
@@ -27,9 +27,9 @@ class FailedTestCase(Exception):
     pass
 
 
-class CustomFormatter(DefaultFormatter):
+class CustomCodec(DefaultCodec):
     @staticmethod
-    def unformat_integer(value, sedes):
+    def decode_integer(value, sedes):
         return int(value)
 
 
@@ -44,7 +44,7 @@ def execute_ssz_test_case(test_case):
 
 
 def execute_valid_ssz_test(test_case, sedes):
-    value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
+    value = from_formatted_dict(test_case["value"], sedes, CustomCodec)
     serial = decode_hex(test_case["ssz"])
 
     try:
@@ -69,7 +69,7 @@ def execute_invalid_ssz_test(test_case, sedes):
         raise ValueError("Test case for invalid inputs contains both value and ssz")
 
     if "value" in test_case:
-        value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
+        value = from_formatted_dict(test_case["value"], sedes, CustomCodec)
         try:
             ssz.encode(value, sedes)
         except SSZException:
@@ -92,7 +92,7 @@ def execute_invalid_ssz_test(test_case, sedes):
 
 def execute_tree_hash_test_case(test_case):
     sedes = parse_type_definition(test_case["type"])
-    value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
+    value = from_formatted_dict(test_case["value"], sedes, CustomCodec)
     expected_root = decode_hex(test_case["root"])
     calculated_root = ssz.hash_tree_root(value, sedes)
     assert calculated_root == expected_root

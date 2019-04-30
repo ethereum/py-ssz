@@ -14,8 +14,8 @@ from ssz.examples.zoo import (
 from ssz.sedes import (
     List,
 )
-from ssz.toolz import (
-    DefaultFormatter,
+from ssz.tools import (
+    DefaultCodec,
     from_formatted_dict,
     to_formatted_dict,
 )
@@ -26,8 +26,10 @@ def test_parsing_and_dumping():
     read_zoo = from_formatted_dict(json.loads(json_str), Zoo)
     assert read_zoo == zoo
 
+
 def test_dump_serializble_with_explicit_sedes():
     to_formatted_dict(zoo, Zoo)
+
 
 def test_not_serializable():
     octopi = (octopus, octopus, octopus)
@@ -35,8 +37,8 @@ def test_not_serializable():
     assert octopi == from_formatted_dict(output, List(Animal))
 
 
-def test_custom_formatter():
-    class CustomFormatter(DefaultFormatter):
+def test_custom_codec():
+    class CustomCodec(DefaultCodec):
         @staticmethod
         def format_integer(value, sedes):
             return encode_hex(sedes.serialize(value))
@@ -45,6 +47,6 @@ def test_custom_formatter():
         def unformat_integer(value, sedes):
             return sedes.deserialize(decode_hex(value))
 
-    output = to_formatted_dict(zoo, basic_sedes_formatter=CustomFormatter)
-    read_zoo = from_formatted_dict(output, Zoo, CustomFormatter)
+    output = to_formatted_dict(zoo, codec=CustomCodec)
+    read_zoo = from_formatted_dict(output, Zoo, CustomCodec)
     assert read_zoo == zoo
