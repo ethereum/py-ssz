@@ -26,6 +26,8 @@ def test_parsing_and_dumping():
     read_zoo = from_formatted_dict(json.loads(json_str), Zoo)
     assert read_zoo == zoo
 
+def test_dump_serializble_with_explicit_sedes():
+    to_formatted_dict(zoo, Zoo)
 
 def test_not_serializable():
     octopi = (octopus, octopus, octopus)
