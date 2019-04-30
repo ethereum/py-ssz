@@ -17,13 +17,20 @@ from ssz.sedes import (
     Vector,
     sedes_by_name,
 )
-from ssz.tools.io import (
-    FormattedDictIO,
+from ssz.toolz import (
+    DefaultFormatter,
+    from_formatted_dict,
 )
 
 
 class FailedTestCase(Exception):
     pass
+
+
+class CustomFormatter(DefaultFormatter):
+    @staticmethod
+    def unformat_integer(value, sedes):
+        return int(value)
 
 
 def execute_ssz_test_case(test_case):
@@ -37,8 +44,7 @@ def execute_ssz_test_case(test_case):
 
 
 def execute_valid_ssz_test(test_case, sedes):
-    io = FormattedDictIO(int_as="str")
-    value = io.parse_value(test_case["value"], sedes)
+    value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
     serial = decode_hex(test_case["ssz"])
 
     try:
@@ -63,8 +69,7 @@ def execute_invalid_ssz_test(test_case, sedes):
         raise ValueError("Test case for invalid inputs contains both value and ssz")
 
     if "value" in test_case:
-        io = FormattedDictIO(int_as="str")
-        value = io.parse_value(test_case["value"], sedes)
+        value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
         try:
             ssz.encode(value, sedes)
         except SSZException:
@@ -87,8 +92,7 @@ def execute_invalid_ssz_test(test_case, sedes):
 
 def execute_tree_hash_test_case(test_case):
     sedes = parse_type_definition(test_case["type"])
-    io = FormattedDictIO(int_as="str")
-    value = io.parse_value(test_case["value"], sedes)
+    value = from_formatted_dict(test_case["value"], sedes, CustomFormatter)
     expected_root = decode_hex(test_case["root"])
     calculated_root = ssz.hash_tree_root(value, sedes)
     assert calculated_root == expected_root
