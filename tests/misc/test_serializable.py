@@ -137,8 +137,8 @@ def test_equality():
     assert test_a1 == test_a1
     assert test_a2 == test_a1
     assert test_a3 != test_a1
-    assert test_b1 == test_a1
-    assert test_c1 == test_a1
+    assert test_b1 != test_a1
+    assert test_c1 != test_a1
     assert test_c2 != test_a1
 
 
