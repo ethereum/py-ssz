@@ -89,4 +89,4 @@ def test_equality():
         signed_a.field2,
         signed_a.signature,
     )
-    assert foo == signed_a
+    assert foo != signed_a
