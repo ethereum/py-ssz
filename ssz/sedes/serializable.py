@@ -132,7 +132,7 @@ class BaseSerializable(collections.Sequence):
         return len(self._meta.fields)
 
     def __eq__(self, other):
-        return isinstance(other, Serializable) and hash(self) == hash(other)
+        return self.__class__ is other.__class__ and hash(self) == hash(other)
 
     def __getstate__(self):
         state = self.__dict__.copy()

@@ -9,6 +9,7 @@ extras_require = {
     'test': [
         "pytest==4.4.0",
         "pytest-xdist==1.28.0",
+        "pytest-watch>=4.1.0,<5",
         "tox>=2.9.1,<3",
         "hypothesis==3.69.5",
         "ruamel.yaml==0.15.87",
@@ -23,7 +24,6 @@ extras_require = {
     ],
     'dev': [
         "bumpversion>=0.5.3,<1",
-        "pytest-watch>=4.1.0,<5",
         "wheel",
         "twine",
         "ipython",
