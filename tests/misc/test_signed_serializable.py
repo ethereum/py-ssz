@@ -68,12 +68,12 @@ def test_equality():
             ("signature", byte_list),
         )
 
-    signed_a = SigningFoo(123, b"\xaa", b"\x00")
+    signed_a = SigningFoo(12, b"\xaa", b"\x00")
     signed_b = signed_a.copy()
     assert signed_a == signed_b
     assert signed_a is not signed_b
 
-    signed_b = signed_b.copy(field1=456)
+    signed_b = signed_b.copy(field1=34)
     assert signed_a != signed_b
 
     # Serializable and SignedSerializable
