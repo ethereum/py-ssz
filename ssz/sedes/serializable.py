@@ -146,7 +146,9 @@ class BaseSerializable(collections.Sequence):
     _hash_cache = None
 
     def __hash__(self):
-        return hash(self.__class__) * int.from_bytes(self.root, "little")
+        if self._hash_cache is None:
+            self._hash_cache = hash(self.__class__) * int.from_bytes(self.root, "little")
+        return self._hash_cache
 
     def copy(self, *args, **kwargs):
         missing_overrides = set(
