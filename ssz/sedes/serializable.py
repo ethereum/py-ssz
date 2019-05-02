@@ -132,7 +132,7 @@ class BaseSerializable(collections.Sequence):
         return len(self._meta.fields)
 
     def __eq__(self, other):
-        return self.__class__ is other.__class__ and hash(self) == hash(other)
+        return self.__class__ is other.__class__ and self.root == other.root
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -146,10 +146,7 @@ class BaseSerializable(collections.Sequence):
     _hash_cache = None
 
     def __hash__(self):
-        if self._hash_cache is None:
-            self._hash_cache = hash(tuple(self))
-
-        return self._hash_cache
+        return hash(self.__class__) * int.from_bytes(self.root, "little")
 
     def copy(self, *args, **kwargs):
         missing_overrides = set(
@@ -175,9 +172,13 @@ class BaseSerializable(collections.Sequence):
     def __deepcopy__(self, *args):
         return self.copy()
 
+    _root_cache = None
+
     @property
     def root(self):
-        return ssz.hash_tree_root(self)
+        if self._root_cache is None:
+            self._root_cache = ssz.hash_tree_root(self)
+        return self._root_cache
 
 
 def make_immutable(value):
