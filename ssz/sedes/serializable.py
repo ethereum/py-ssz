@@ -136,8 +136,11 @@ class BaseSerializable(collections.Sequence):
             issubclass(self.__class__, other.__class__) or
             issubclass(other.__class__, self.__class__)
         )
-        same_root = self.root == other.root
-        return satisfies_class_relationship and same_root
+
+        if not satisfies_class_relationship:
+            return False
+        else:
+            return self.root == other.root
 
     def __getstate__(self):
         state = self.__dict__.copy()
