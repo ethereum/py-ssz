@@ -73,7 +73,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
     @to_tuple
     def deserialize_content(self, content: bytes) -> Generator[TDeserializedElement, None, None]:
         element_start_index = 0
-        for element_index in range(self.length):
+        for _ in range(self.length):
             element, next_element_start_index = self.element_sedes.deserialize_segment(
                 content,
                 element_start_index,

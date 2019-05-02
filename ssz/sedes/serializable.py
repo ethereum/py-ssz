@@ -134,7 +134,19 @@ class BaseSerializable(collections.Sequence):
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.root == other.root
 
-    _root_cache = None
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # The hash() builtin is not stable across processes
+        # (https://docs.python.org/3/reference/datamodel.html#object.__hash__), so we do this here
+        # to ensure pickled instances don't carry the cached hash() as that may cause issues like
+        # https://github.com/ethereum/py-evm/issues/1318
+        state['_hash_cache'] = None
+        return state
+
+    _hash_cache = None
+
+    def __hash__(self):
+        return hash(self.__class__) * int.from_bytes(self.root, "little")
 
     def copy(self, *args, **kwargs):
         missing_overrides = set(
@@ -159,6 +171,8 @@ class BaseSerializable(collections.Sequence):
 
     def __deepcopy__(self, *args):
         return self.copy()
+
+    _root_cache = None
 
     @property
     def root(self):
