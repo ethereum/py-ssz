@@ -49,3 +49,22 @@ Released 2018-04-23
 - Add root property to serializable - `#57 <https://github.com/ethereum/py-ssz/pull/57>`_
 - Add SignedSerializable base class with signing-root property -
   `#57 <https://github.com/ethereum/py-ssz/pull/57>`_
+
+
+v0.1.0-alpha.6
+--------------
+
+Released 2018-04-23
+
+No changes
+
+
+v0.1.0-alpha.7
+--------------
+
+Released 2018-05-02
+
+- Fix equality of serializable objects - `#64 <https://github.com/ethereum/py-ssz/pull/64>`_
+- Add helpers to convert objects to and from a human readable representation -
+  `#66 <https://github.com/ethereum/py-ssz/pull/66>`_
+- Cache hash tree root of serializable objects - `#68 https://github.com/ethereum/py-ssz/pull/68`_
