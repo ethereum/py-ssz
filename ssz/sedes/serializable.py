@@ -132,7 +132,15 @@ class BaseSerializable(collections.Sequence):
         return len(self._meta.fields)
 
     def __eq__(self, other):
-        return self.__class__ is other.__class__ and self.root == other.root
+        satisfies_class_relationship = (
+            issubclass(self.__class__, other.__class__) or
+            issubclass(other.__class__, self.__class__)
+        )
+
+        if not satisfies_class_relationship:
+            return False
+        else:
+            return self.root == other.root
 
     def __getstate__(self):
         state = self.__dict__.copy()
