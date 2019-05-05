@@ -1,9 +1,6 @@
 #
 # sedes
 #
-from . import (  # noqa: F401,
-    tools,
-)
 from .codec import (  # noqa: F401
     decode,
     encode,

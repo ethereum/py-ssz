@@ -5,7 +5,6 @@ from eth_utils import (
     encode_hex,
 )
 
-import ssz
 from ssz.examples.zoo import (
     Animal,
     Zoo,
@@ -15,26 +14,31 @@ from ssz.examples.zoo import (
 from ssz.sedes import (
     List,
 )
+from ssz.tools import (
+    DefaultCodec,
+    from_formatted_dict,
+    to_formatted_dict,
+)
 
 
 def test_parsing_and_dumping():
-    json_str = json.dumps(ssz.tools.to_formatted_dict(zoo))
-    read_zoo = ssz.tools.from_formatted_dict(json.loads(json_str), Zoo)
+    json_str = json.dumps(to_formatted_dict(zoo))
+    read_zoo = from_formatted_dict(json.loads(json_str), Zoo)
     assert read_zoo == zoo
 
 
 def test_dump_serializble_with_explicit_sedes():
-    ssz.tools.to_formatted_dict(zoo, Zoo)
+    to_formatted_dict(zoo, Zoo)
 
 
 def test_not_serializable():
     octopi = (octopus, octopus, octopus)
-    output = ssz.tools.to_formatted_dict(octopi, List(Animal))
-    assert octopi == ssz.tools.from_formatted_dict(output, List(Animal))
+    output = to_formatted_dict(octopi, List(Animal))
+    assert octopi == from_formatted_dict(output, List(Animal))
 
 
 def test_custom_codec():
-    class CustomCodec(ssz.tools.DefaultCodec):
+    class CustomCodec(DefaultCodec):
         @staticmethod
         def format_integer(value, sedes):
             return encode_hex(sedes.serialize(value))
@@ -43,6 +47,6 @@ def test_custom_codec():
         def unformat_integer(value, sedes):
             return sedes.deserialize(decode_hex(value))
 
-    output = ssz.tools.to_formatted_dict(zoo, codec=CustomCodec)
-    read_zoo = ssz.tools.from_formatted_dict(output, Zoo, CustomCodec)
+    output = to_formatted_dict(zoo, codec=CustomCodec)
+    read_zoo = from_formatted_dict(output, Zoo, CustomCodec)
     assert read_zoo == zoo
