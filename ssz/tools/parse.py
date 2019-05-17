@@ -1,3 +1,6 @@
+from collections.abc import (
+    Mapping,
+)
 from typing import (
     Sequence,
 )
@@ -94,5 +97,9 @@ def parse_container(value, sedes, codec):
 
 
 def parse_serializable(value, serializable_cls, codec):
-    input_args = parse(value, serializable_cls._meta.container_sedes)
-    return serializable_cls(*input_args)
+    if not isinstance(value, Mapping):
+        raise ValueError(f"Expected Mapping, got {type(value)}")
+    parse_args = tuple(value[field_name] for field_name in serializable_cls._meta.field_names)
+    input_args = parse(parse_args, serializable_cls._meta.container_sedes)
+    input_kwargs = dict(zip(serializable_cls._meta.field_names, input_args))
+    return serializable_cls(**input_kwargs)

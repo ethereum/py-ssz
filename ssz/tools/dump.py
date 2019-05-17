@@ -101,4 +101,5 @@ def dump_container(value, sedes, codec):
 
 
 def dump_serializable(value, codec):
-    return dump(tuple(value), value._meta.container_sedes)
+    dumped_values = dump(tuple(value), value._meta.container_sedes)
+    return dict(zip(value._meta.field_names, dumped_values))
