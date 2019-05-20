@@ -1,5 +1,8 @@
+import itertools
 from typing import (
-    Generator,
+    IO,
+    Any,
+    Iterable,
     Sequence,
     Tuple,
     TypeVar,
@@ -8,94 +11,97 @@ from typing import (
 from eth_utils import (
     to_tuple,
 )
+from eth_utils.toolz import (
+    sliding_window,
+)
 
 from ssz.exceptions import (
-    DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
     BaseSedes,
     BasicSedes,
     CompositeSedes,
+    TSedes,
 )
 from ssz.utils import (
     merkleize,
     pack,
+    read_exact,
+    s_decode_offset,
 )
 
 TSerializableElement = TypeVar("TSerializable")
 TDeserializedElement = TypeVar("TDeserialized")
 
+TSedesPairs = Tuple[
+    Tuple[BaseSedes[TSerializableElement, TDeserializedElement], TSerializableElement],
+    ...
+]
+
 
 class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]]):
     def __init__(self,
-                 element_sedes: BaseSedes[TSerializableElement, TDeserializedElement],
+                 element_sedes: TSedes,
                  length: int) -> None:
-
-        self.length = length
         self.element_sedes = element_sedes
+        self.length = length
+
+    def _get_item_sedes_pairs(self, value: Sequence[TSerializableElement]) -> TSedesPairs:
+        return tuple(zip(value, itertools.repeat(self.element_sedes)))
 
     #
     # Size
     #
     @property
-    def is_static_sized(self) -> bool:
-        return self.element_sedes.is_static_sized or self.length == 0
+    def is_fixed_sized(self) -> bool:
+        return self.length == 0 or self.element_sedes.is_fixed_sized
 
-    def get_static_size(self) -> int:
-        if not self.is_static_sized:
-            raise ValueError("Tuple does not have a fixed length")
+    def get_fixed_size(self) -> int:
+        if not self.is_fixed_sized:
+            raise ValueError("Tuple is not fixed size.")
 
         if self.length == 0:
             return 0
         else:
-            return self.length * self.element_sedes.get_static_size()
+            return self.length * self.element_sedes.get_fixed_size()
 
     #
     # Serialization
     #
-    def serialize_content(self, value: Sequence[TSerializableElement]) -> bytes:
-        if isinstance(value, (bytes, bytearray, str)):
-            raise SerializationError("Can not serialize strings as tuples")
-
+    def _validate_serializable(self, value: Any) -> None:
         if len(value) != self.length:
             raise SerializationError(
-                f"Cannot serialize {len(value)} elements as {self.length}-tuple"
+                f"Length mismatch.  Cannot serialize value with length "
+                f"{len(value)} as {self.length}-tuple"
             )
-
-        return b"".join(
-            self.element_sedes.serialize(element) for element in value
-        )
 
     #
     # Deserialization
     #
     @to_tuple
-    def deserialize_content(self, content: bytes) -> Generator[TDeserializedElement, None, None]:
-        element_start_index = 0
-        for _ in range(self.length):
-            element, next_element_start_index = self.element_sedes.deserialize_segment(
-                content,
-                element_start_index,
-            )
+    def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserializedElement]:
+        if self.element_sedes.is_fixed_sized:
+            element_size = self.element_sedes.get_fixed_size()
+            for _ in range(self.length):
+                element_data = read_exact(element_size, stream)
+                yield self.element_sedes.deserialize(element_data)
+        else:
+            offsets = tuple(s_decode_offset(stream) for _ in range(self.length))
 
-            if next_element_start_index <= element_start_index:
-                raise Exception("Invariant: must always make progress")
-            element_start_index = next_element_start_index
+            for left_offset, right_offset in sliding_window(2, offsets):
+                element_length = right_offset - left_offset
+                element_data = read_exact(element_length, stream)
+                yield self.element_sedes.deserialize(element_data)
 
-            yield element
-
-        if element_start_index > len(content):
-            raise Exception("Invariant: must not consume more data than available")
-        if element_start_index < len(content):
-            raise DeserializationError(
-                f"Serialized tuple ends with {len(content) - element_start_index} extra bytes"
-            )
+            # simply reading to the end of the current stream gives us all of the final element data
+            final_element_data = stream.read()
+            yield self.element_sedes.deserialize(final_element_data)
 
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: Sequence[TSerializableElement]) -> bytes:
+    def hash_tree_root(self, value: Sequence[Any]) -> bytes:
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(
                 self.element_sedes.serialize(element)

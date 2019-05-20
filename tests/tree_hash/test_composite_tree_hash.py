@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 
 import ssz
@@ -159,12 +161,5 @@ def test_list_of_composite(bytes16_list, result):
     )
 )
 def test_container(bytes16_fields, result):
-    field_names = tuple(f"field{index}" for index in range(len(bytes16_fields)))
-    sedes = Container(tuple(
-        (field_name, bytes16) for field_name in field_names
-    ))
-    value = {
-        field_name: field_value
-        for field_name, field_value in zip(field_names, bytes16_fields)
-    }
-    assert ssz.hash_tree_root(value, sedes) == result
+    sedes = Container(tuple(itertools.repeat(bytes16, len(bytes16_fields))))
+    assert ssz.hash_tree_root(bytes16_fields, sedes) == result

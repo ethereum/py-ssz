@@ -1,10 +1,12 @@
-from typing import (
+from collections.abc import (
     Mapping,
+)
+from typing import (
     Sequence,
 )
 
 from eth_utils import (
-    to_dict,
+    to_tuple,
 )
 
 from ssz.sedes import (
@@ -79,24 +81,25 @@ def parse_vector(value, sedes, codec):
     return tuple(parse(element, sedes.element_sedes, codec) for element in value)
 
 
-@to_dict
+@to_tuple
 def parse_container(value, sedes, codec):
-    if not isinstance(value, Mapping):
-        raise ValueError(f"Expected mapping, got {type(value)}")
-    field_names_got = set(value.keys())
-    field_names_expected = set(field_name for field_name, _ in sedes.fields)
-    if field_names_got != field_names_expected:
-        raise ValueError(
-            f"Unexpected fields: {field_names_got.difference(field_names_expected)}"
-        )
-    for field_name, field_value in value.items():
-        yield field_name, parse(
-            field_value,
-            sedes.field_name_to_sedes[field_name],
+    if not isinstance(value, Sequence):
+        raise ValueError(f"Expected Sequence, got {type(value)}")
+    elif not len(value) == len(sedes.field_sedes):
+        raise ValueError(f"Expected {len(sedes.field_sedes)} elements, got {len(value)}")
+
+    for element, element_sedes in zip(value, sedes.field_sedes):
+        yield parse(
+            element,
+            element_sedes,
             codec,
         )
 
 
 def parse_serializable(value, serializable_cls, codec):
-    input_dict = parse(value, serializable_cls._meta.container_sedes)
-    return serializable_cls(**input_dict)
+    if not isinstance(value, Mapping):
+        raise ValueError(f"Expected Mapping, got {type(value)}")
+    parse_args = tuple(value[field_name] for field_name in serializable_cls._meta.field_names)
+    input_args = parse(parse_args, serializable_cls._meta.container_sedes)
+    input_kwargs = dict(zip(serializable_cls._meta.field_names, input_args))
+    return serializable_cls(**input_kwargs)

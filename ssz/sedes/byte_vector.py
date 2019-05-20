@@ -3,10 +3,11 @@ from typing import (
 )
 
 from ssz.exceptions import (
+    DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
-    CompositeSedes,
+    BaseCompositeSedes,
 )
 from ssz.utils import (
     merkleize,
@@ -16,25 +17,27 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
+class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, size: int) -> None:
+        if size < 0:
+            raise TypeError("Size cannot be negative")
         self.size = size
 
     #
     # Size
     #
-    is_static_sized = True
+    is_fixed_sized = True
 
-    def get_static_size(self):
+    def get_fixed_size(self):
         return self.size
 
     #
     # Serialization
     #
-    def serialize_content(self, value: BytesOrByteArray) -> bytes:
+    def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.size:
             raise SerializationError(
-                f"Cannot serialize {len(value)} bytes as bytes{self.size}"
+                f"Cannot serialize length {len(value)} byte-string as bytes{self.size}"
             )
 
         return value
@@ -42,8 +45,12 @@ class ByteVector(CompositeSedes[BytesOrByteArray, bytes]):
     #
     # Deserialization
     #
-    def deserialize_content(self, content: bytes) -> bytes:
-        return content
+    def deserialize(self, data: bytes) -> bytes:
+        if len(data) != self.size:
+            raise DeserializationError(
+                f"Cannot deserialize length {len(data)} data as bytes{self.size}"
+            )
+        return data
 
     #
     # Tree hashing

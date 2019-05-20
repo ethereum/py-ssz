@@ -24,6 +24,9 @@ from eth_utils.toolz import (
 )
 
 import ssz
+from ssz.constants import (
+    FIELDS_META_ATTR,
+)
 from ssz.sedes.base import (
     BaseSedes,
 )
@@ -262,18 +265,18 @@ def _get_class_namespace(cls):
 
 class MetaSerializable(abc.ABCMeta):
     def __new__(mcls, name, bases, namespace):
-        fields_attr_name = "fields"
-        declares_fields = fields_attr_name in namespace
+        declares_fields = FIELDS_META_ATTR in namespace
 
         if declares_fields:
             has_fields = True
-            fields = namespace.pop(fields_attr_name)
+            fields = namespace.pop(FIELDS_META_ATTR)
+            field_sedes = tuple(sedes for field_name, sedes in fields)
             try:
-                sedes = Container(fields)
+                sedes = Container(field_sedes)
             except ValidationError as exception:
                 # catch empty or duplicate fields and reraise as a TypeError as this would be an
                 # invalid class definition
-                raise TypeError(exception)
+                raise TypeError(str(exception)) from exception
 
         else:
             serializable_bases = tuple(base for base in bases if isinstance(base, MetaSerializable))
@@ -335,12 +338,7 @@ class MetaSerializable(abc.ABCMeta):
         field_attrs = _mk_field_attrs(field_names, reserved_namespace)
         field_props = _mk_field_props(field_names, field_attrs)
 
-        if namespace.keys() & set(field_props.keys()):
-            raise Exception(
-                "Invariant: field property names have been constructed to not overlap with "
-                "existing attributes"
-            )
-
+        # construct the Meta object to store field information for the class
         meta = Meta(
             has_fields=True,
             fields=fields,
@@ -364,34 +362,23 @@ class MetaSerializable(abc.ABCMeta):
     #
     # Implement BaseSedes methods as pass-throughs to the container sedes
     #
-    @property
-    def is_static_sized(cls):
-        return cls._meta.container_sedes.is_static_sized
-
-    def get_static_size(cls):
-        return cls._meta.container_sedes.get_static_size()
-
     def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
         return cls._meta.container_sedes.serialize(value)
 
     def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:
-        deserialized_field_dict = cls._meta.container_sedes.deserialize(data)
+        deserialized_fields = cls._meta.container_sedes.deserialize(data)
+        deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
-
-    def deserialize_segment(cls: Type[TSerializable],
-                            data: bytes,
-                            start_index: int) -> Tuple[TSerializable, int]:
-        deserialized_field_dict, continuation_index = cls._meta.container_sedes.deserialize_segment(
-            data,
-            start_index,
-        )
-        return cls(**deserialized_field_dict), continuation_index
-
-    def consume_bytes(cls, data: bytes, start_index: int, num_bytes: int) -> Tuple[bytes, int]:
-        return cls._meta.container_sedes.consume_bytes(data, start_index, num_bytes)
 
     def hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
         return cls._meta.container_sedes.hash_tree_root(value)
+
+    @property
+    def is_fixed_sized(cls):
+        return cls._meta.container_sedes.is_fixed_sized
+
+    def get_fixed_size(cls):
+        return cls._meta.container_sedes.get_fixed_size()
 
 
 # Make any class created with MetaSerializable an instance of BaseSedes
@@ -402,4 +389,8 @@ class Serializable(BaseSerializable, metaclass=MetaSerializable):
     """
     The base class for serializable objects.
     """
-    pass
+    def __str__(self) -> str:
+        return f"[{', '.join((str(v) for v in self))}]"
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: {str(self)}>"

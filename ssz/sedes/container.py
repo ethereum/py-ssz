@@ -1,104 +1,163 @@
 from typing import (
+    IO,
     Any,
-    Dict,
-    Generator,
+    Iterable,
     Sequence,
     Tuple,
-    TypeVar,
 )
 
 from eth_utils import (
     ValidationError,
-    to_dict,
+    to_tuple,
 )
-from mypy_extensions import (
-    TypedDict,
+from eth_utils.toolz import (
+    sliding_window,
 )
 
 from ssz.exceptions import (
     DeserializationError,
+    SerializationError,
 )
 from ssz.sedes.base import (
-    BaseSedes,
     CompositeSedes,
+    TSedes,
 )
 from ssz.utils import (
-    get_duplicates,
     merkleize,
+    read_exact,
+    s_decode_offset,
 )
 
-AnyTypedDict = TypedDict("AnyTypedDict", {})
-TAnyTypedDict = TypeVar("TAnyTypedDict", bound=AnyTypedDict)
+
+@to_tuple
+def _deserialize_fixed_size_items_and_offsets(stream, field_sedes):
+    for sedes in field_sedes:
+        if sedes.is_fixed_sized:
+            field_size = sedes.get_fixed_size()
+            field_data = read_exact(field_size, stream)
+            yield (sedes.deserialize(field_data), sedes)
+        else:
+            yield (s_decode_offset(stream), sedes)
 
 
-class Container(CompositeSedes[TAnyTypedDict, Dict[str, Any]]):
-    def __init__(self, fields: Sequence[Tuple[str, BaseSedes[Any, Any]]]) -> None:
-        self.fields = fields
-        self.field_names = tuple(field_name for field_name, _ in self.fields)
-        self.field_sedes_objects = tuple(field_sedes for _, field_sedes in self.fields)
-        self.field_name_to_sedes = dict(self.fields)
-
-        if len(fields) == 0:
+class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
+    def __init__(self, field_sedes: Sequence[TSedes]) -> None:
+        if len(field_sedes) == 0:
             raise ValidationError("Cannot define container without any fields")
-
-        duplicate_field_names = get_duplicates(self.field_names)
-        if duplicate_field_names:
-            raise ValidationError(
-                f"The following fields are duplicated {','.join(sorted(duplicate_field_names))}"
-            )
+        self.field_sedes = tuple(field_sedes)
 
     #
     # Size
     #
     @property
-    def is_static_sized(self):
-        return all(field_sedes.is_static_sized for _, field_sedes in self.fields)
+    def is_fixed_sized(self):
+        return all(field.is_fixed_sized for field in self.field_sedes)
 
-    def get_static_size(self):
-        if not self.is_static_sized:
+    def get_fixed_size(self):
+        if not self.is_fixed_sized:
             raise ValueError("Container contains dynamically sized elements")
 
-        return sum(field_sedes.get_static_size() for _, field_sedes in self.fields)
+        return sum(field.get_fixed_size() for field in self.field_sedes)
 
     #
     # Serialization
     #
-    def serialize_content(self, value: TAnyTypedDict) -> bytes:
-        return b"".join(
-            field_sedes.serialize(value[field_name])
-            for field_name, field_sedes in self.fields
-        )
+    def _get_item_sedes_pairs(self,
+                              value: Sequence[Any],
+                              ) -> Tuple[Tuple[Any, TSedes], ...]:
+        return tuple(zip(value, self.field_sedes))
+
+    def _validate_serializable(self, value: Sequence[Any]) -> bytes:
+        if len(value) != len(self.field_sedes):
+            raise SerializationError(
+                f"Incorrect element count: Expected: {len(self.field_sedes)} / Got: {len(value)}"
+            )
 
     #
     # Deserialization
     #
-    @to_dict
-    def deserialize_content(self, content: bytes) -> Generator[Tuple[str, Any], None, None]:
-        field_start_index = 0
-        for field_name, field_sedes in self.fields:
-            field_value, next_field_start_index = field_sedes.deserialize_segment(
-                content,
-                field_start_index,
-            )
-            yield field_name, field_value
+    def deserialize_fixed_size_parts(self,
+                                     stream: IO[bytes],
+                                     ) -> Iterable[Tuple[Tuple[Any], Tuple[int, TSedes]]]:
+        fixed_items_and_offets = _deserialize_fixed_size_items_and_offsets(
+            stream,
+            self.field_sedes,
+        )
+        fixed_size_values = tuple(
+            item
+            for item, sedes
+            in fixed_items_and_offets
+            if sedes.is_fixed_sized
+        )
+        offset_pairs = tuple(
+            (item, sedes)
+            for item, sedes
+            in fixed_items_and_offets
+            if not sedes.is_fixed_sized
+        )
+        return fixed_size_values, offset_pairs
 
-            if next_field_start_index <= field_start_index:
-                raise Exception("Invariant: must always make progress")
-            field_start_index = next_field_start_index
+    @to_tuple
+    def deserialize_variable_size_parts(self,
+                                        offset_pairs: Tuple[Tuple[int, TSedes], ...],
+                                        stream: IO[bytes]) -> Iterable[Any]:
+        offsets, fields = zip(*offset_pairs)
 
-        if field_start_index < len(content):
-            extra_bytes = len(content) - field_start_index
-            raise DeserializationError(f"Serialized container ends with {extra_bytes} extra bytes")
+        *head_fields, last_field = fields
+        for sedes, (left_offset, right_offset) in zip(head_fields, sliding_window(2, offsets)):
+            field_length = right_offset - left_offset
+            field_data = read_exact(field_length, stream)
+            yield sedes.deserialize(field_data)
 
-        if field_start_index > len(content):
-            raise Exception("Invariant: must not consume more data than available")
+        # simply reading to the end of the current stream gives us all of the final element data
+        final_field_data = stream.read()
+        yield last_field.deserialize(final_field_data)
+
+    def _deserialize_stream(self, stream: IO[bytes]) -> Tuple[Any, ...]:
+        if not self.field_sedes:
+            # TODO: likely remove once
+            # https://github.com/ethereum/eth2.0-specs/issues/854 is resolved
+            return tuple()
+
+        fixed_size_values, offset_pairs = self.deserialize_fixed_size_parts(stream)
+
+        if not offset_pairs:
+            return fixed_size_values
+
+        variable_size_values = self.deserialize_variable_size_parts(offset_pairs, stream)
+
+        fixed_size_parts_iter = iter(fixed_size_values)
+        variable_size_parts_iter = iter(variable_size_values)
+
+        value = tuple(
+            next(fixed_size_parts_iter) if sedes.is_fixed_sized else next(variable_size_parts_iter)
+            for sedes
+            in self.field_sedes
+        )
+
+        # Verify that both iterables have been fully consumed.
+        try:
+            next(fixed_size_parts_iter)
+        except StopIteration:
+            pass
+        else:
+            raise DeserializationError("Did not consume all fixed size values")
+
+        try:
+            next(variable_size_parts_iter)
+        except StopIteration:
+            pass
+        else:
+            raise DeserializationError("Did not consume all variable size values")
+
+        return value
 
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: TAnyTypedDict) -> bytes:
+    def hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
         merkle_leaves = tuple(
-            field_sedes.hash_tree_root(value[field_name])
-            for field_name, field_sedes in self.fields
+            sedes.hash_tree_root(element)
+            for element, sedes in zip(value, self.field_sedes)
         )
         return merkleize(merkle_leaves)
