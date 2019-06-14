@@ -31,7 +31,7 @@ from ssz.utils import (
 
 @to_tuple
 def _deserialize_fixed_size_items_and_offsets(stream, field_sedes):
-    for sedes in field_sedes:
+    for _, sedes in field_sedes:
         if sedes.is_fixed_sized:
             field_size = sedes.get_fixed_size()
             field_data = read_exact(field_size, stream)
@@ -51,13 +51,13 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     @property
     def is_fixed_sized(self):
-        return all(field.is_fixed_sized for field in self.field_sedes)
+        return all(field.is_fixed_sized for _, field in self.field_sedes)
 
     def get_fixed_size(self):
         if not self.is_fixed_sized:
             raise ValueError("Container contains dynamically sized elements")
 
-        return sum(field.get_fixed_size() for field in self.field_sedes)
+        return sum(field.get_fixed_size() for _, field in self.field_sedes)
 
     #
     # Serialization
@@ -65,7 +65,7 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def _get_item_sedes_pairs(self,
                               value: Sequence[Any],
                               ) -> Tuple[Tuple[Any, TSedes], ...]:
-        return tuple(zip(value, self.field_sedes))
+        return tuple(zip(value, [sedes for _, sedes in self.field_sedes]))
 
     def _validate_serializable(self, value: Sequence[Any]) -> bytes:
         if len(value) != len(self.field_sedes):
@@ -131,7 +131,7 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
 
         value = tuple(
             next(fixed_size_parts_iter) if sedes.is_fixed_sized else next(variable_size_parts_iter)
-            for sedes
+            for _, sedes
             in self.field_sedes
         )
 
