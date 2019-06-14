@@ -12,7 +12,6 @@ from eth_utils import (
 )
 from eth_utils.toolz import (
     cons,
-    partition,
     sliding_window,
 )
 
@@ -104,7 +103,8 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
                     f"element size. data length: {len(data)}  element size: "
                     f"{element_size}"
                 )
-            for segment in partition(element_size, data):
+            for start_idx in range(0, len(data), element_size):
+                segment = data[start_idx: start_idx + element_size]
                 yield self.element_sedes.deserialize(segment)
         else:
             stream_zero_loc = stream.tell()
