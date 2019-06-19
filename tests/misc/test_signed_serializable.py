@@ -1,59 +1,43 @@
 import pytest
 
 import ssz
-from ssz.sedes import (
-    byte_list,
-    uint8,
+from ssz.fields import (
+    ByteList,
+    UInt8,
 )
 
 
 def test_field_number_check():
     with pytest.raises(TypeError):
-        class TestA(ssz.SignedSerializable):
-            fields = ()
-
-    with pytest.raises(TypeError):
         class TestB(ssz.SignedSerializable):
-            fields = (
-                ("signature", byte_list),
-            )
+            signature = ByteList()
 
     class TestC(ssz.SignedSerializable):
-        fields = (
-            ("field1", uint8),
-            ("signature", byte_list),
-        )
+        field1 = UInt8()
+        signature = ByteList()
 
 
 def test_field_name_check():
     with pytest.raises(TypeError):
         class TestA(ssz.SignedSerializable):
-            fields = (
-                ("field1", uint8),
-                ("field2", byte_list),
-            )
+            field1 = UInt8()
+            field2 = ByteList()
 
     with pytest.raises(TypeError):
         class TestB(ssz.SignedSerializable):
-            fields = (
-                ("signature", uint8),
-                ("field1", byte_list),
-            )
+            signature = UInt8()
+            field1 = ByteList()
 
 
 def test_signing_root():
     class Signed(ssz.SignedSerializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
-        )
+        field1 = UInt8()
+        field2 = ByteList()
+        signature = ByteList()
 
     class Unsigned(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", byte_list),
-        )
+        field1 = UInt8()
+        field2 = ByteList()
 
     signed = Signed(123, b"\xaa", b"\x00")
     unsigned = Unsigned(123, b"\xaa")
@@ -62,11 +46,9 @@ def test_signing_root():
 
 def test_equality():
     class SigningFoo(ssz.SignedSerializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
-        )
+        field1 = UInt8()
+        field2 = ByteList()
+        signature = ByteList()
 
     signed_a = SigningFoo(12, b"\xaa", b"\x00")
     signed_b = signed_a.copy()
@@ -78,11 +60,9 @@ def test_equality():
 
     # Serializable and SignedSerializable
     class Foo(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
-        )
+        field1 = UInt8()
+        field2 = ByteList()
+        signature = ByteList()
 
     foo = Foo(
         signed_a.field1,

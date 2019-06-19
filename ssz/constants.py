@@ -9,6 +9,3 @@ SIGNATURE_FIELD_NAME = "signature"
 
 # number of bytes for a serialized offset
 OFFSET_SIZE = 4
-
-
-FIELDS_META_ATTR = "fields"

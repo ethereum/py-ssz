@@ -1,12 +1,13 @@
 import abc
 import collections
 import copy
-import operator
-import re
+from itertools import (
+    dropwhile,
+    takewhile,
+)
 from typing import (
     NamedTuple,
     Optional,
-    Sequence,
     Tuple,
     Type,
     TypeVar,
@@ -15,18 +16,13 @@ from typing import (
 from eth_utils import (
     ValidationError,
     to_dict,
-    to_set,
     to_tuple,
 )
 from eth_utils.toolz import (
     assoc,
-    merge,
 )
 
 import ssz
-from ssz.constants import (
-    FIELDS_META_ATTR,
-)
 from ssz.sedes.base import (
     BaseSedes,
 )
@@ -40,12 +36,34 @@ from ssz.utils import (
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 
 
+class Field(abc.ABC):
+
+    def __init__(self, sedes):
+        self.sedes = sedes
+        self.name = None
+
+    def __set_name__(self, owner, name):
+        self.name = name
+        if hasattr(owner, name):
+            raise TypeError(f"Tried to define field with name {name} twice")
+
+    def __get__(self, instance, owner):
+        try:
+            return instance.__dict__[self.name]
+        except KeyError:
+            raise AttributeError("Field has not been set")
+
+    def __set__(self, instance, value):
+        if self.name in instance.__dict__:
+            raise AttributeError("Field can only be set once")
+        else:
+            instance.__dict__[self.name] = value
+
+
 class Meta(NamedTuple):
     has_fields: bool
-    fields: Optional[Tuple[Tuple[str, BaseSedes]]]
+    fields: Optional[Tuple[Field]]
     container_sedes: Optional[Container]
-    field_names: Optional[Tuple[str, ...]]
-    field_attrs: Optional[Tuple[str, ...]]
 
 
 def validate_args_and_kwargs(args, kwargs, arg_names):
@@ -91,7 +109,7 @@ class BaseSerializable(collections.Sequence):
     _cached_ssz = None
 
     def __init__(self, *args, **kwargs):
-        arg_names = self._meta.field_names or ()
+        arg_names = tuple(field.name for field in self._meta.fields) if self._meta.fields else ()
         validate_args_and_kwargs(args, kwargs, arg_names)
         field_values = merge_kwargs_to_args(args, kwargs, arg_names)
 
@@ -105,29 +123,30 @@ class BaseSerializable(collections.Sequence):
                 )
             )
 
-        for value, attr in zip(field_values, self._meta.field_attrs or ()):
+        for value, attr in zip(field_values, arg_names):
             setattr(self, attr, make_immutable(value))
 
     def as_dict(self):
-        return dict(
-            (field, value)
-            for field, value
-            in zip(self._meta.field_names, self)
-        )
+        return {
+            field.name: getattr(self, field.name)
+            for field in self._meta.fields
+        }
 
     def __iter__(self):
-        for attr in self._meta.field_attrs:
-            yield getattr(self, attr)
+        for field in self._meta.fields:
+            yield getattr(self, field.name)
 
     def __getitem__(self, index):
         if isinstance(index, int):
-            attr = self._meta.field_attrs[index]
-            return getattr(self, attr)
+            return getattr(self, self._meta.fields[index].name)
         elif isinstance(index, slice):
-            field_slice = self._meta.field_attrs[index]
-            return tuple(getattr(self, field) for field in field_slice)
+            field_name_slice = tuple(field.name for field in self._meta.fields[index])
+            return tuple(getattr(self, field_name) for field_name in field_name_slice)
         elif isinstance(index, str):
-            return getattr(self, index)
+            if index not in set(field.name for field in self._meta.fields):
+                raise KeyError(f"Field {index} does not exist")
+            else:
+                return getattr(self, index)
         else:
             raise IndexError("Unsupported type for __getitem__: {0}".format(type(index)))
 
@@ -162,12 +181,13 @@ class BaseSerializable(collections.Sequence):
         return self._hash_cache
 
     def copy(self, *args, **kwargs):
+        field_names = tuple(field.name for field in self._meta.fields)
         missing_overrides = set(
-            self._meta.field_names
+            field_names
         ).difference(
             kwargs.keys()
         ).difference(
-            self._meta.field_names[:len(args)]
+            field_names[:len(args)]
         )
         unchanged_kwargs = {
             key: copy.deepcopy(value)
@@ -176,7 +196,7 @@ class BaseSerializable(collections.Sequence):
             if key in missing_overrides
         }
         combined_kwargs = dict(**unchanged_kwargs, **kwargs)
-        all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
+        all_kwargs = merge_args_to_kwargs(args, combined_kwargs, field_names)
         return type(self)(**all_kwargs)
 
     def __copy__(self):
@@ -201,76 +221,31 @@ def make_immutable(value):
         return value
 
 
-@to_tuple
-def _mk_field_attrs(field_names, extra_namespace):
-    namespace = set(field_names).union(extra_namespace)
-    for field in field_names:
-        while True:
-            field = '_' + field
-            if field not in namespace:
-                namespace.add(field)
-                yield field
-                break
+def validate_fields_in_namespace(namespace):
+    def is_no_field(namespace_item):
+        return isinstance(namespace_item[1], Field)
 
+    namespace_items = tuple(namespace.items())
+    pre_field_item_num = len(tuple(dropwhile(is_no_field, namespace_items)))
+    post_field_item_num = len(tuple(takewhile(is_no_field, reversed(namespace_items))))
+    field_items = namespace_items[pre_field_item_num:-post_field_item_num]
 
-@to_dict
-def _mk_field_props(field_names, field_attrs):
-    for field, attr in zip(field_names, field_attrs):
-        getter = operator.attrgetter(attr)
-        yield field, property(getter)
-
-
-def _validate_field_names(field_names: Sequence[str]) -> None:
-    # check that field names are unique
-    duplicate_field_names = get_duplicates(field_names)
-    if duplicate_field_names:
+    non_field_items_between_fields = tuple(item for item in field_items if is_no_field(item))
+    if non_field_items_between_fields:
         raise TypeError(
-            "The following fields are duplicated in the `fields` "
-            "declaration: "
-            "{0}".format(",".join(sorted(duplicate_field_names)))
+            f"SSZ fields are not defined consecutively. The following attributes appear in "
+            f"between: {', '.join(non_field_items_between_fields.keys())}"
         )
-
-    # check that field names are valid identifiers
-    invalid_field_names = {
-        field_name
-        for field_name
-        in field_names
-        if not _is_valid_identifier(field_name)
-    }
-    if invalid_field_names:
-        raise TypeError(
-            "The following field names are not valid python identifiers: {0}".format(
-                ",".join("`{0}`".format(item) for item in sorted(invalid_field_names))
-            )
-        )
-
-
-IDENTIFIER_REGEX = re.compile(r"^[^\d\W]\w*\Z", re.UNICODE)
-
-
-def _is_valid_identifier(value):
-    # Source: https://stackoverflow.com/questions/5474008/regular-expression-to-confirm-whether-a-string-is-a-valid-identifier-in-python  # noqa: E501
-    if not isinstance(value, str):
-        return False
-    return bool(IDENTIFIER_REGEX.match(value))
-
-
-@to_set
-def _get_class_namespace(cls):
-    if hasattr(cls, '__dict__'):
-        yield from cls.__dict__.keys()
-    if hasattr(cls, '__slots__'):
-        yield from cls.__slots__
 
 
 class MetaSerializable(abc.ABCMeta):
     def __new__(mcls, name, bases, namespace):
-        declares_fields = FIELDS_META_ATTR in namespace
+        validate_fields_in_namespace(namespace)
+        fields = tuple(element for element in namespace.values() if isinstance(element, Field))
 
-        if declares_fields:
+        if len(fields) > 0:
             has_fields = True
-            fields = namespace.pop(FIELDS_META_ATTR)
-            field_sedes = tuple(sedes for field_name, sedes in fields)
+            field_sedes = tuple(field.sedes for field in fields)
             try:
                 sedes = Container(field_sedes)
             except ValidationError as exception:
@@ -303,18 +278,12 @@ class MetaSerializable(abc.ABCMeta):
                 has_fields=False,
                 fields=None,
                 container_sedes=None,
-                field_names=None,
-                field_attrs=None,
             )
             return super().__new__(
                 mcls,
                 name,
                 bases,
-                assoc(
-                    namespace,
-                    "_meta",
-                    meta,
-                )
+                assoc(namespace, "_meta", meta),
             )
 
         # from here on, we can assume that we've got fields and a sedes object
@@ -323,40 +292,17 @@ class MetaSerializable(abc.ABCMeta):
         if len(fields) == 0:
             raise Exception("Invariant: number of fields has been checked at initializion of sedes")
 
-        field_names, _ = zip(*fields)
-        _validate_field_names(field_names)
-
-        # the actual field values are stored in separate *private* attributes.
-        # This computes attribute names that don't conflict with other
-        # attributes already present on the class.
-        reserved_namespace = set(namespace.keys()).union(
-            attr
-            for base in bases
-            for parent_cls in base.__mro__
-            for attr in _get_class_namespace(parent_cls)
-        )
-        field_attrs = _mk_field_attrs(field_names, reserved_namespace)
-        field_props = _mk_field_props(field_names, field_attrs)
-
         # construct the Meta object to store field information for the class
         meta = Meta(
             has_fields=True,
             fields=fields,
             container_sedes=sedes,
-            field_names=field_names,
-            field_attrs=field_attrs,
         )
         return super().__new__(
             mcls,
             name,
             bases,
-            merge(
-                namespace,
-                field_props,
-                {
-                    "_meta": meta,
-                }
-            )
+            assoc(namespace, "_meta", meta)
         )
 
     #
@@ -367,7 +313,8 @@ class MetaSerializable(abc.ABCMeta):
 
     def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:
         deserialized_fields = cls._meta.container_sedes.deserialize(data)
-        deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
+        field_names = tuple(field.name for field in cls._meta.fields)
+        deserialized_field_dict = dict(zip(field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
     def hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:

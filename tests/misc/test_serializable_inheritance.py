@@ -1,8 +1,8 @@
 import pytest
 
 import ssz
-from ssz.sedes import (
-    uint8,
+from ssz.fields import (
+    UInt8,
 )
 
 
@@ -37,7 +37,8 @@ def create_inheritance_structure(structure):
         if class_defines_fields:
             field_names = (f"field{index}",)
             namespace = {
-                "fields": tuple((field_name, uint8) for field_name in field_names)
+                field_name: UInt8()
+                for field_name in field_names
             }
         else:
             parent_field_names = tuple(

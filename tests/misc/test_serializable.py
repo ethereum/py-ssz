@@ -1,25 +1,17 @@
 import pytest
 
 import ssz
-from ssz.sedes import (
-    uint8,
+from ssz.fields import (
+    UInt8,
 )
-
-
-def test_duplicate_fields():
-    with pytest.raises(TypeError):
-        class Test(ssz.Serializable):
-            fields = (
-                ("field1", uint8),
-                ("field1", uint8),
-            )
+from ssz.sedes.serializable import (
+    Field,
+)
 
 
 def test_field_immutability():
     class Test(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-        )
+        field1 = UInt8()
 
     test = Test(4)
     with pytest.raises(AttributeError):
@@ -40,10 +32,8 @@ def test_field_immutability():
 )
 def test_initialization_with_invalid_arguments(args, kwargs):
     class Test(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     with pytest.raises(TypeError):
         Test(*args, **kwargs)
@@ -59,10 +49,8 @@ def test_initialization_with_invalid_arguments(args, kwargs):
 )
 def test_initialization_with_valid_arguments(args, kwargs):
     class Test(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     test = Test(*args, **kwargs)
     assert test.field1 == 1
@@ -71,10 +59,8 @@ def test_initialization_with_valid_arguments(args, kwargs):
 
 def test_copy():
     class Test(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     original = Test(1, 2)
     copy = original.copy()
@@ -86,16 +72,12 @@ def test_copy():
 
 def test_copy_nested():
     class Inner(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     class Outer(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", Inner),
-        )
+        field1 = UInt8()
+        field2 = Field(Inner)
 
     original = Outer(1, Inner(2, 3))
     copy = original.copy()
@@ -110,22 +92,16 @@ def test_copy_nested():
 
 def test_equality():
     class TestA(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     class TestB(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     class TestC(ssz.Serializable):
-        fields = (
-            ("field2", uint8),
-            ("field1", uint8),
-        )
+        field2 = UInt8()
+        field1 = UInt8()
 
     test_a1 = TestA(1, 2)
     test_a2 = TestA(1, 2)
@@ -144,10 +120,8 @@ def test_equality():
 
 def test_root():
     class Test(ssz.Serializable):
-        fields = (
-            ("field1", uint8),
-            ("field2", uint8),
-        )
+        field1 = UInt8()
+        field2 = UInt8()
 
     test = Test(1, 2)
     assert test.root == ssz.hash_tree_root(test, Test)
