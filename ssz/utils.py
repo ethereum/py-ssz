@@ -1,5 +1,4 @@
 import collections
-import math
 from typing import (
     IO,
     Sequence,
@@ -11,8 +10,6 @@ from eth_typing import (
 )
 from eth_utils.toolz import (
     first,
-    iterate,
-    last,
     partition,
     take,
 )
@@ -28,6 +25,11 @@ from ssz.exceptions import (
 from ssz.hash import (
     hash_eth2,
 )
+
+ZERO_BYTES32 = b'\x00' * 32
+zerohashes = [ZERO_BYTES32]
+for layer in range(1, 100):
+    zerohashes.append(hash(zerohashes[layer - 1] + zerohashes[layer - 1]))
 
 
 def get_duplicates(values):
@@ -119,13 +121,6 @@ def get_next_power_of_two(value: int) -> int:
         return 2**(value - 1).bit_length()
 
 
-def pad_chunks(chunks: Sequence[Hash32]) -> Tuple[Hash32, ...]:
-    unpadded_number_of_chunks = len(chunks)
-    padded_number_of_chunks = get_next_power_of_two(unpadded_number_of_chunks)
-    padding = (EMPTY_CHUNK,) * (padded_number_of_chunks - unpadded_number_of_chunks)
-    return tuple(chunks) + padding
-
-
 def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(child_layer) % 2 != 0:
         raise ValueError("Layer must have an even number of elements")
@@ -138,13 +133,41 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32]) -> Hash32:
-    padded_chunks = pad_chunks(chunks)
-    number_of_layers = int(math.log2(len(padded_chunks))) + 1
+def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
+    chunk_count = len(chunks)
+    chunk_depth = max(chunk_count - 1, 0).bit_length()
+    max_depth = max(chunk_depth, (pad_for - 1).bit_length())
+    tmp_list = [None for _ in range(max_depth + 1)]
 
-    layers = take(number_of_layers, iterate(hash_layer, padded_chunks))
-    root, = last(layers)
-    return root
+    def merge(leaf, leaf_index):
+        node = leaf
+        layer = 0
+        while True:
+            if leaf_index & (1 << layer) == 0:
+                if leaf_index == chunk_count and layer < chunk_depth:
+                    # Keep going if we are complementing the void to the next power of 2
+                    node = hash_eth2(node + zerohashes[layer])
+                else:
+                    break
+            else:
+                node = hash_eth2(tmp_list[layer] + node)
+            layer += 1
+        tmp_list[layer] = node
+
+    # Merge in leaf by leaf.
+    for leaf_index in range(chunk_count):
+        merge(chunks[leaf_index], leaf_index)
+
+    # Complement with 0 if empty, or if not the right power of 2
+    if 1 << chunk_depth != chunk_count:
+        merge(zerohashes[0], chunk_count)
+
+    # The next power of two may be smaller than the ultimate virtual size,
+    # complement with zero-hashes at each depth.
+    for layer in range(chunk_depth, max_depth):
+        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + zerohashes[layer])
+
+    return tmp_list[max_depth]
 
 
 def mix_in_length(root: Hash32, length: int) -> Hash32:
