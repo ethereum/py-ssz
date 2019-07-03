@@ -134,8 +134,8 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
 
 
 def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
-    chunk_count = len(chunks)
-    chunk_depth = max(chunk_count - 1, 0).bit_length()
+    chunk_len = len(chunks)
+    chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (pad_for - 1).bit_length())
     tmp_list = [None for _ in range(max_depth + 1)]
 
@@ -144,7 +144,7 @@ def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
         layer = 0
         while True:
             if leaf_index & (1 << layer) == 0:
-                if leaf_index == chunk_count and layer < chunk_depth:
+                if leaf_index == chunk_len and layer < chunk_depth:
                     # Keep going if we are complementing the void to the next power of 2
                     node = hash_eth2(node + zerohashes[layer])
                 else:
@@ -155,12 +155,12 @@ def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
         tmp_list[layer] = node
 
     # Merge in leaf by leaf.
-    for leaf_index in range(chunk_count):
+    for leaf_index in range(chunk_len):
         merge(chunks[leaf_index], leaf_index)
 
     # Complement with 0 if empty, or if not the right power of 2
-    if 1 << chunk_depth != chunk_count:
-        merge(zerohashes[0], chunk_count)
+    if 1 << chunk_depth != chunk_len:
+        merge(zerohashes[0], chunk_len)
 
     # The next power of two may be smaller than the ultimate virtual size,
     # complement with zero-hashes at each depth.
