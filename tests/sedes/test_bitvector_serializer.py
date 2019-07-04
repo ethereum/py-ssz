@@ -18,7 +18,7 @@ from ssz.sedes import (
         (16, (0b1,) * 16, b'\xff\xff'),
     ),
 )
-def test_bytes_serialize_values(size, value, expected):
+def test_bitvector_serialize_values(size, value, expected):
     Foo = Bitvector(size)
     assert encode(value, Foo) == expected
     assert Foo.serialize(bytearray(value)) == expected
@@ -33,7 +33,7 @@ def test_bytes_serialize_values(size, value, expected):
         (16, b'\xff\xff', (0b1,) * 16),
     ),
 )
-def test_bytes_deserialize_values(size, value, expected):
+def test_bitvector_deserialize_values(size, value, expected):
     Foo = Bitvector(size)
     assert Foo.deserialize(value) == expected
 
@@ -44,6 +44,6 @@ def test_bytes_deserialize_values(size, value, expected):
         (16, (0b1,) + (0b0,) * 15),
     ),
 )
-def test_bytes_round_trip_no_sedes(size, value):
+def test_bitvector_round_trip_no_sedes(size, value):
     Foo = Bitvector(size)
     assert decode(encode(value, Foo), Foo) == value

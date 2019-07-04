@@ -30,7 +30,7 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     is_fixed_sized = True
 
     def get_fixed_size(self):
-        return self.size
+        return (self.size + 7) // 8
 
     #
     # Serialization
@@ -50,7 +50,7 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     # Deserialization
     #
     def deserialize(self, data: bytes) -> bytes:
-        if len(data) >= self.size:
+        if len(data) > self.size:
             raise DeserializationError(
                 f"Cannot deserialize length {len(data)} data as bytes{self.size}"
             )
