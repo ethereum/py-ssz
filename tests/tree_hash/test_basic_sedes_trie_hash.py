@@ -12,6 +12,9 @@ from ssz.sedes import (
     UInt,
     boolean,
 )
+from ssz.utils import (
+    pad_zeros,
+)
 
 
 @st.composite
@@ -25,8 +28,8 @@ def uint_and_value_strategy(draw):
 @pytest.mark.parametrize(
     'value,expected',
     (
-        (True, b"\x01".ljust(CHUNK_SIZE, b"\x00")),
-        (False, b"\x00".ljust(CHUNK_SIZE, b"\x00")),
+        (True, pad_zeros(b"\x01")),
+        (False, pad_zeros(b"\x00")),
     ),
 )
 def test_boolean(value, expected):

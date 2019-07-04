@@ -16,6 +16,7 @@ from ssz.utils import (
     mix_in_length,
     pack,
     pack_bytes,
+    pad_zeros,
 )
 
 HALF_CHUNK_SIZE = CHUNK_SIZE // 2
@@ -27,15 +28,15 @@ D_CHUNK = b"\xdd" * CHUNK_SIZE
 
 @pytest.mark.parametrize(("values", "packed"), (
     ((), (EMPTY_CHUNK,)),
-    ((b"\xaa",), (b"\xaa".ljust(CHUNK_SIZE, b"\x00"),)),
-    ((b"\xaa" * HALF_CHUNK_SIZE,), ((b"\xaa" * HALF_CHUNK_SIZE).ljust(CHUNK_SIZE, b"\x00"),)),
+    ((b"\xaa",), (pad_zeros(b"\xaa"),)),
+    ((b"\xaa" * HALF_CHUNK_SIZE,), (pad_zeros(b"\xaa" * HALF_CHUNK_SIZE),)),
     ((b"\xaa" * CHUNK_SIZE,), (b"\xaa" * CHUNK_SIZE,)),
-    ((b"\xaa", b"\xbb", b"\xcc"), (b"\xaa\xbb\xcc".ljust(CHUNK_SIZE, b"\x00"),)),
+    ((b"\xaa", b"\xbb", b"\xcc"), (pad_zeros(b"\xaa\xbb\xcc"),)),
     (
         (b"\xaa" * HALF_CHUNK_SIZE, b"\xbb" * HALF_CHUNK_SIZE, b"\xcc" * HALF_CHUNK_SIZE),
         (
             (b"\xaa" * HALF_CHUNK_SIZE + b"\xbb" * HALF_CHUNK_SIZE),
-            ((b"\xcc" * HALF_CHUNK_SIZE).ljust(CHUNK_SIZE, b"\x00")),
+            (pad_zeros(b"\xcc" * HALF_CHUNK_SIZE)),
         ),
     ),
 ))
