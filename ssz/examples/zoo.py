@@ -24,7 +24,7 @@ class Animal(Serializable):
     fields = [
         ('id_hash', bytes32),
         ('public_key', bytes48),
-        ('clock_in_records', List(ClockInRecords)),
+        ('clock_in_records', List(ClockInRecords, 2**32)),
         ('vaccinated', boolean),
     ]
 

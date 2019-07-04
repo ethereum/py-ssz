@@ -16,6 +16,7 @@ from eth_utils.toolz import (
 )
 
 from ssz.constants import (
+    CHUNK_SIZE,
     OFFSET_SIZE,
 )
 from ssz.exceptions import (
@@ -27,6 +28,7 @@ from ssz.sedes.base import (
     BaseSedes,
     BasicSedes,
     CompositeSedes,
+    TSedes,
 )
 from ssz.utils import (
     merkleize,
@@ -44,6 +46,7 @@ EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
     is_fixed_sized = False
+    length = 0
 
     def get_fixed_size(self):
         raise NotImplementedError("Empty list does not implement `get_fixed_size`")
@@ -72,10 +75,11 @@ TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable
 
 class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
-                 element_sedes: BaseSedes[TSerializable, TDeserialized] = None,
-                 ) -> None:
+                 element_sedes: TSedes,
+                 length: int) -> None:
         # This sedes object corresponds to each element of the iterable
         self.element_sedes = element_sedes
+        self.length = length
 
     #
     # Size
@@ -142,20 +146,23 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     # Tree hashing
     #
     def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
-        if len(value) == 0:
-            return EMPTY_LIST_HASH_TREE_ROOT
-        elif isinstance(self.element_sedes, BasicSedes):
+        if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element)
                 for element in value
             )
-            length = len(serialized_items)
             merkle_leaves = pack(serialized_items)
         else:
             merkle_leaves = tuple(
                 self.element_sedes.hash_tree_root(element)
                 for element in value
             )
-            length = len(merkle_leaves)
+        chunk_count = (self.length * item_length(self.element_sedes) + CHUNK_SIZE - 1) // CHUNK_SIZE
+        return mix_in_length(merkleize(merkle_leaves, pad_for=chunk_count), len(value))
 
-        return mix_in_length(merkleize(merkle_leaves), length)
+
+def item_length(sedes) -> int:
+    if isinstance(sedes, BasicSedes):
+        return sedes.size
+    else:
+        return CHUNK_SIZE

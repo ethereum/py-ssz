@@ -29,7 +29,7 @@ from ssz.sedes import (
     ),
 )
 def test_list(value, serialized):
-    sedes = List(uint8)
+    sedes = List(uint8, 2**32)
     assert encode_hex(ssz.encode(value, sedes)) == serialized
     assert ssz.decode(decode_hex(serialized), sedes) == value
 
@@ -39,7 +39,7 @@ def test_invalid_serialized_list():
     # incorrectly register as an empty list due to mis-interpreting the failed
     # stream read as the stream having been empty.
     data = decode_hex("0x0001")
-    sedes = List(List(uint8))
+    sedes = List(List(uint8, 2**32), 2**32)
     with pytest.raises(DeserializationError):
         ssz.decode(data, sedes=sedes)
 
@@ -72,7 +72,7 @@ def test_tuple_of_static_sized_entries(value, serialized):
     )
 )
 def test_list_of_dynamic_sized_entries(value, serialized):
-    sedes = Vector(List(uint8), len(value))
+    sedes = Vector(List(uint8, 2**32), len(value))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
     assert ssz.decode(decode_hex(serialized), sedes) == value
 
@@ -94,12 +94,12 @@ def test_container_of_static_sized_fields(value, serialized):
 @pytest.mark.parametrize(
     ("fields", "value", "serialized"),
     (
-        ((List(uint8),), ((),), "0x" "04000000"),
-        ((List(uint8),), ((0xaa, 0xbb),), "0x" "04000000" "aabb"),
-        ((uint8, List(uint8),), (0xaa, (0xbb, 0xcc)), "0x" "aa" "05000000" "bbcc"),
-        ((List(uint8), uint8), ((0xaa, 0xbb), 0xcc), "0x" "05000000" "cc" "aabb"),
+        ((List(uint8, 2**32),), ((),), "0x" "04000000"),
+        ((List(uint8, 2**32),), ((0xaa, 0xbb),), "0x" "04000000" "aabb"),
+        ((uint8, List(uint8, 2**32),), (0xaa, (0xbb, 0xcc)), "0x" "aa" "05000000" "bbcc"),
+        ((List(uint8, 2**32), uint8), ((0xaa, 0xbb), 0xcc), "0x" "05000000" "cc" "aabb"),
         (
-            (List(uint8), List(uint8)),
+            (List(uint8, 2**32), List(uint8, 2**32)),
             ((0xaa, 0xbb), (0xcc, 0xdd)),
             "0x" "08000000" "0a000000" "aabbccdd",
         )

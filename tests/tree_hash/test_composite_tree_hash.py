@@ -8,7 +8,7 @@ from ssz.constants import (
     EMPTY_CHUNK,
 )
 from ssz.hash import (
-    hash_eth2,
+    hash_eth2 as h,
 )
 from ssz.sedes import (
     ByteVector,
@@ -35,13 +35,13 @@ E_BYTES = b"\xee" * 16
         ((A_BYTES, B_BYTES), A_BYTES + B_BYTES),
         (
             (A_BYTES, B_BYTES, C_BYTES),
-            hash_eth2(A_BYTES + B_BYTES + C_BYTES + EMPTY_BYTES),
+            h(A_BYTES + B_BYTES + C_BYTES + EMPTY_BYTES),
         ),
         (
             (A_BYTES, B_BYTES, C_BYTES, D_BYTES, E_BYTES),
-            hash_eth2(
-                hash_eth2(A_BYTES + B_BYTES + C_BYTES + D_BYTES) +
-                hash_eth2(E_BYTES + 3 * EMPTY_BYTES)
+            h(
+                h(A_BYTES + B_BYTES + C_BYTES + D_BYTES) +
+                h(E_BYTES + 3 * EMPTY_BYTES)
             ),
         ),
     )
@@ -53,42 +53,32 @@ def test_vector_of_basics(serialized_uints128, result):
 
 
 @pytest.mark.parametrize(
-    ("serialized_uints128", "result"),
+    ("serialized_uints128", "max_length", "result"),
     (
-        (
-            (),
-            hash_eth2(EMPTY_CHUNK + b"\x00".ljust(CHUNK_SIZE, b"\x00"))
-        ),
-        (
-            (A_BYTES,),
-            hash_eth2(A_BYTES + EMPTY_BYTES + b"\x01".ljust(CHUNK_SIZE, b"\x00"))
-        ),
-        (
-            (A_BYTES, B_BYTES),
-            hash_eth2(A_BYTES + B_BYTES + b"\x02".ljust(CHUNK_SIZE, b"\x00")),
-        ),
-        (
-            (A_BYTES, B_BYTES, C_BYTES),
-            hash_eth2(
-                hash_eth2(A_BYTES + B_BYTES + C_BYTES + EMPTY_BYTES) +
-                b"\x03".ljust(CHUNK_SIZE, b"\x00")
-            ),
-        ),
-        (
-            (A_BYTES, B_BYTES, C_BYTES, D_BYTES, E_BYTES),
-            hash_eth2(
-                hash_eth2(
-                    hash_eth2(A_BYTES + B_BYTES + C_BYTES + D_BYTES) +
-                    hash_eth2(E_BYTES + 3 * EMPTY_BYTES)
-                ) +
-                b"\x05".ljust(CHUNK_SIZE, b"\x00")
-            ),
-        ),
+        ((), 4, h(
+            h(EMPTY_CHUNK + EMPTY_CHUNK) + (0).to_bytes(CHUNK_SIZE, 'little')
+        )),
+        ((A_BYTES,), 4, h(
+            h(A_BYTES + EMPTY_BYTES + EMPTY_CHUNK) + (1).to_bytes(CHUNK_SIZE, 'little')
+        )),
+        ((A_BYTES, B_BYTES), 4, h(
+            h(A_BYTES + B_BYTES + EMPTY_CHUNK) + (2).to_bytes(CHUNK_SIZE, 'little'),
+        )),
+        ((A_BYTES, B_BYTES, C_BYTES), 4, h(
+            h(A_BYTES + B_BYTES + C_BYTES + EMPTY_BYTES) + (3).to_bytes(CHUNK_SIZE, 'little'),
+        )),
+        ((A_BYTES, B_BYTES, C_BYTES, D_BYTES, E_BYTES), 8, h(
+            h(
+                h(A_BYTES + B_BYTES + C_BYTES + D_BYTES) +
+                h(E_BYTES + 3 * EMPTY_BYTES)
+            ) + (5).to_bytes(CHUNK_SIZE, 'little'),
+        )),
     )
 )
-def test_list_of_basic(serialized_uints128, result):
+def test_list_of_basic(serialized_uints128, max_length, result):
+    # item_length = 128 / 8 = 16
     int_values = tuple(ssz.decode(value, uint128) for value in serialized_uints128)
-    assert ssz.hash_tree_root(int_values, List(uint128)) == result
+    assert ssz.hash_tree_root(int_values, List(uint128, max_length)) == result
 
 
 @pytest.mark.parametrize(
@@ -98,13 +88,13 @@ def test_list_of_basic(serialized_uints128, result):
         ((A_BYTES,), A_BYTES + EMPTY_BYTES),
         (
             (A_BYTES, B_BYTES),
-            hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES)
+            h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES)
         ),
         (
             (A_BYTES, B_BYTES, C_BYTES),
-            hash_eth2(
-                hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
-                hash_eth2(C_BYTES + EMPTY_BYTES * 3),
+            h(
+                h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
+                h(C_BYTES + EMPTY_BYTES * 3),
             ),
         ),
     )
@@ -115,31 +105,34 @@ def test_vector_of_composite(bytes16_vector, result):
 
 
 @pytest.mark.parametrize(
-    ("bytes16_list", "result"),
+    ("bytes16_list", "max_length", "result"),
     (
-        ((), hash_eth2(EMPTY_CHUNK + b"\x00".ljust(CHUNK_SIZE, b"\x00"))),
-        ((A_BYTES,), hash_eth2(A_BYTES + EMPTY_BYTES + b"\x01".ljust(CHUNK_SIZE, b"\x00"))),
-        (
-            (A_BYTES, B_BYTES),
-            hash_eth2(
-                hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
-                b"\x02".ljust(CHUNK_SIZE, b"\x00")
-            ),
-        ),
-        (
-            (A_BYTES, B_BYTES, C_BYTES),
-            hash_eth2(
-                hash_eth2(
-                    hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
-                    hash_eth2(C_BYTES + EMPTY_BYTES * 3),
-                ) +
-                b"\x03".ljust(CHUNK_SIZE, b"\x00")
-            )
-        ),
+        ((), 4, h(
+            h(
+                h(EMPTY_CHUNK + EMPTY_CHUNK) + h(EMPTY_CHUNK + EMPTY_CHUNK)
+            ) + (0).to_bytes(CHUNK_SIZE, 'little')
+        )),
+        ((A_BYTES,), 4, h(
+            h(
+                h(A_BYTES + EMPTY_BYTES + EMPTY_CHUNK) + h(EMPTY_CHUNK + EMPTY_CHUNK)
+            ) + (1).to_bytes(CHUNK_SIZE, 'little')
+        )),
+        ((A_BYTES, B_BYTES), 4, h(
+            h(
+                h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) + h(EMPTY_CHUNK + EMPTY_CHUNK)
+            ) + (2).to_bytes(CHUNK_SIZE, 'little')
+        )),
+        ((A_BYTES, B_BYTES, C_BYTES), 4, h(
+            h(
+                h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
+                h(C_BYTES + EMPTY_BYTES + EMPTY_CHUNK)
+            ) + (3).to_bytes(CHUNK_SIZE, 'little')
+        )),
     )
 )
-def test_list_of_composite(bytes16_list, result):
-    sedes = List(bytes16)
+def test_list_of_composite(bytes16_list, max_length, result):
+    # item_length = 32
+    sedes = List(bytes16, max_length)
     assert ssz.hash_tree_root(bytes16_list, sedes) == result
 
 
@@ -149,13 +142,13 @@ def test_list_of_composite(bytes16_list, result):
         ((A_BYTES,), A_BYTES + EMPTY_BYTES),
         (
             (A_BYTES, B_BYTES),
-            hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES)
+            h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES)
         ),
         (
             (A_BYTES, B_BYTES, C_BYTES),
-            hash_eth2(
-                hash_eth2(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
-                hash_eth2(C_BYTES + EMPTY_BYTES * 3),
+            h(
+                h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES) +
+                h(C_BYTES + EMPTY_BYTES * 3),
             ),
         ),
     )

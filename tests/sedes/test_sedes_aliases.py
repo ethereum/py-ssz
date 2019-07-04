@@ -49,7 +49,7 @@ def test_byte_list(value):
     serialized_value = ssz.encode(value, byte_list)
     assert serialized_value == ssz.encode(
         tuple(bytes([byte_value]) for byte_value in value),
-        List(byte),
+        List(byte, 2**32),
     )
     assert ssz.decode(serialized_value, byte_list) == value
 
