@@ -13,6 +13,8 @@ from .exceptions import (  # noqa: F401
 from .sedes import (  # noqa: F401
     BaseSedes,
     BasicSedes,
+    Bitlist,
+    Bitvector,
     Boolean,
     Byte,
     ByteList,

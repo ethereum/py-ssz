@@ -11,12 +11,16 @@ from ssz.hash import (
     hash_eth2 as h,
 )
 from ssz.sedes import (
+    Bitlist,
     Bitvector,
     ByteVector,
     Container,
     List,
     Vector,
     uint128,
+)
+from ssz.utils import (
+    pad_zeros,
 )
 
 bytes16 = ByteVector(16)
@@ -168,4 +172,18 @@ def test_container(bytes16_fields, result):
 )
 def test_bitvector(size, value, result):
     Foo = Bitvector(size)
+    assert ssz.hash_tree_root(value, Foo) == result
+
+
+@pytest.mark.parametrize(
+    ("size", "value", "result"),
+    (
+        (8, (1, 1, 0, 1, 0, 1, 0, 0), h(pad_zeros(b"\x2b") + pad_zeros(b"\x08"))),
+        (512, tuple(1 for i in range(512)), h(
+            h(b"\xff" * 32 + b"\xff" * 32) + pad_zeros(b'\x00\x02')
+        )),
+    )
+)
+def test_bitlist(size, value, result):
+    Foo = Bitlist(size)
     assert ssz.hash_tree_root(value, Foo) == result
