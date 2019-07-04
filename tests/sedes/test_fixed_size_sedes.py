@@ -7,7 +7,6 @@ from ssz.sedes import (
     Vector,
     boolean,
     byte,
-    byte_list,
     bytes32,
     bytes48,
     bytes96,
@@ -50,7 +49,6 @@ def test_fixed_size(sedes, size):
         Container((List(uint8, 2**32),)),
         Container((uint8, List(uint8, 2**32), uint8)),
         Container((Container((List(uint8, 2**32),)),)),
-        byte_list,
     ),
 )
 def test_dynamic_size(sedes):

@@ -7,7 +7,6 @@ from ssz.sedes import (
     ByteVector,
     List,
     Serializable,
-    byte_list,
     bytes32,
     bytes48,
     uint32,
@@ -101,23 +100,6 @@ def prepare_byte_vector_benchmark():
     def benchmark():
         for data_item in data:
             ssz.get_hash_tree_root(data_item, byte_vector)
-
-    return benchmark
-
-
-def prepare_byte_list_benchmark():
-    size_range = (0, 1000)
-    repetitions = 10000
-
-    sizes = tuple(random.randint(*size_range) for _ in range(repetitions))
-    data = tuple(
-        bytes(random.getrandbits(8) for _ in range(size))
-        for size in sizes
-    )
-
-    def benchmark():
-        for data_item in data:
-            ssz.get_hash_tree_root(data_item, byte_list)
 
     return benchmark
 

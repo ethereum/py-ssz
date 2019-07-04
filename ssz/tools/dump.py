@@ -11,7 +11,6 @@ from ssz.sedes import (
     Bitlist,
     Bitvector,
     Boolean,
-    ByteList,
     ByteVector,
     Container,
     List,
@@ -43,7 +42,7 @@ def dump(value, sedes=None, codec=DefaultCodec):
         return dump_boolean(value, sedes, codec)
     elif isinstance(sedes, UInt):
         return dump_integer(value, sedes, codec)
-    elif isinstance(sedes, (ByteList, ByteVector)):
+    elif isinstance(sedes, ByteVector):
         return dump_bytes(value, sedes, codec)
     elif isinstance(sedes, List):
         return dump_list(value, sedes, codec)
