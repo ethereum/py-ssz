@@ -19,10 +19,10 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 
 class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
-    def __init__(self, size: int) -> None:
-        if size < 0:
-            raise TypeError("Size cannot be negative")
-        self.size = size
+    def __init__(self, bit_count: int) -> None:
+        if bit_count < 0:
+            raise TypeError("Bit count cannot be negative")
+        self.bit_count = bit_count
 
     #
     # Size
@@ -30,19 +30,19 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     is_fixed_sized = True
 
     def get_fixed_size(self):
-        return (self.size + 7) // 8
+        return (self.bit_count + 7) // 8
 
     #
     # Serialization
     #
-    def serialize(self, value: BytesOrByteArray) -> bytes:
-        if len(value) != self.size:
+    def serialize(self, value: Sequence[bool]) -> bytes:
+        if len(value) != self.bit_count:
             raise SerializationError(
-                f"Cannot serialize length {len(value)} byte-string as bytes{self.size}"
+                f"Cannot serialize length {len(value)} bit array as Bitvector[{self.bit_count}]"
             )
 
-        as_bytearray = [0] * ((self.size + 7) // 8)
-        for i in range(self.size):
+        as_bytearray = [0] * ((self.bit_count + 7) // 8)
+        for i in range(self.bit_count):
             as_bytearray[i // 8] |= value[i] << (i % 8)
         return bytes(as_bytearray)
 
@@ -50,14 +50,14 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     # Deserialization
     #
     def deserialize(self, data: bytes) -> bytes:
-        if len(data) > self.size:
+        if len(data) * 8 > self.bit_count:
             raise DeserializationError(
-                f"Cannot deserialize length {len(data)} data as bytes{self.size}"
+                f"Cannot deserialize length {len(data)} bytes data as Bitvector[{self.bit_count}]"
             )
 
         return tuple(
             bool((data[index // 8] >> index % 8) % 2)
-            for index in range(self.size)
+            for index in range(self.bit_count)
         )
 
     #

@@ -20,10 +20,10 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 
 class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
-    def __init__(self, length: int) -> None:
-        if length < 0:
-            raise TypeError("Max length cannot be negative")
-        self.length = length
+    def __init__(self, bit_count: int) -> None:
+        if bit_count < 0:
+            raise TypeError("Max bit count cannot be negative")
+        self.bit_count = bit_count
 
     #
     # Size
@@ -38,9 +38,9 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     def serialize(self, value: BytesOrByteArray) -> bytes:
         len_value = len(value)
-        if len_value > self.length:
+        if len_value > self.bit_count:
             raise SerializationError(
-                f"Cannot serialize length {len_value} bytes as Bitlist[{self.length}]"
+                f"Cannot serialize length {len_value} bit array as Bitlist[{self.bit_count}]"
             )
 
         if len_value == 0:
@@ -59,9 +59,9 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
         as_integer = int.from_bytes(data, 'little')
         len_value = get_bitlist_len(as_integer)
 
-        if len_value > self.length:
+        if len_value > self.bit_count:
             raise DeserializationError(
-                f"Cannot deserialize length {len_value} data as bytes{self.length}"
+                f"Cannot deserialize length {len_value} bytes data as Bitlist[{self.bit_count}]"
             )
 
         return tuple(
@@ -76,5 +76,5 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
         return mix_in_length(merkleize(pack_bitvector_bitlist(value)), len(value))
 
 
-def get_bitlist_len(x):
+def get_bitlist_len(x: int) -> int:
     return x.bit_length() - 1

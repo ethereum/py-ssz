@@ -89,7 +89,7 @@ def to_chuncks(packed_data) -> Tuple[bytes]:
     if last_chunk_is_full:
         return full_chunks
     else:
-        last_chunk = packed_data[number_of_full_chunks * CHUNK_SIZE:].ljust(CHUNK_SIZE, b"\x00")
+        last_chunk = pad_zeros(packed_data[number_of_full_chunks * CHUNK_SIZE:])
         return full_chunks + (last_chunk,)
 
 
@@ -102,8 +102,7 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
 
 
 def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
-    size = len(byte_string)
-    if size == 0:
+    if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
 
     return to_chuncks(byte_string)

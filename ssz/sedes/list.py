@@ -73,6 +73,13 @@ empty_list = EmptyList()
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
 
 
+def get_item_length(sedes: BaseSedes) -> int:
+    if isinstance(sedes, BasicSedes):
+        return sedes.size
+    else:
+        return CHUNK_SIZE
+
+
 class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
                  element_sedes: TSedes,
@@ -157,12 +164,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
                 self.element_sedes.hash_tree_root(element)
                 for element in value
             )
-        chunk_count = (self.length * item_length(self.element_sedes) + CHUNK_SIZE - 1) // CHUNK_SIZE
+        chunk_count = (
+            (self.length * get_item_length(self.element_sedes) + CHUNK_SIZE - 1) // CHUNK_SIZE
+        )
         return mix_in_length(merkleize(merkle_leaves, pad_for=chunk_count), len(value))
-
-
-def item_length(sedes) -> int:
-    if isinstance(sedes, BasicSedes):
-        return sedes.size
-    else:
-        return CHUNK_SIZE
