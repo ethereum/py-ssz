@@ -72,6 +72,11 @@ def get_items_per_chunk(item_size: int) -> int:
         raise Exception("Invariant: unreachable")
 
 
+def pad_zeros(value: bytes) -> bytes:
+    assert len(value) < CHUNK_SIZE
+    return bytes(value.ljust(CHUNK_SIZE, b"\x00"))
+
+
 def to_chuncks(packed_data) -> Tuple[bytes]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
