@@ -11,6 +11,7 @@ from ssz.hash import (
     hash_eth2 as h,
 )
 from ssz.sedes import (
+    Bitvector,
     ByteVector,
     Container,
     List,
@@ -156,3 +157,15 @@ def test_list_of_composite(bytes16_list, max_length, result):
 def test_container(bytes16_fields, result):
     sedes = Container(tuple(itertools.repeat(bytes16, len(bytes16_fields))))
     assert ssz.hash_tree_root(bytes16_fields, sedes) == result
+
+
+@pytest.mark.parametrize(
+    ("size", "value", "result"),
+    (
+        (8, (1, 1, 0, 1, 0, 1, 0, 0), b"\x2b" + b"\x00" * 31),
+        (512, tuple(1 for i in range(512)), h(b"\xff" * 32 + b"\xff" * 32)),
+    )
+)
+def test_bitvector(size, value, result):
+    Foo = Bitvector(size)
+    assert ssz.hash_tree_root(value, Foo) == result

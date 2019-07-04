@@ -9,9 +9,7 @@ from eth_typing import (
     Hash32,
 )
 from eth_utils.toolz import (
-    first,
     partition,
-    take,
 )
 
 from ssz.constants import (
@@ -74,25 +72,28 @@ def get_items_per_chunk(item_size: int) -> int:
         raise Exception("Invariant: unreachable")
 
 
+def to_chuncks(packed_data) -> Tuple[bytes]:
+    size = len(packed_data)
+    number_of_full_chunks = size // CHUNK_SIZE
+    last_chunk_is_full = size % CHUNK_SIZE == 0
+
+    full_chunks = tuple(
+        packed_data[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
+        for chunk_index in range(number_of_full_chunks)
+    )
+    if last_chunk_is_full:
+        return full_chunks
+    else:
+        last_chunk = packed_data[number_of_full_chunks * CHUNK_SIZE:].ljust(CHUNK_SIZE, b"\x00")
+        return full_chunks + (last_chunk,)
+
+
 def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
 
-    item_size = len(serialized_values[0])
-    items_per_chunk = get_items_per_chunk(item_size)
-
-    number_of_items = len(serialized_values)
-    number_of_chunks = (number_of_items + (items_per_chunk - 1)) // items_per_chunk
-
-    chunk_partitions = partition(items_per_chunk, serialized_values, pad=b"")
-    chunks_unpadded = (b"".join(chunk_partition) for chunk_partition in chunk_partitions)
-
-    full_chunks = tuple(Hash32(chunk) for chunk in take(number_of_chunks - 1, chunks_unpadded))
-    last_chunk = first(chunks_unpadded)
-    if len(tuple(chunks_unpadded)) > 0:
-        raise Exception("Invariant: all chunks have been taken")
-
-    return full_chunks + (Hash32(last_chunk.ljust(CHUNK_SIZE, b"\x00")),)
+    data = b''.join([value for value in serialized_values])
+    return to_chuncks(data)
 
 
 def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
@@ -100,18 +101,15 @@ def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
     if size == 0:
         return (EMPTY_CHUNK,)
 
-    number_of_full_chunks = size // CHUNK_SIZE
-    last_chunk_is_full = size % CHUNK_SIZE == 0
+    return to_chuncks(byte_string)
 
-    full_chunks = tuple(
-        byte_string[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
-        for chunk_index in range(number_of_full_chunks)
-    )
-    if last_chunk_is_full:
-        return full_chunks
-    else:
-        last_chunk = byte_string[number_of_full_chunks * CHUNK_SIZE:].ljust(CHUNK_SIZE, b"\x00")
-        return full_chunks + (last_chunk,)
+
+def pack_bitvector_bitlist(values) -> Tuple[Hash32]:
+    as_bytearray = [0] * ((len(values) + 7) // 8)
+    for i in range(len(values)):
+        as_bytearray[i // 8] |= values[i] << (i % 8)
+    packed = bytes(as_bytearray)
+    return to_chuncks(packed)
 
 
 def get_next_power_of_two(value: int) -> int:

@@ -8,6 +8,9 @@ from .base import (  # noqa: F401
     BasicSedes,
     CompositeSedes,
 )
+from .bitvector import (  # noqa: F401
+    Bitvector,
+)
 from .boolean import (  # noqa: F401
     Boolean,
     boolean,
