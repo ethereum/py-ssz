@@ -11,6 +11,8 @@ from eth_utils import (
 
 from ssz.sedes import (
     BaseSedes,
+    Bitlist,
+    Bitvector,
     Boolean,
     ByteList,
     ByteVector,
@@ -45,6 +47,8 @@ def parse(value, sedes, codec=DefaultCodec):
         return parse_vector(value, sedes, codec)
     elif isinstance(sedes, Container):
         return parse_container(value, sedes, codec)
+    elif isinstance(sedes, (Bitlist, Bitvector)):
+        return parse_bits(value, sedes, codec)
     elif isinstance(sedes, MetaSerializable):
         return parse_serializable(value, sedes, codec)
     elif isinstance(sedes, BaseSedes):
@@ -79,6 +83,15 @@ def parse_vector(value, sedes, codec):
     if not len(value) == sedes.length:
         raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
     return tuple(parse(element, sedes.element_sedes, codec) for element in value)
+
+
+def parse_bits(value, sedes, codec):
+    if not isinstance(value, Sequence):
+        raise ValueError(f"Expected Sequence, got {type(value)}")
+
+    data = parse_bytes(value, sedes, codec)
+    deserialized = sedes.deserialize(data)
+    return tuple(parse_boolean(element, sedes, codec) for element in deserialized)
 
 
 @to_tuple

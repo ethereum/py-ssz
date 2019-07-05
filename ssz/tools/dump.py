@@ -8,6 +8,8 @@ from eth_utils import (
 
 from ssz.sedes import (
     BaseSedes,
+    Bitlist,
+    Bitvector,
     Boolean,
     ByteList,
     ByteVector,
@@ -47,6 +49,8 @@ def dump(value, sedes=None, codec=DefaultCodec):
         return dump_list(value, sedes, codec)
     elif isinstance(sedes, Vector):
         return dump_vector(value, sedes, codec)
+    elif isinstance(sedes, (Bitlist, Bitvector)):
+        return dump_bits(value, sedes, codec)
     elif isinstance(sedes, Container):
         return dump_container(value, sedes, codec)
     elif isinstance(sedes, MetaSerializable):
@@ -83,6 +87,10 @@ def dump_vector(value, sedes, codec):
     if not len(value) == sedes.length:
         raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
     return tuple(dump(element, sedes.element_sedes, codec) for element in value)
+
+
+def dump_bits(value, sedes, codec):
+    return codec.encode_bytes(sedes.serialize(value), sedes)
 
 
 @to_tuple
