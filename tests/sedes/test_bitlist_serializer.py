@@ -18,9 +18,9 @@ from ssz.sedes import (
     ),
 )
 def test_bitlist_serialize_values(size, value, expected):
-    Foo = Bitlist(size)
-    assert encode(value, Foo) == expected
-    assert Foo.serialize(bytearray(value)) == expected
+    foo = Bitlist(size)
+    assert encode(value, foo) == expected
+    assert foo.serialize(bytearray(value)) == expected
 
 
 @pytest.mark.parametrize(
@@ -32,8 +32,8 @@ def test_bitlist_serialize_values(size, value, expected):
     ),
 )
 def test_bitlist_deserialize_values(size, value, expected):
-    Foo = Bitlist(size)
-    assert Foo.deserialize(value) == expected
+    foo = Bitlist(size)
+    assert foo.deserialize(value) == expected
 
 
 @pytest.mark.parametrize(
@@ -45,5 +45,5 @@ def test_bitlist_deserialize_values(size, value, expected):
     ),
 )
 def test_bitlist_round_trip_no_sedes(size, value):
-    Foo = Bitlist(size)
-    assert decode(encode(value, Foo), Foo) == value
+    foo = Bitlist(size)
+    assert decode(encode(value, foo), foo) == value

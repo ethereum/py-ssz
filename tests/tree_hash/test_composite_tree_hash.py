@@ -171,8 +171,8 @@ def test_container(bytes16_fields, result):
     )
 )
 def test_bitvector(size, value, result):
-    Foo = Bitvector(size)
-    assert ssz.hash_tree_root(value, Foo) == result
+    foo = Bitvector(size)
+    assert ssz.hash_tree_root(value, foo) == result
 
 
 @pytest.mark.parametrize(
@@ -185,5 +185,5 @@ def test_bitvector(size, value, result):
     )
 )
 def test_bitlist(size, value, result):
-    Foo = Bitlist(size)
-    assert ssz.hash_tree_root(value, Foo) == result
+    foo = Bitlist(size)
+    assert ssz.hash_tree_root(value, foo) == result
