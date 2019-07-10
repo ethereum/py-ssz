@@ -4,6 +4,10 @@ from typing import (
     Union,
 )
 
+from eth_utils import (
+    to_tuple,
+)
+
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -12,9 +16,10 @@ from ssz.sedes.base import (
     BaseCompositeSedes,
 )
 from ssz.utils import (
+    get_serialized_bytearray,
     merkleize,
     mix_in_length,
-    pack_bitvector_bitlist,
+    pack_bits,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
@@ -44,18 +49,14 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
                 f"Cannot serialize length {len_value} bit array as Bitlist[{self.max_bit_count}]"
             )
 
-        if len_value == 0:
-            return b'\x01'
-
-        as_bytearray = [0] * (len_value // 8 + 1)
-        for i in range(len_value):
-            as_bytearray[i // 8] |= value[i] << (i % 8)
-        as_bytearray[len_value // 8] |= 1 << (len_value % 8)
-        return bytes(as_bytearray)
+        serialized_bytearray = get_serialized_bytearray(value, len_value, is_vector=False)
+        serialized_bytearray[len_value // 8] |= 1 << (len_value % 8)
+        return bytes(serialized_bytearray)
 
     #
     # Deserialization
     #
+    @to_tuple
     def deserialize(self, data: bytes) -> Tuple[bool, ...]:
         as_integer = int.from_bytes(data, 'little')
         len_value = get_bitlist_len(as_integer)
@@ -65,16 +66,14 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
                 f"Cannot deserialize length {len_value} bytes data as Bitlist[{self.max_bit_count}]"
             )
 
-        return tuple(
-            bool((data[index // 8] >> index % 8) % 2)
-            for index in range(len_value)
-        )
+        for bit_index in range(len_value):
+            yield bool((data[bit_index // 8] >> bit_index % 8) % 2)
 
     #
     # Tree hashing
     #
     def hash_tree_root(self, value: Sequence[bool]) -> bytes:
-        return mix_in_length(merkleize(pack_bitvector_bitlist(value)), len(value))
+        return mix_in_length(merkleize(pack_bits(value)), len(value))
 
 
 def get_bitlist_len(x: int) -> int:

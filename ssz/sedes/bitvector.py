@@ -11,8 +11,9 @@ from ssz.sedes.base import (
     BaseCompositeSedes,
 )
 from ssz.utils import (
+    get_serialized_bytearray,
     merkleize,
-    pack_bitvector_bitlist,
+    pack_bits,
 )
 
 BytesOrByteArray = Union[bytes, bytearray]
@@ -40,11 +41,10 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
             raise SerializationError(
                 f"Cannot serialize length {len(value)} bit array as Bitvector[{self.bit_count}]"
             )
+        return bytes(get_serialized_bytearray(value, self.bit_count))
 
-        as_bytearray = [0] * ((self.bit_count + 7) // 8)
-        for i in range(self.bit_count):
-            as_bytearray[i // 8] |= value[i] << (i % 8)
-        return bytes(as_bytearray)
+    def _get_empty_bytearray(self) -> bytearray:
+        return bytearray((self.bit_count + 7) // 8)
 
     #
     # Deserialization
@@ -64,4 +64,4 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     # Tree hashing
     #
     def hash_tree_root(self, value: Sequence[bool]) -> bytes:
-        return merkleize(pack_bitvector_bitlist(value))
+        return merkleize(pack_bits(value))

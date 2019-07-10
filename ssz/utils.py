@@ -16,6 +16,7 @@ from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
     OFFSET_SIZE,
+    ZERO_HASHES,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -23,11 +24,6 @@ from ssz.exceptions import (
 from ssz.hash import (
     hash_eth2,
 )
-
-ZERO_BYTES32 = b'\x00' * 32
-zerohashes = [ZERO_BYTES32]
-for layer in range(1, 100):
-    zerohashes.append(hash_eth2(zerohashes[layer - 1] + zerohashes[layer - 1]))
 
 
 def get_duplicates(values):
@@ -73,11 +69,14 @@ def get_items_per_chunk(item_size: int) -> int:
 
 
 def pad_zeros(value: bytes) -> bytes:
-    assert len(value) < CHUNK_SIZE
+    if len(value) >= CHUNK_SIZE:
+        raise ValueError(
+            f"The length of given value {len(value)} should be less than CHUNK_SIZE ({CHUNK_SIZE})"
+        )
     return value.ljust(CHUNK_SIZE, b"\x00")
 
 
-def to_chuncks(packed_data) -> Tuple[bytes]:
+def to_chunks(packed_data) -> Tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
     last_chunk_is_full = size % CHUNK_SIZE == 0
@@ -98,22 +97,22 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
         return (EMPTY_CHUNK,)
 
     data = b''.join(serialized_values)
-    return to_chuncks(data)
+    return to_chunks(data)
 
 
-def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
+def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
 
-    return to_chuncks(byte_string)
+    return to_chunks(byte_string)
 
 
-def pack_bitvector_bitlist(values) -> Tuple[Hash32]:
+def pack_bits(values) -> Tuple[Hash32]:
     as_bytearray = [0] * ((len(values) + 7) // 8)
     for i in range(len(values)):
         as_bytearray[i // 8] |= values[i] << (i % 8)
     packed = bytes(as_bytearray)
-    return to_chuncks(packed)
+    return to_chunks(packed)
 
 
 def get_next_power_of_two(value: int) -> int:
@@ -148,7 +147,7 @@ def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
             if leaf_index & (1 << layer) == 0:
                 if leaf_index == chunk_len and layer < chunk_depth:
                     # Keep going if we are complementing the void to the next power of 2
-                    node = hash_eth2(node + zerohashes[layer])
+                    node = hash_eth2(node + ZERO_HASHES[layer])
                 else:
                     break
             else:
@@ -162,15 +161,27 @@ def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
 
     # Complement with 0 if empty, or if not the right power of 2
     if 1 << chunk_depth != chunk_len:
-        merge(zerohashes[0], chunk_len)
+        merge(ZERO_HASHES[0], chunk_len)
 
     # The next power of two may be smaller than the ultimate virtual size,
     # complement with zero-hashes at each depth.
     for layer in range(chunk_depth, max_depth):
-        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + zerohashes[layer])
+        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
 
     return tmp_list[max_depth]
 
 
 def mix_in_length(root: Hash32, length: int) -> Hash32:
     return hash_eth2(root + length.to_bytes(CHUNK_SIZE, "little"))
+
+
+def get_serialized_bytearray(value: Sequence[bool], bit_count: int, is_vector=True) -> bytearray:
+    if is_vector:
+        as_bytearray = bytearray((bit_count + 7) // 8)
+    else:
+        # Bitlist
+        as_bytearray = bytearray(bit_count // 8 + 1)
+
+    for i in range(bit_count):
+        as_bytearray[i // 8] |= value[i] << (i % 8)
+    return as_bytearray

@@ -46,7 +46,7 @@ EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
     is_fixed_sized = False
-    length = 0
+    max_length = 0
 
     def get_fixed_size(self):
         raise NotImplementedError("Empty list does not implement `get_fixed_size`")
@@ -83,10 +83,10 @@ def get_item_length(sedes: BaseSedes) -> int:
 class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
                  element_sedes: TSedes,
-                 length: int) -> None:
+                 max_length: int) -> None:
         # This sedes object corresponds to each element of the iterable
         self.element_sedes = element_sedes
-        self.length = length
+        self.max_length = max_length
 
     #
     # Size
@@ -109,9 +109,9 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             data = stream.read()
             if len(data) % element_size != 0:
                 raise DeserializationError(
-                    f"Invalid length. List is comprised of a fixed size sedes "
+                    f"Invalid max_length. List is comprised of a fixed size sedes "
                     f"but total serialized data is not an even multiple of the "
-                    f"element size. data length: {len(data)}  element size: "
+                    f"element size. data max_length: {len(data)}  element size: "
                     f"{element_size}"
                 )
             for start_idx in range(0, len(data), element_size):
@@ -164,7 +164,6 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
                 self.element_sedes.hash_tree_root(element)
                 for element in value
             )
-        chunk_count = (
-            (self.length * get_item_length(self.element_sedes) + CHUNK_SIZE - 1) // CHUNK_SIZE
-        )
+        base_size = self.max_length * get_item_length(self.element_sedes)
+        chunk_count = (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
         return mix_in_length(merkleize(merkle_leaves, pad_for=chunk_count), len(value))

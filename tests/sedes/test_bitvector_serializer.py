@@ -13,10 +13,10 @@ from ssz.sedes import (
     'size, value, expected',
     (
         (0, (), b''),
-        (16, (0b1,) + (0b0,) * 15, b'\x01\x00'),
-        (16, (0b0,) + (0b1,) + (0b0,) * 14, b'\x02\x00'),
-        (16, (0b0,) * 15 + (0b1,), b'\x00\x80'),
-        (16, (0b1,) * 16, b'\xff\xff'),
+        (16, (True,) + (False,) * 15, b'\x01\x00'),
+        (16, (False,) + (True,) + (False,) * 14, b'\x02\x00'),
+        (16, (False,) * 15 + (True,), b'\x00\x80'),
+        (16, (True,) * 16, b'\xff\xff'),
     ),
 )
 def test_bitvector_serialize_values(size, value, expected):
@@ -29,10 +29,10 @@ def test_bitvector_serialize_values(size, value, expected):
     'size, value,expected',
     (
         (0, b'', ()),
-        (16, b'\x01\x00', (0b1,) + (0b0,) * 15),
-        (16, b'\x02\x00', (0b0,) + (0b1,) + (0b0,) * 14),
-        (16, b'\x00\x80', (0b0,) * 15 + (0b1,)),
-        (16, b'\xff\xff', (0b1,) * 16),
+        (16, b'\x01\x00', (True,) + (False,) * 15),
+        (16, b'\x02\x00', (False,) + (True,) + (False,) * 14),
+        (16, b'\x00\x80', (False,) * 15 + (True,)),
+        (16, b'\xff\xff', (True,) * 16),
     ),
 )
 def test_bitvector_deserialize_values(size, value, expected):
@@ -43,7 +43,7 @@ def test_bitvector_deserialize_values(size, value, expected):
 @pytest.mark.parametrize(
     'size, value',
     (
-        (16, (0b1,) + (0b0,) * 15),
+        (16, (True,) + (False,) * 15),
     ),
 )
 def test_bitvector_round_trip_no_sedes(size, value):
