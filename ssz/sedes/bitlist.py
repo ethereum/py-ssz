@@ -36,7 +36,7 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
-    def serialize(self, value: BytesOrByteArray) -> bytes:
+    def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
         if len_value > self.bit_count:
             raise SerializationError(
@@ -55,7 +55,7 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     # Deserialization
     #
-    def deserialize(self, data: bytes) -> bytes:
+    def deserialize(self, data: bytes) -> Tuple[bool, ...]:
         as_integer = int.from_bytes(data, 'little')
         len_value = get_bitlist_len(as_integer)
 

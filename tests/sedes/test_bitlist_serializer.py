@@ -12,9 +12,9 @@ from ssz.sedes import (
 @pytest.mark.parametrize(
     'size, value, expected',
     (
-        (16, tuple(), b'\x01'),
-        (16, (0b1, 0b0,), b'\x05'),
-        (16, (0b1,) + (0b0,) * 15, b'\x01\x00\x01'),
+        (16, (), b'\x01'),
+        (16, (True, False), b'\x05'),
+        (16, (True,) + (False,) * 15, b'\x01\x00\x01'),
     ),
 )
 def test_bitlist_serialize_values(size, value, expected):

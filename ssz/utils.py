@@ -74,7 +74,7 @@ def get_items_per_chunk(item_size: int) -> int:
 
 def pad_zeros(value: bytes) -> bytes:
     assert len(value) < CHUNK_SIZE
-    return bytes(value.ljust(CHUNK_SIZE, b"\x00"))
+    return value.ljust(CHUNK_SIZE, b"\x00")
 
 
 def to_chuncks(packed_data) -> Tuple[bytes]:
@@ -97,7 +97,7 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
 
-    data = b''.join([value for value in serialized_values])
+    data = b''.join(serialized_values)
     return to_chuncks(data)
 
 
