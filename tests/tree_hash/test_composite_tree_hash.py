@@ -167,7 +167,7 @@ def test_container(bytes16_fields, result):
     ("size", "value", "result"),
     (
         (8, (1, 1, 0, 1, 0, 1, 0, 0), b"\x2b" + b"\x00" * 31),
-        (512, (True,) * 512), h(b"\xff" * 32 + b"\xff" * 32)),
+        (512, ((True,) * 512), h(b"\xff" * 32 + b"\xff" * 32)),
     )
 )
 def test_bitvector(size, value, result):

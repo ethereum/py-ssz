@@ -1,5 +1,6 @@
 from typing import (
     Sequence,
+    Tuple,
     Union,
 )
 
@@ -20,10 +21,10 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 
 class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
-    def __init__(self, bit_count: int) -> None:
-        if bit_count < 0:
+    def __init__(self, max_bit_count: int) -> None:
+        if max_bit_count < 0:
             raise TypeError("Max bit count cannot be negative")
-        self.bit_count = bit_count
+        self.max_bit_count = max_bit_count
 
     #
     # Size
@@ -38,9 +39,9 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
-        if len_value > self.bit_count:
+        if len_value > self.max_bit_count:
             raise SerializationError(
-                f"Cannot serialize length {len_value} bit array as Bitlist[{self.bit_count}]"
+                f"Cannot serialize length {len_value} bit array as Bitlist[{self.max_bit_count}]"
             )
 
         if len_value == 0:
@@ -59,9 +60,9 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
         as_integer = int.from_bytes(data, 'little')
         len_value = get_bitlist_len(as_integer)
 
-        if len_value > self.bit_count:
+        if len_value > self.max_bit_count:
             raise DeserializationError(
-                f"Cannot deserialize length {len_value} bytes data as Bitlist[{self.bit_count}]"
+                f"Cannot deserialize length {len_value} bytes data as Bitlist[{self.max_bit_count}]"
             )
 
         return tuple(
