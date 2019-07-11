@@ -47,15 +47,12 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
             )
         return bytes(get_serialized_bytearray(value, self.bit_count, extra_byte=False))
 
-    def _get_empty_bytearray(self) -> bytearray:
-        return bytearray((self.bit_count + 7) // 8)
-
     #
     # Deserialization
     #
     @to_tuple
     def deserialize(self, data: bytes) -> bytes:
-        if len(data) * 8 > self.bit_count:
+        if len(data) > (self.bit_count + 7) // 8:
             raise DeserializationError(
                 f"Cannot deserialize length {len(data)} bytes data as Bitvector[{self.bit_count}]"
             )
