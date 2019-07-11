@@ -138,9 +138,12 @@ def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
     chunk_len = len(chunks)
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (pad_for - 1).bit_length())
+    if max_depth > len(ZERO_HASHES):
+        raise ValueError(f"The number of layers is greater than {len(ZERO_HASHES)}")
+
     tmp_list = [None for _ in range(max_depth + 1)]
 
-    def merge(leaf, leaf_index):
+    def merge(leaf: bytes, leaf_index: int) -> None:
         node = leaf
         layer = 0
         while True:
