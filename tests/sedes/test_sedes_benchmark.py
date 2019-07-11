@@ -38,16 +38,16 @@ class CrosslinkRecord(Serializable):
 class ShardCommittee(Serializable):
     fields = [
         ('shard', uint64),
-        ('committee', List(uint32)),
+        ('committee', List(uint32, 2**32)),
         ('total_validator_count', uint64),
     ]
 
 
 class State(Serializable):
     fields = [
-        ('validator_registry', List(ValidatorRecord)),
-        ('shard_and_committee_for_slots', List(List(ShardCommittee))),
-        ('latest_crosslinks', List(CrosslinkRecord)),
+        ('validator_registry', List(ValidatorRecord, 2**32)),
+        ('shard_and_committee_for_slots', List(List(ShardCommittee, 2**32), 2**32)),
+        ('latest_crosslinks', List(CrosslinkRecord, 2**32)),
     ]
 
 

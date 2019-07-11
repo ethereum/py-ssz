@@ -1,4 +1,6 @@
 from ssz.sedes import (
+    Bitlist,
+    Bitvector,
     List,
     Serializable,
     SignedSerializable,
@@ -16,6 +18,8 @@ class ClockInRecords(SignedSerializable):
     fields = [
         ('epoch', uint64),
         ('bio_id_scan', byte_list),
+        ('poo_log_bits', Bitlist(32)),
+        ('wash_log_bits', Bitvector(32)),
         ('signature', bytes96),
     ]
 
@@ -24,7 +28,7 @@ class Animal(Serializable):
     fields = [
         ('id_hash', bytes32),
         ('public_key', bytes48),
-        ('clock_in_records', List(ClockInRecords)),
+        ('clock_in_records', List(ClockInRecords, 2**32)),
         ('vaccinated', boolean),
     ]
 
@@ -43,11 +47,15 @@ octopus = Animal(
             epoch=123,
             bio_id_scan=b'\xab' * 16,
             signature=b'\xab' * 96,
+            poo_log_bits=(True,) * 16 + (False,) * 16,
+            wash_log_bits=(False,) * 16 + (True,) * 16,
         ),
         ClockInRecords(
             epoch=124,
             bio_id_scan=b'\xab' * 16,
             signature=b'\xab' * 96,
+            poo_log_bits=(True,) * 16 + (False,) * 16,
+            wash_log_bits=(False,) * 16 + (True,) * 16,
         )
     ),
     vaccinated=True,
@@ -60,6 +68,8 @@ corgi = Animal(
             epoch=125,
             bio_id_scan=b'\xcd' * 16,
             signature=b'\xcd' * 96,
+            poo_log_bits=(True,) * 16 + (False,) * 16,
+            wash_log_bits=(False,) * 16 + (True,) * 16,
         ),
     ),
     vaccinated=True,

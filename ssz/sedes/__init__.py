@@ -8,6 +8,12 @@ from .base import (  # noqa: F401
     BasicSedes,
     CompositeSedes,
 )
+from .bitlist import (  # noqa: F401
+    Bitlist,
+)
+from .bitvector import (  # noqa: F401
+    Bitvector,
+)
 from .boolean import (  # noqa: F401
     Boolean,
     boolean,

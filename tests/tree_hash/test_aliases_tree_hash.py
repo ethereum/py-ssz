@@ -27,7 +27,11 @@ def test_byte(value):
 @given(st.binary())
 def test_byte_list(value):
     byte_sequence = tuple(bytes([byte_value]) for byte_value in value)
-    assert ssz.hash_tree_root(value, byte_list) == ssz.hash_tree_root(byte_sequence, List(byte))
+    max_length = ssz.utils.get_next_power_of_two(len(value))
+    assert (
+        ssz.hash_tree_root(value, byte_list) ==
+        ssz.hash_tree_root(byte_sequence, List(byte, max_length))
+    )
 
 
 @given(st.binary())

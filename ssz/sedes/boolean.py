@@ -34,4 +34,8 @@ class Boolean(BasicSedes[bool, bool]):
             )
 
 
+class Bit(Boolean):
+    pass
+
+
 boolean = Boolean()

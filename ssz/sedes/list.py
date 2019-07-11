@@ -16,6 +16,7 @@ from eth_utils.toolz import (
 )
 
 from ssz.constants import (
+    CHUNK_SIZE,
     OFFSET_SIZE,
 )
 from ssz.exceptions import (
@@ -27,6 +28,7 @@ from ssz.sedes.base import (
     BaseSedes,
     BasicSedes,
     CompositeSedes,
+    TSedes,
 )
 from ssz.utils import (
     merkleize,
@@ -44,6 +46,7 @@ EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
     is_fixed_sized = False
+    max_length = 0
 
     def get_fixed_size(self):
         raise NotImplementedError("Empty list does not implement `get_fixed_size`")
@@ -70,12 +73,20 @@ empty_list = EmptyList()
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
 
 
+def get_item_length(sedes: BaseSedes) -> int:
+    if isinstance(sedes, BasicSedes):
+        return sedes.size
+    else:
+        return CHUNK_SIZE
+
+
 class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
-                 element_sedes: BaseSedes[TSerializable, TDeserialized] = None,
-                 ) -> None:
+                 element_sedes: TSedes,
+                 max_length: int) -> None:
         # This sedes object corresponds to each element of the iterable
         self.element_sedes = element_sedes
+        self.max_length = max_length
 
     #
     # Size
@@ -98,9 +109,9 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             data = stream.read()
             if len(data) % element_size != 0:
                 raise DeserializationError(
-                    f"Invalid length. List is comprised of a fixed size sedes "
+                    f"Invalid max_length. List is comprised of a fixed size sedes "
                     f"but total serialized data is not an even multiple of the "
-                    f"element size. data length: {len(data)}  element size: "
+                    f"element size. data max_length: {len(data)}  element size: "
                     f"{element_size}"
                 )
             for start_idx in range(0, len(data), element_size):
@@ -142,20 +153,17 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     # Tree hashing
     #
     def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
-        if len(value) == 0:
-            return EMPTY_LIST_HASH_TREE_ROOT
-        elif isinstance(self.element_sedes, BasicSedes):
+        if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element)
                 for element in value
             )
-            length = len(serialized_items)
             merkle_leaves = pack(serialized_items)
         else:
             merkle_leaves = tuple(
                 self.element_sedes.hash_tree_root(element)
                 for element in value
             )
-            length = len(merkle_leaves)
-
-        return mix_in_length(merkleize(merkle_leaves), length)
+        base_size = self.max_length * get_item_length(self.element_sedes)
+        chunk_count = (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
+        return mix_in_length(merkleize(merkle_leaves, pad_for=chunk_count), len(value))

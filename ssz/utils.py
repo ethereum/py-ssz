@@ -1,5 +1,4 @@
 import collections
-import math
 from typing import (
     IO,
     Sequence,
@@ -10,17 +9,14 @@ from eth_typing import (
     Hash32,
 )
 from eth_utils.toolz import (
-    first,
-    iterate,
-    last,
     partition,
-    take,
 )
 
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
     OFFSET_SIZE,
+    ZERO_HASHES,
 )
 from ssz.exceptions import (
     DeserializationError,
@@ -72,44 +68,49 @@ def get_items_per_chunk(item_size: int) -> int:
         raise Exception("Invariant: unreachable")
 
 
-def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
-    if len(serialized_values) == 0:
-        return (EMPTY_CHUNK,)
-
-    item_size = len(serialized_values[0])
-    items_per_chunk = get_items_per_chunk(item_size)
-
-    number_of_items = len(serialized_values)
-    number_of_chunks = (number_of_items + (items_per_chunk - 1)) // items_per_chunk
-
-    chunk_partitions = partition(items_per_chunk, serialized_values, pad=b"")
-    chunks_unpadded = (b"".join(chunk_partition) for chunk_partition in chunk_partitions)
-
-    full_chunks = tuple(Hash32(chunk) for chunk in take(number_of_chunks - 1, chunks_unpadded))
-    last_chunk = first(chunks_unpadded)
-    if len(tuple(chunks_unpadded)) > 0:
-        raise Exception("Invariant: all chunks have been taken")
-
-    return full_chunks + (Hash32(last_chunk.ljust(CHUNK_SIZE, b"\x00")),)
+def pad_zeros(value: bytes) -> bytes:
+    if len(value) >= CHUNK_SIZE:
+        raise ValueError(
+            f"The length of given value {len(value)} should be less than CHUNK_SIZE ({CHUNK_SIZE})"
+        )
+    return value.ljust(CHUNK_SIZE, b"\x00")
 
 
-def pack_bytes(byte_string: bytes) -> Tuple[Hash32]:
-    size = len(byte_string)
-    if size == 0:
-        return (EMPTY_CHUNK,)
-
+def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
+    size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
     last_chunk_is_full = size % CHUNK_SIZE == 0
 
     full_chunks = tuple(
-        byte_string[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
+        packed_data[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
         for chunk_index in range(number_of_full_chunks)
     )
     if last_chunk_is_full:
         return full_chunks
     else:
-        last_chunk = byte_string[number_of_full_chunks * CHUNK_SIZE:].ljust(CHUNK_SIZE, b"\x00")
+        last_chunk = pad_zeros(packed_data[number_of_full_chunks * CHUNK_SIZE:])
         return full_chunks + (last_chunk,)
+
+
+def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
+    if len(serialized_values) == 0:
+        return (EMPTY_CHUNK,)
+
+    data = b''.join(serialized_values)
+    return to_chunks(data)
+
+
+def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
+    if len(byte_string) == 0:
+        return (EMPTY_CHUNK,)
+
+    return to_chunks(byte_string)
+
+
+def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
+    as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
+    packed = bytes(as_bytearray)
+    return to_chunks(packed)
 
 
 def get_next_power_of_two(value: int) -> int:
@@ -117,13 +118,6 @@ def get_next_power_of_two(value: int) -> int:
         return 1
     else:
         return 2**(value - 1).bit_length()
-
-
-def pad_chunks(chunks: Sequence[Hash32]) -> Tuple[Hash32, ...]:
-    unpadded_number_of_chunks = len(chunks)
-    padded_number_of_chunks = get_next_power_of_two(unpadded_number_of_chunks)
-    padding = (EMPTY_CHUNK,) * (padded_number_of_chunks - unpadded_number_of_chunks)
-    return tuple(chunks) + padding
 
 
 def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
@@ -138,14 +132,58 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32]) -> Hash32:
-    padded_chunks = pad_chunks(chunks)
-    number_of_layers = int(math.log2(len(padded_chunks))) + 1
+def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
+    chunk_len = len(chunks)
+    chunk_depth = max(chunk_len - 1, 0).bit_length()
+    max_depth = max(chunk_depth, (pad_for - 1).bit_length())
+    if max_depth > len(ZERO_HASHES):
+        raise ValueError(f"The number of layers is greater than {len(ZERO_HASHES)}")
 
-    layers = take(number_of_layers, iterate(hash_layer, padded_chunks))
-    root, = last(layers)
-    return root
+    tmp_list = [None for _ in range(max_depth + 1)]
+
+    def merge(leaf: bytes, leaf_index: int) -> None:
+        node = leaf
+        layer = 0
+        while True:
+            if leaf_index & (1 << layer) == 0:
+                if leaf_index == chunk_len and layer < chunk_depth:
+                    # Keep going if we are complementing the void to the next power of 2
+                    node = hash_eth2(node + ZERO_HASHES[layer])
+                else:
+                    break
+            else:
+                node = hash_eth2(tmp_list[layer] + node)
+            layer += 1
+        tmp_list[layer] = node
+
+    # Merge in leaf by leaf.
+    for leaf_index in range(chunk_len):
+        merge(chunks[leaf_index], leaf_index)
+
+    # Complement with 0 if empty, or if not the right power of 2
+    if 1 << chunk_depth != chunk_len:
+        merge(ZERO_HASHES[0], chunk_len)
+
+    # The next power of two may be smaller than the ultimate virtual size,
+    # complement with zero-hashes at each depth.
+    for layer in range(chunk_depth, max_depth):
+        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
+
+    return tmp_list[max_depth]
 
 
 def mix_in_length(root: Hash32, length: int) -> Hash32:
     return hash_eth2(root + length.to_bytes(CHUNK_SIZE, "little"))
+
+
+def get_serialized_bytearray(value: Sequence[bool], bit_count: int, extra_byte: bool) -> bytearray:
+    if extra_byte:
+        # Serialize Bitlist
+        as_bytearray = bytearray(bit_count // 8 + 1)
+    else:
+        # Serialize Bitvector
+        as_bytearray = bytearray((bit_count + 7) // 8)
+
+    for i in range(bit_count):
+        as_bytearray[i // 8] |= value[i] << (i % 8)
+    return as_bytearray
