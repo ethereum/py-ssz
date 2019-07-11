@@ -7,7 +7,7 @@ import pytest
 from ssz.constants import (
     CHUNK_SIZE,
     EMPTY_CHUNK,
-    ZERO_HASHES,
+    MAX_ZERO_HASHES_LAYER,
 )
 from ssz.hash import (
     hash_eth2,
@@ -74,8 +74,8 @@ def test_merkleize(chunks, root):
 
 
 @pytest.mark.parametrize(("pad_for", "success"), (
-    (2**len(ZERO_HASHES), True),
-    (2**len(ZERO_HASHES) + 1, False),
+    (2**MAX_ZERO_HASHES_LAYER, True),
+    (2**MAX_ZERO_HASHES_LAYER + 1, False),
 ))
 def test_merkleize_edge_case(pad_for, success):
     chunks = (A_CHUNK,)

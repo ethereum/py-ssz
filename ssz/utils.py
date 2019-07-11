@@ -107,10 +107,8 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     return to_chunks(byte_string)
 
 
-def pack_bits(values) -> Tuple[Hash32]:
-    as_bytearray = [0] * ((len(values) + 7) // 8)
-    for i in range(len(values)):
-        as_bytearray[i // 8] |= values[i] << (i % 8)
+def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
+    as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)
     return to_chunks(packed)
 
@@ -178,12 +176,13 @@ def mix_in_length(root: Hash32, length: int) -> Hash32:
     return hash_eth2(root + length.to_bytes(CHUNK_SIZE, "little"))
 
 
-def get_serialized_bytearray(value: Sequence[bool], bit_count: int, is_vector=True) -> bytearray:
-    if is_vector:
-        as_bytearray = bytearray((bit_count + 7) // 8)
-    else:
-        # Bitlist
+def get_serialized_bytearray(value: Sequence[bool], bit_count: int, extra_byte: bool) -> bytearray:
+    if extra_byte:
+        # Serialize Bitlist
         as_bytearray = bytearray(bit_count // 8 + 1)
+    else:
+        # Serialize Bitvector
+        as_bytearray = bytearray((bit_count + 7) // 8)
 
     for i in range(bit_count):
         as_bytearray[i // 8] |= value[i] << (i % 8)

@@ -21,4 +21,10 @@ OFFSET_SIZE = 4
 FIELDS_META_ATTR = "fields"
 
 ZERO_BYTES32 = b'\x00' * 32
-ZERO_HASHES = tuple(take(100, iterate(lambda child: hash_eth2(child + child), ZERO_BYTES32)))
+MAX_ZERO_HASHES_LAYER = 100
+ZERO_HASHES = tuple(
+    take(
+        MAX_ZERO_HASHES_LAYER,
+        iterate(lambda child: hash_eth2(child + child), ZERO_BYTES32)
+    )
+)

@@ -49,7 +49,7 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
                 f"Cannot serialize length {len_value} bit array as Bitlist[{self.max_bit_count}]"
             )
 
-        serialized_bytearray = get_serialized_bytearray(value, len_value, is_vector=False)
+        serialized_bytearray = get_serialized_bytearray(value, len_value, extra_byte=True)
         serialized_bytearray[len_value // 8] |= 1 << (len_value % 8)
         return bytes(serialized_bytearray)
 

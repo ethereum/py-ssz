@@ -45,7 +45,7 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
             raise SerializationError(
                 f"Cannot serialize length {len(value)} bit array as Bitvector[{self.bit_count}]"
             )
-        return bytes(get_serialized_bytearray(value, self.bit_count))
+        return bytes(get_serialized_bytearray(value, self.bit_count, extra_byte=False))
 
     def _get_empty_bytearray(self) -> bytearray:
         return bytearray((self.bit_count + 7) // 8)
