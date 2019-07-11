@@ -3,6 +3,10 @@ from typing import (
     Union,
 )
 
+from eth_utils import (
+    to_tuple,
+)
+
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -49,16 +53,15 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     # Deserialization
     #
+    @to_tuple
     def deserialize(self, data: bytes) -> bytes:
         if len(data) * 8 > self.bit_count:
             raise DeserializationError(
                 f"Cannot deserialize length {len(data)} bytes data as Bitvector[{self.bit_count}]"
             )
 
-        return tuple(
-            bool((data[index // 8] >> index % 8) % 2)
-            for index in range(self.bit_count)
-        )
+        for bit_index in range(self.bit_count):
+            yield bool((data[bit_index // 8] >> bit_index % 8) % 2)
 
     #
     # Tree hashing

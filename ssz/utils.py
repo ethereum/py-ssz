@@ -76,7 +76,7 @@ def pad_zeros(value: bytes) -> bytes:
     return value.ljust(CHUNK_SIZE, b"\x00")
 
 
-def to_chunks(packed_data) -> Tuple[bytes, ...]:
+def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
     last_chunk_is_full = size % CHUNK_SIZE == 0
