@@ -66,7 +66,7 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     # Tree hashing
     #
     @abstractmethod
-    def hash_tree_root(self, value: TSerializable) -> bytes:
+    def get_hash_tree_root(self, value: TSerializable) -> bytes:
         pass
 
 
@@ -91,7 +91,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: TSerializable) -> bytes:
+    def get_hash_tree_root(self, value: TSerializable) -> bytes:
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
 

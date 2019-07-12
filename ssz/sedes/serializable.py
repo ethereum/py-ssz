@@ -143,7 +143,7 @@ class BaseSerializable(collections.Sequence):
         if not satisfies_class_relationship:
             return False
         else:
-            return self.root == other.root
+            return self.hash_tree_root == other.hash_tree_root
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -158,7 +158,7 @@ class BaseSerializable(collections.Sequence):
 
     def __hash__(self):
         if self._hash_cache is None:
-            self._hash_cache = hash(self.__class__) * int.from_bytes(self.root, "little")
+            self._hash_cache = hash(self.__class__) * int.from_bytes(self.hash_tree_root, "little")
         return self._hash_cache
 
     def copy(self, *args, **kwargs):
@@ -185,13 +185,13 @@ class BaseSerializable(collections.Sequence):
     def __deepcopy__(self, *args):
         return self.copy()
 
-    _root_cache = None
+    _hash_tree_root_cache = None
 
     @property
-    def root(self):
-        if self._root_cache is None:
-            self._root_cache = ssz.hash_tree_root(self)
-        return self._root_cache
+    def hash_tree_root(self):
+        if self._hash_tree_root_cache is None:
+            self._hash_tree_root_cache = ssz.get_hash_tree_root(self)
+        return self._hash_tree_root_cache
 
 
 def make_immutable(value):
@@ -370,8 +370,8 @@ class MetaSerializable(abc.ABCMeta):
         deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
-    def hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        return cls._meta.container_sedes.hash_tree_root(value)
+    def get_hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
+        return cls._meta.container_sedes.get_hash_tree_root(value)
 
     @property
     def is_fixed_sized(cls):

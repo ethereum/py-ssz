@@ -33,10 +33,10 @@ def uint_and_value_strategy(draw):
     ),
 )
 def test_boolean(value, expected):
-    assert ssz.hash_tree_root(value, boolean) == expected
+    assert ssz.get_hash_tree_root(value, boolean) == expected
 
 
 @given(uint_and_value_strategy())
 def test_uint(uint_and_value):
     uint, value = uint_and_value
-    assert ssz.hash_tree_root(value, uint) == ssz.encode(value, uint).ljust(CHUNK_SIZE, b"\x00")
+    assert ssz.get_hash_tree_root(value, uint) == ssz.encode(value, uint).ljust(CHUNK_SIZE, b"\x00")

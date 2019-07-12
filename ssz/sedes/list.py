@@ -61,7 +61,7 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
             raise DeserializationError("Cannot deserialize non-empty bytes using `EmptyList` sedes")
         return tuple()
 
-    def hash_tree_root(self, value: Sequence[TSerializable]) -> bytes:
+    def get_hash_tree_root(self, value: Sequence[TSerializable]) -> bytes:
         if len(value):
             raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
         return EMPTY_LIST_HASH_TREE_ROOT
@@ -152,7 +152,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
+    def get_hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element)
@@ -161,7 +161,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             merkle_leaves = pack(serialized_items)
         else:
             merkle_leaves = tuple(
-                self.element_sedes.hash_tree_root(element)
+                self.element_sedes.get_hash_tree_root(element)
                 for element in value
             )
         base_size = self.max_length * get_item_length(self.element_sedes)

@@ -54,7 +54,7 @@ E_BYTES = b"\xee" * 16
 def test_vector_of_basics(serialized_uints128, result):
     sedes = Vector(uint128, len(serialized_uints128))
     int_values = tuple(ssz.decode(value, uint128) for value in serialized_uints128)
-    assert ssz.hash_tree_root(int_values, sedes) == result
+    assert ssz.get_hash_tree_root(int_values, sedes) == result
 
 
 @pytest.mark.parametrize(
@@ -83,7 +83,7 @@ def test_vector_of_basics(serialized_uints128, result):
 def test_list_of_basic(serialized_uints128, max_length, result):
     # item_length = 128 / 8 = 16
     int_values = tuple(ssz.decode(value, uint128) for value in serialized_uints128)
-    assert ssz.hash_tree_root(int_values, List(uint128, max_length)) == result
+    assert ssz.get_hash_tree_root(int_values, List(uint128, max_length)) == result
 
 
 @pytest.mark.parametrize(
@@ -106,7 +106,7 @@ def test_list_of_basic(serialized_uints128, max_length, result):
 )
 def test_vector_of_composite(bytes16_vector, result):
     sedes = Vector(ByteVector(16), len(bytes16_vector))
-    assert ssz.hash_tree_root(bytes16_vector, sedes) == result
+    assert ssz.get_hash_tree_root(bytes16_vector, sedes) == result
 
 
 @pytest.mark.parametrize(
@@ -138,7 +138,7 @@ def test_vector_of_composite(bytes16_vector, result):
 def test_list_of_composite(bytes16_list, max_length, result):
     # item_length = 32
     sedes = List(bytes16, max_length)
-    assert ssz.hash_tree_root(bytes16_list, sedes) == result
+    assert ssz.get_hash_tree_root(bytes16_list, sedes) == result
 
 
 @pytest.mark.parametrize(
@@ -160,7 +160,7 @@ def test_list_of_composite(bytes16_list, max_length, result):
 )
 def test_container(bytes16_fields, result):
     sedes = Container(tuple(itertools.repeat(bytes16, len(bytes16_fields))))
-    assert ssz.hash_tree_root(bytes16_fields, sedes) == result
+    assert ssz.get_hash_tree_root(bytes16_fields, sedes) == result
 
 
 @pytest.mark.parametrize(
@@ -172,7 +172,7 @@ def test_container(bytes16_fields, result):
 )
 def test_bitvector(size, value, result):
     foo = Bitvector(size)
-    assert ssz.hash_tree_root(value, foo) == result
+    assert ssz.get_hash_tree_root(value, foo) == result
 
 
 @pytest.mark.parametrize(
@@ -186,4 +186,4 @@ def test_bitvector(size, value, result):
 )
 def test_bitlist(size, value, result):
     foo = Bitlist(size)
-    assert ssz.hash_tree_root(value, foo) == result
+    assert ssz.get_hash_tree_root(value, foo) == result

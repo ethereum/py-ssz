@@ -14,8 +14,8 @@ from ssz.sedes.base import (
 )
 
 
-def hash_tree_root(value: Any, sedes: BaseSedes = None) -> Hash32:
+def get_hash_tree_root(value: Any, sedes: BaseSedes = None) -> Hash32:
     if sedes is None:
         sedes = infer_sedes(value)
 
-    return sedes.hash_tree_root(value)
+    return sedes.get_hash_tree_root(value)

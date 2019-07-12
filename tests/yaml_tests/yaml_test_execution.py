@@ -94,7 +94,7 @@ def execute_tree_hash_test_case(test_case):
     sedes = parse_type_definition(test_case["type"])
     value = from_formatted_dict(test_case["value"], sedes, CustomCodec)
     expected_root = decode_hex(test_case["root"])
-    calculated_root = ssz.hash_tree_root(value, sedes)
+    calculated_root = ssz.get_hash_tree_root(value, sedes)
     assert calculated_root == expected_root
 
 

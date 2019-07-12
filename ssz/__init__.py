@@ -42,5 +42,5 @@ from .sedes import (  # noqa: F401
     uint256,
 )
 from .tree_hash import (  # noqa: F401
-    hash_tree_root,
+    get_hash_tree_root,
 )
