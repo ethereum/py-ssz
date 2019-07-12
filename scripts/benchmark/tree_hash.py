@@ -100,7 +100,7 @@ def prepare_byte_vector_benchmark():
 
     def benchmark():
         for data_item in data:
-            ssz.hash_tree_root(data_item, byte_vector)
+            ssz.get_hash_tree_root(data_item, byte_vector)
 
     return benchmark
 
@@ -117,7 +117,7 @@ def prepare_byte_list_benchmark():
 
     def benchmark():
         for data_item in data:
-            ssz.hash_tree_root(data_item, byte_list)
+            ssz.get_hash_tree_root(data_item, byte_list)
 
     return benchmark
 
@@ -126,7 +126,7 @@ def prepare_state_benchmark():
     state = make_state(2**15)
 
     def benchmark():
-        ssz.hash_tree_root(state)
+        ssz.get_hash_tree_root(state)
 
     return benchmark
 

@@ -101,7 +101,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: Sequence[Any]) -> bytes:
+    def get_hash_tree_root(self, value: Sequence[Any]) -> bytes:
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(
                 self.element_sedes.serialize(element)
@@ -110,7 +110,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             return merkleize(pack(serialized_elements))
         else:
             element_tree_hashes = tuple(
-                self.element_sedes.hash_tree_root(element)
+                self.element_sedes.get_hash_tree_root(element)
                 for element in value
             )
             return merkleize(element_tree_hashes)

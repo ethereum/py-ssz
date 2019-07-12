@@ -65,4 +65,4 @@ BaseSedes.register(MetaSignedSerializable)
 class SignedSerializable(BaseSerializable, metaclass=MetaSignedSerializable):
     @property
     def signing_root(self):
-        return ssz.hash_tree_root(self, self._meta.signed_container_sedes)
+        return ssz.get_hash_tree_root(self, self._meta.signed_container_sedes)

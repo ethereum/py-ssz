@@ -72,7 +72,7 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: Sequence[bool]) -> bytes:
+    def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(merkleize(pack_bits(value)), len(value))
 
 

@@ -150,4 +150,4 @@ def test_root():
         )
 
     test = Test(1, 2)
-    assert test.root == ssz.hash_tree_root(test, Test)
+    assert test.hash_tree_root == ssz.get_hash_tree_root(test, Test)

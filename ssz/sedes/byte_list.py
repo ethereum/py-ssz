@@ -27,7 +27,7 @@ class ByteList(BaseCompositeSedes[BytesOrByteArray, bytes]):
     def deserialize(self, data: bytes) -> bytes:
         return data
 
-    def hash_tree_root(self, value: bytes) -> bytes:
+    def get_hash_tree_root(self, value: bytes) -> bytes:
         merkle_leaves = pack_bytes(value)
         merkleized = merkleize(merkle_leaves)
         return mix_in_length(merkleized, len(value))

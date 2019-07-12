@@ -155,9 +155,9 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Tree hashing
     #
-    def hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
+    def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
         merkle_leaves = tuple(
-            sedes.hash_tree_root(element)
+            sedes.get_hash_tree_root(element)
             for element, sedes in zip(value, self.field_sedes)
         )
         return merkleize(merkle_leaves)

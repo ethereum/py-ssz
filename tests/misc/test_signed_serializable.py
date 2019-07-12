@@ -57,7 +57,7 @@ def test_signing_root():
 
     signed = Signed(123, b"\xaa", b"\x00")
     unsigned = Unsigned(123, b"\xaa")
-    assert signed.signing_root == unsigned.root
+    assert signed.signing_root == unsigned.hash_tree_root
 
 
 def test_equality():
