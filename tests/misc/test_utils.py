@@ -73,17 +73,17 @@ def test_merkleize(chunks, root):
     assert merkleize(chunks) == root
 
 
-@pytest.mark.parametrize(("pad_for", "success"), (
+@pytest.mark.parametrize(("limit", "success"), (
     (2**MAX_ZERO_HASHES_LAYER, True),
     (2**MAX_ZERO_HASHES_LAYER + 1, False),
 ))
-def test_merkleize_edge_case(pad_for, success):
+def test_merkleize_edge_case(limit, success):
     chunks = (A_CHUNK,)
     if success:
-        merkleize(chunks, pad_for=pad_for)
+        merkleize(chunks, limit=limit)
     else:
         with pytest.raises(ValueError):
-            merkleize(chunks, pad_for=pad_for)
+            merkleize(chunks, limit=limit)
 
 
 @pytest.mark.parametrize(("root", "length", "result"), (

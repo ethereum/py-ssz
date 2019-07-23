@@ -166,4 +166,4 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             )
         base_size = self.max_length * get_item_length(self.element_sedes)
         chunk_count = (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        return mix_in_length(merkleize(merkle_leaves, pad_for=chunk_count), len(value))
+        return mix_in_length(merkleize(merkle_leaves, limit=chunk_count), len(value))

@@ -132,10 +132,17 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32], pad_for=1) -> Hash32:
+def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
     chunk_len = len(chunks)
+
+    if limit is None:
+        limit = chunk_len
+
+    if limit == 0:
+        return ZERO_HASHES[0]
+
     chunk_depth = max(chunk_len - 1, 0).bit_length()
-    max_depth = max(chunk_depth, (pad_for - 1).bit_length())
+    max_depth = max(chunk_depth, (limit - 1).bit_length())
     if max_depth > len(ZERO_HASHES):
         raise ValueError(f"The number of layers is greater than {len(ZERO_HASHES)}")
 
