@@ -29,8 +29,11 @@ class ByteList(BaseCompositeSedes[BytesOrByteArray, bytes]):
 
     def get_hash_tree_root(self, value: bytes) -> bytes:
         merkle_leaves = pack_bytes(value)
-        merkleized = merkleize(merkle_leaves)
+        merkleized = merkleize(merkle_leaves, limit=self.chunk_count())
         return mix_in_length(merkleized, len(value))
+
+    def chunk_count(self) -> int:
+        pass
 
 
 byte_list = ByteList()

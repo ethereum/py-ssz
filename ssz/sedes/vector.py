@@ -15,6 +15,9 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
+from ssz.constants import (
+    CHUNK_SIZE,
+)
 from ssz.exceptions import (
     SerializationError,
 )
@@ -114,3 +117,10 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
                 for element in value
             )
             return merkleize(element_tree_hashes)
+
+    def chunk_count(self) -> int:
+        if isinstance(self.element_sedes, BasicSedes):
+            base_size = self.length * self.element_sedes.get_fixed_size()
+            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
+        else:
+            return self.length

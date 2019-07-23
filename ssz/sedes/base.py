@@ -69,6 +69,10 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     def get_hash_tree_root(self, value: TSerializable) -> bytes:
         pass
 
+    @abstractmethod
+    def chunk_count(self) -> int:
+        pass
+
 
 TSedes = BaseSedes[Any, Any]
 
@@ -94,6 +98,9 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     def get_hash_tree_root(self, value: TSerializable) -> bytes:
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
+
+    def chunk_count(self) -> int:
+        return 1
 
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
