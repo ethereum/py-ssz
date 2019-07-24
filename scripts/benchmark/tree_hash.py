@@ -115,8 +115,6 @@ def prepare_state_benchmark():
 
 if __name__ == '__main__':
     benchmarks = {
-        # "byte_vector": prepare_byte_vector_benchmark(),
-        # "byte_list": prepare_byte_list_benchmark(),
         "state": prepare_state_benchmark(),
     }
     results = {}

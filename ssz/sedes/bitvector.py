@@ -66,3 +66,6 @@ class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         chunk_count = (self.bit_count + 255) // 256
         return merkleize(pack_bits(value), limit=chunk_count)
+
+    def chunk_count(self) -> int:
+        return (self.bit_count + 255) // 256

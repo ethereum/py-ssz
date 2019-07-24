@@ -66,18 +66,14 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
             raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
         return EMPTY_LIST_HASH_TREE_ROOT
 
+    def chunk_count(self) -> int:
+        return 0
+
 
 empty_list = EmptyList()
 
 
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
-
-
-def get_item_length(sedes: BaseSedes) -> int:
-    if isinstance(sedes, BasicSedes):
-        return sedes.size
-    else:
-        return CHUNK_SIZE
 
 
 class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
@@ -164,6 +160,12 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
                 self.element_sedes.get_hash_tree_root(element)
                 for element in value
             )
-        base_size = self.max_length * get_item_length(self.element_sedes)
-        chunk_count = (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        return mix_in_length(merkleize(merkle_leaves, limit=chunk_count), len(value))
+
+        return mix_in_length(merkleize(merkle_leaves, limit=self.chunk_count()), len(value))
+
+    def chunk_count(self) -> int:
+        if isinstance(self.element_sedes, BasicSedes):
+            base_size = self.max_length * self.element_sedes.get_fixed_size()
+            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
+        else:
+            return self.max_length

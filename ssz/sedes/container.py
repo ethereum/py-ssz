@@ -161,3 +161,6 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
             for element, sedes in zip(value, self.field_sedes)
         )
         return merkleize(merkle_leaves)
+
+    def chunk_count(self) -> int:
+        return len(self.field_sedes)

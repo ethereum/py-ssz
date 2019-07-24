@@ -73,8 +73,10 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
-        chunk_count = (self.max_bit_count + 255) // 256
-        return mix_in_length(merkleize(pack_bits(value), limit=chunk_count), len(value))
+        return mix_in_length(merkleize(pack_bits(value), limit=self.chunk_count()), len(value))
+
+    def chunk_count(self) -> int:
+        return (self.max_bit_count + 255) // 256
 
 
 def get_bitlist_len(x: int) -> int:
