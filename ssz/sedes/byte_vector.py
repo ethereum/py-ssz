@@ -60,7 +60,9 @@ class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
         return merkleize(pack_bytes(serialized_value))
 
 
+bytes1 = ByteVector(1)
 bytes4 = ByteVector(4)
+bytes8 = ByteVector(8)
 bytes32 = ByteVector(32)
 bytes48 = ByteVector(48)
 bytes96 = ByteVector(96)

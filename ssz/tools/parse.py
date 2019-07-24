@@ -14,7 +14,6 @@ from ssz.sedes import (
     Bitlist,
     Bitvector,
     Boolean,
-    ByteList,
     ByteVector,
     Container,
     List,
@@ -39,7 +38,7 @@ def parse(value, sedes, codec=DefaultCodec):
         return parse_boolean(value, sedes, codec)
     elif isinstance(sedes, UInt):
         return parse_integer(value, sedes, codec)
-    elif isinstance(sedes, (ByteList, ByteVector)):
+    elif isinstance(sedes, ByteVector):
         return parse_bytes(value, sedes, codec)
     elif isinstance(sedes, List):
         return parse_list(value, sedes, codec)

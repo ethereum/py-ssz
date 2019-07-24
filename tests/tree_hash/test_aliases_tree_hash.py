@@ -7,10 +7,8 @@ import pytest
 import ssz
 from ssz.sedes import (
     ByteVector,
-    List,
     Vector,
     byte,
-    byte_list,
     uint8,
 )
 
@@ -22,16 +20,6 @@ from ssz.sedes import (
 def test_byte(value):
     expected = ssz.get_hash_tree_root(int.from_bytes(value, byteorder="little"), uint8)
     assert ssz.get_hash_tree_root(value, byte) == expected
-
-
-@given(st.binary())
-def test_byte_list(value):
-    byte_sequence = tuple(bytes([byte_value]) for byte_value in value)
-    max_length = ssz.utils.get_next_power_of_two(len(value))
-    assert (
-        ssz.get_hash_tree_root(value, byte_list) ==
-        ssz.get_hash_tree_root(byte_sequence, List(byte, max_length))
-    )
 
 
 @given(st.binary())

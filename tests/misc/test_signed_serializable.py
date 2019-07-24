@@ -2,7 +2,7 @@ import pytest
 
 import ssz
 from ssz.sedes import (
-    byte_list,
+    bytes1,
     uint8,
 )
 
@@ -15,13 +15,13 @@ def test_field_number_check():
     with pytest.raises(TypeError):
         class TestB(ssz.SignedSerializable):
             fields = (
-                ("signature", byte_list),
+                ("signature", bytes1),
             )
 
     class TestC(ssz.SignedSerializable):
         fields = (
             ("field1", uint8),
-            ("signature", byte_list),
+            ("signature", bytes1),
         )
 
 
@@ -30,14 +30,14 @@ def test_field_name_check():
         class TestA(ssz.SignedSerializable):
             fields = (
                 ("field1", uint8),
-                ("field2", byte_list),
+                ("field2", bytes1),
             )
 
     with pytest.raises(TypeError):
         class TestB(ssz.SignedSerializable):
             fields = (
                 ("signature", uint8),
-                ("field1", byte_list),
+                ("field1", bytes1),
             )
 
 
@@ -45,14 +45,14 @@ def test_signing_root():
     class Signed(ssz.SignedSerializable):
         fields = (
             ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
+            ("field2", bytes1),
+            ("signature", bytes1),
         )
 
     class Unsigned(ssz.Serializable):
         fields = (
             ("field1", uint8),
-            ("field2", byte_list),
+            ("field2", bytes1),
         )
 
     signed = Signed(123, b"\xaa", b"\x00")
@@ -64,8 +64,8 @@ def test_equality():
     class SigningFoo(ssz.SignedSerializable):
         fields = (
             ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
+            ("field2", bytes1),
+            ("signature", bytes1),
         )
 
     signed_a = SigningFoo(12, b"\xaa", b"\x00")
@@ -80,8 +80,8 @@ def test_equality():
     class Foo(ssz.Serializable):
         fields = (
             ("field1", uint8),
-            ("field2", byte_list),
-            ("signature", byte_list),
+            ("field2", bytes1),
+            ("signature", bytes1),
         )
 
     foo = Foo(

@@ -6,7 +6,6 @@ from ssz.sedes import (
     SignedSerializable,
     Vector,
     boolean,
-    byte_list,
     bytes32,
     bytes48,
     bytes96,
@@ -17,7 +16,7 @@ from ssz.sedes import (
 class ClockInRecords(SignedSerializable):
     fields = [
         ('epoch', uint64),
-        ('bio_id_scan', byte_list),
+        ('bio_id_scan', bytes32),
         ('poo_log_bits', Bitlist(32)),
         ('wash_log_bits', Bitvector(32)),
         ('signature', bytes96),
@@ -45,14 +44,14 @@ octopus = Animal(
     clock_in_records=(
         ClockInRecords(
             epoch=123,
-            bio_id_scan=b'\xab' * 16,
+            bio_id_scan=b'\xab' * 32,
             signature=b'\xab' * 96,
             poo_log_bits=(True,) * 16 + (False,) * 16,
             wash_log_bits=(False,) * 16 + (True,) * 16,
         ),
         ClockInRecords(
             epoch=124,
-            bio_id_scan=b'\xab' * 16,
+            bio_id_scan=b'\xab' * 32,
             signature=b'\xab' * 96,
             poo_log_bits=(True,) * 16 + (False,) * 16,
             wash_log_bits=(False,) * 16 + (True,) * 16,
@@ -66,7 +65,7 @@ corgi = Animal(
     clock_in_records=(
         ClockInRecords(
             epoch=125,
-            bio_id_scan=b'\xcd' * 16,
+            bio_id_scan=b'\xcd' * 32,
             signature=b'\xcd' * 96,
             poo_log_bits=(True,) * 16 + (False,) * 16,
             wash_log_bits=(False,) * 16 + (True,) * 16,

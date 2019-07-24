@@ -7,10 +7,8 @@ from ssz.exceptions import (
 )
 from ssz.sedes import (
     ByteVector,
-    List,
     Vector,
     byte,
-    byte_list,
 )
 
 
@@ -35,23 +33,6 @@ def test_byte_invalid_length(value):
         ssz.encode(value, byte)
     with pytest.raises(DeserializationError):
         ssz.decode(value, byte)
-
-
-@pytest.mark.parametrize(
-    "value",
-    (
-        b"",
-        b"\x00",
-        b"\x00\x01\x02\x03",
-    )
-)
-def test_byte_list(value):
-    serialized_value = ssz.encode(value, byte_list)
-    assert serialized_value == ssz.encode(
-        tuple(bytes([byte_value]) for byte_value in value),
-        List(byte, 2**32),
-    )
-    assert ssz.decode(serialized_value, byte_list) == value
 
 
 @pytest.mark.parametrize(
