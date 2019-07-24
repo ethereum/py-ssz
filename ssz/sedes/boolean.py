@@ -33,9 +33,6 @@ class Boolean(BasicSedes[bool, bool]):
                 f"{encode_hex(data)})",
             )
 
-    def chunk_count(self) -> int:
-        return 1
-
 
 class Bit(Boolean):
     pass
