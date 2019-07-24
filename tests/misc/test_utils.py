@@ -45,12 +45,6 @@ def test_pack(values, packed):
     assert pack(values) == packed
 
 
-@given(st.binary())
-def test_pack_bytes(data):
-    byte_list = tuple(bytes([byte]) for byte in data)
-    assert pack_bytes(data) == pack(byte_list)
-
-
 @pytest.mark.parametrize(("chunks", "root"), (
     (
         (A_CHUNK,),
