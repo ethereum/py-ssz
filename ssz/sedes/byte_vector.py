@@ -59,6 +59,14 @@ class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
         serialized_value = self.serialize(value)
         return merkleize(pack_bytes(serialized_value))
 
+    def get_hash_tree_root_and_leaves(self, value: bytes, merkle_leaves_dict) -> bytes:
+        serialized_value = self.serialize(value)
+        root, merkle_leaves_dict = merkleize(
+            pack_bytes(serialized_value),
+            merkle_leaves_dict=merkle_leaves_dict,
+        )
+        return root, merkle_leaves_dict
+
     def chunk_count(self) -> int:
         return self.length * self.size
 

@@ -134,14 +134,17 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
+def merkleize(chunks: Sequence[Hash32], limit: int=None, merkle_leaves_dict=None) -> Hash32:
     chunk_len = len(chunks)
 
     if limit is None:
         limit = chunk_len
 
     if limit == 0:
-        return ZERO_HASHES[0]
+        if merkle_leaves_dict is None:
+            return ZERO_HASHES[0]
+        else:
+            return ZERO_HASHES[0], merkle_leaves_dict
 
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
@@ -150,6 +153,9 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
 
     tmp_list = [None for _ in range(max_depth + 1)]
 
+    # if merkle_leaves_dict is not None:
+    #     print(len(merkle_leaves_dict))
+
     def merge(leaf: bytes, leaf_index: int) -> None:
         node = leaf
         layer = 0
@@ -157,13 +163,31 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
             if leaf_index & (1 << layer) == 0:
                 if leaf_index == chunk_len and layer < chunk_depth:
                     # Keep going if we are complementing the void to the next power of 2
-                    node = hash_eth2(node + ZERO_HASHES[layer])
+                    key = node + ZERO_HASHES[layer]
+                    if (merkle_leaves_dict is not None) and key in merkle_leaves_dict:
+                        node = merkle_leaves_dict[key]
+                        # print('hit')
+                    else:
+                        node = hash_eth2(node + ZERO_HASHES[layer])
+                        if merkle_leaves_dict is not None:
+                            merkle_leaves_dict[key] = node
                 else:
                     break
             else:
-                node = hash_eth2(tmp_list[layer] + node)
+                key = tmp_list[layer] + node
+                if (merkle_leaves_dict is not None) and key in merkle_leaves_dict:
+                    node = merkle_leaves_dict[key]
+                    # print('hit')
+                else:
+                    node = hash_eth2(tmp_list[layer] + node)
+                    if merkle_leaves_dict is not None:
+                        merkle_leaves_dict[key] = node
             layer += 1
         tmp_list[layer] = node
+        if merkle_leaves_dict is not None:
+            return merkle_leaves_dict
+        else:
+            return None
 
     # Merge in leaf by leaf.
     for leaf_index in range(chunk_len):
@@ -176,9 +200,25 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
     # The next power of two may be smaller than the ultimate virtual size,
     # complement with zero-hashes at each depth.
     for layer in range(chunk_depth, max_depth):
-        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
+        key = tmp_list[layer] + ZERO_HASHES[layer]
+        if (merkle_leaves_dict is not None) and key in merkle_leaves_dict:
+            tmp_result = merkle_leaves_dict[key]
+            # print('hit')
+        else:
+            tmp_result = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
+            if merkle_leaves_dict is not None:
+                merkle_leaves_dict[key] = tmp_result
 
-    return tmp_list[max_depth]
+        tmp_list[layer + 1] = tmp_result
+
+    result = tmp_list[max_depth]
+
+    if merkle_leaves_dict is not None:
+        # print('merkle_leaves_dict is not None')
+        return result, merkle_leaves_dict
+    else:
+        # print('merkle_leaves_dict is None')
+        return result
 
 
 def mix_in_length(root: Hash32, length: int) -> Hash32:

@@ -2,6 +2,8 @@ import cProfile
 import io
 import pstats
 import random
+import pstats
+import io
 import time
 
 import ssz

@@ -22,6 +22,9 @@ from ssz.sedes.base import (
     CompositeSedes,
     TSedes,
 )
+from ssz.cache import (
+    get_key,
+)
 from ssz.utils import (
     merkleize,
     read_exact,
@@ -162,5 +165,35 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         )
         return merkleize(merkle_leaves)
 
+    def get_hash_tree_root_and_leaves(self, value: Tuple[Any, ...], merkle_leaves_dict) -> bytes:
+        merkle_leaves = ()
+        for element, sedes in zip(value, self.field_sedes):
+            key = sedes.get_key(element)
+            if key not in merkle_leaves_dict or len(key) == 0:
+                if hasattr(sedes, 'get_hash_tree_root_and_leaves'):
+                    root, merkle_leaves_dict = sedes.get_hash_tree_root_and_leaves(
+                        element,
+                        merkle_leaves_dict,
+                    )
+                    merkle_leaves_dict[key] = root
+                else:
+                    merkle_leaves_dict[key] = sedes.get_hash_tree_root(element)
+
+            merkle_leaves += (merkle_leaves_dict[key],)
+
+        return merkleize(merkle_leaves), merkle_leaves_dict
+
     def chunk_count(self) -> int:
         return len(self.field_sedes)
+
+    def serialize(self, value) -> bytes:
+        if hasattr(value, '_serialize_cache') and value._serialize_cache is not None:
+            return value._serialize_cache
+        elif hasattr(value, '_serialize_cache') and value._serialize_cache is None:
+            value._serialize_cache = super().serialize(value)
+            return value._serialize_cache
+        else:
+            return super().serialize(value)
+
+    def get_key(self, value: Any) -> bytes:
+        return get_key(self, value)

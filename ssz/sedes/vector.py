@@ -27,6 +27,9 @@ from ssz.sedes.base import (
     CompositeSedes,
     TSedes,
 )
+from ssz.sedes.container import (
+    Container,
+)
 from ssz.utils import (
     merkleize,
     pack,
@@ -117,6 +120,44 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
                 for element in value
             )
             return merkleize(element_tree_hashes)
+
+    def get_hash_tree_root_and_leaves(self, value: Sequence[Any], merkle_leaves_dict) -> bytes:
+        merkle_leaves = ()
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_elements = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            merkle_leaves = pack(serialized_elements)
+        else:
+            if isinstance(self.element_sedes, Container):
+                for element in value:
+                    key = self.element_sedes.get_key(element)
+                    if key not in merkle_leaves_dict or len(key) == 0:
+                        if hasattr(self.element_sedes, 'get_hash_tree_root_and_leaves'):
+                            root, merkle_leaves_dict = (
+                                self.element_sedes.get_hash_tree_root_and_leaves(
+                                    element,
+                                    merkle_leaves_dict,
+                                )
+                            )
+                            merkle_leaves_dict[key] = root
+                        else:
+                            merkle_leaves_dict[key] = self.element_sedes.get_hash_tree_root(element)
+
+                    merkle_leaves += (merkle_leaves_dict[key],)
+            else:
+                merkle_leaves = tuple(
+                    self.element_sedes.get_hash_tree_root(element)
+                    for element in value
+                )
+
+        merkleize_result, merkle_leaves_dict = merkleize(
+            merkle_leaves,
+            limit=self.chunk_count(),
+            merkle_leaves_dict=merkle_leaves_dict,
+        )
+        return merkleize_result, merkle_leaves_dict
 
     def chunk_count(self) -> int:
         if isinstance(self.element_sedes, BasicSedes):
