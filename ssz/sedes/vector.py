@@ -15,6 +15,10 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
+from ssz.cache import (
+    get_merkle_leaves_with_cache,
+    get_merkle_leaves_without_cache
+)
 from ssz.constants import (
     CHUNK_SIZE,
 )
@@ -26,9 +30,6 @@ from ssz.sedes.base import (
     BasicSedes,
     CompositeSedes,
     TSedes,
-)
-from ssz.sedes.container import (
-    Container,
 )
 from ssz.utils import (
     merkleize,
@@ -130,27 +131,18 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             )
             merkle_leaves = pack(serialized_elements)
         else:
-            if isinstance(self.element_sedes, Container):
-                for element in value:
-                    key = self.element_sedes.get_key(element)
-                    if key not in merkle_leaves_dict or len(key) == 0:
-                        if hasattr(self.element_sedes, 'get_hash_tree_root_and_leaves'):
-                            root, merkle_leaves_dict = (
-                                self.element_sedes.get_hash_tree_root_and_leaves(
-                                    element,
-                                    merkle_leaves_dict,
-                                )
-                            )
-                            merkle_leaves_dict[key] = root
-                        else:
-                            merkle_leaves_dict[key] = self.element_sedes.get_hash_tree_root(element)
-
-                    merkle_leaves += (merkle_leaves_dict[key],)
-            else:
-                merkle_leaves = tuple(
-                    self.element_sedes.get_hash_tree_root(element)
-                    for element in value
+            has_get_hash_tree_root_and_leaves = hasattr(
+                self.element_sedes,
+                'get_hash_tree_root_and_leaves',
+            )
+            if has_get_hash_tree_root_and_leaves:
+                merkle_leaves = get_merkle_leaves_with_cache(
+                    value,
+                    self.element_sedes,
+                    merkle_leaves_dict,
                 )
+            else:
+                merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
 
         merkleize_result, merkle_leaves_dict = merkleize(
             merkle_leaves,

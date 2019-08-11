@@ -193,7 +193,6 @@ class BaseSerializable(collections.Sequence):
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
 
-
     def __copy__(self):
         return self.copy()
 
