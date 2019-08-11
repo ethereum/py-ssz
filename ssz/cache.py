@@ -14,7 +14,7 @@ def get_key(sedes, value):
         return key
 
 
-@functools.lru_cache(maxsize=2**30, typed=False)
+@functools.lru_cache(maxsize=2**30)
 def _get_key(sedes, value):
     return sedes.serialize(value)
 
@@ -41,9 +41,3 @@ def get_merkle_leaves_with_cache(value, element_sedes, merkle_leaves_dict):
             )
             merkle_leaves_dict[key] = root
         yield merkle_leaves_dict[key]
-
-
-@to_tuple
-def get_packed_merkle_leaves_with_cache(value, element_sedes):
-    for element in value:
-        yield element_sedes.get_hash_tree_root(element)

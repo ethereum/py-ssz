@@ -46,7 +46,7 @@ from ssz.utils import (
 TSerializable = TypeVar("TSerializable")
 TDeserialized = TypeVar("TDeserialized")
 
-EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
+EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack(())), 0)
 
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
