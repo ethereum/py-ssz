@@ -25,6 +25,7 @@ from eth_utils.toolz import (
 
 import ssz
 from ssz.constants import (
+    BASE_TYPES,
     FIELDS_META_ATTR,
 )
 from ssz.sedes.base import (
@@ -169,12 +170,22 @@ class BaseSerializable(collections.Sequence):
         ).difference(
             self._meta.field_names[:len(args)]
         )
-        unchanged_kwargs = {
-            key: copy.deepcopy(value)
-            for key, value
-            in self.as_dict().items()
-            if key in missing_overrides
-        }
+        unchanged_kwargs = {}
+        for key, value in self.as_dict().items():
+            if key in missing_overrides:
+                is_immutable_field = (
+                    isinstance(value, BASE_TYPES) or
+                    (
+                        isinstance(value, tuple) and
+                        len(value) > 0 and
+                        isinstance(value[0], BASE_TYPES)
+                    )
+                )
+                if is_immutable_field:
+                    unchanged_kwargs[key] = value
+                else:
+                    unchanged_kwargs[key] = copy.deepcopy(value)
+
         combined_kwargs = dict(**unchanged_kwargs, **kwargs)
         all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
         return type(self)(**all_kwargs)
@@ -182,8 +193,18 @@ class BaseSerializable(collections.Sequence):
     def __copy__(self):
         return self.copy()
 
-    def __deepcopy__(self, *args):
-        return self.copy()
+    def __deepcopy__(self, memodict=None):
+        if memodict is None:
+            memodict = {}
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memodict))
+
+        return result
 
     _hash_tree_root_cache = None
 
