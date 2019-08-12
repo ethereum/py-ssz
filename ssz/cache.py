@@ -26,18 +26,18 @@ def get_merkle_leaves_without_cache(value, element_sedes):
 
 
 @to_tuple
-def get_merkle_leaves_with_cache(value, element_sedes, merkle_leaves_dict):
+def get_merkle_leaves_with_cache(value, element_sedes, db):
     """
-    NOTE: merkle_leaves_dict is mutable
+    NOTE: db is mutable
     """
     for element in value:
         key = element_sedes.get_key(element)
-        if key not in merkle_leaves_dict or len(key) == 0:
-            root, merkle_leaves_dict = (
+        if key not in db or len(key) == 0:
+            root, db = (
                 element_sedes.get_hash_tree_root_and_leaves(
                     element,
-                    merkle_leaves_dict,
+                    db,
                 )
             )
-            merkle_leaves_dict[key] = root
-        yield merkle_leaves_dict[key]
+            db[key] = root
+        yield db[key]

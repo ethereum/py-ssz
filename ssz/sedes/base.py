@@ -106,16 +106,13 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
 
-    def get_hash_tree_root_and_leaves(self, value: TSerializable, merkle_leaves_dict=None) -> bytes:
-        if merkle_leaves_dict is None:
-            merkle_leaves_dict = {}
-
+    def get_hash_tree_root_and_leaves(self, value: TSerializable, db) -> bytes:
         serialized_value = self.serialize(value)
-        root, merkle_leaves_dict = merkleize(
+        root, db = merkleize(
             pack((serialized_value,)),
-            merkle_leaves_dict=merkle_leaves_dict,
+            db=db,
         )
-        return root, merkle_leaves_dict
+        return root, db
 
     def chunk_count(self) -> int:
         return 1

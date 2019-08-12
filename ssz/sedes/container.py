@@ -165,23 +165,23 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         )
         return merkleize(merkle_leaves)
 
-    def get_hash_tree_root_and_leaves(self, value: Tuple[Any, ...], merkle_leaves_dict) -> bytes:
+    def get_hash_tree_root_and_leaves(self, value: Tuple[Any, ...], db) -> bytes:
         merkle_leaves = ()
         for element, sedes in zip(value, self.field_sedes):
             key = sedes.get_key(element)
-            if key not in merkle_leaves_dict or len(key) == 0:
+            if key not in db or len(key) == 0:
                 if hasattr(sedes, 'get_hash_tree_root_and_leaves'):
-                    root, merkle_leaves_dict = sedes.get_hash_tree_root_and_leaves(
+                    root, db = sedes.get_hash_tree_root_and_leaves(
                         element,
-                        merkle_leaves_dict,
+                        db,
                     )
-                    merkle_leaves_dict[key] = root
+                    db[key] = root
                 else:
-                    merkle_leaves_dict[key] = sedes.get_hash_tree_root(element)
+                    db[key] = sedes.get_hash_tree_root(element)
 
-            merkle_leaves += (merkle_leaves_dict[key],)
+            merkle_leaves += (db[key],)
 
-        return merkleize(merkle_leaves), merkle_leaves_dict
+        return merkleize(merkle_leaves), db
 
     def chunk_count(self) -> int:
         return len(self.field_sedes)

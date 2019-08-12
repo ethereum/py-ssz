@@ -122,7 +122,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             )
             return merkleize(element_tree_hashes)
 
-    def get_hash_tree_root_and_leaves(self, value: Sequence[Any], merkle_leaves_dict) -> bytes:
+    def get_hash_tree_root_and_leaves(self, value: Sequence[Any], db) -> bytes:
         merkle_leaves = ()
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(
@@ -139,17 +139,17 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
                 merkle_leaves = get_merkle_leaves_with_cache(
                     value,
                     self.element_sedes,
-                    merkle_leaves_dict,
+                    db,
                 )
             else:
                 merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
 
-        merkleize_result, merkle_leaves_dict = merkleize(
+        merkleize_result, db = merkleize(
             merkle_leaves,
             limit=self.chunk_count(),
-            merkle_leaves_dict=merkle_leaves_dict,
+            db=db,
         )
-        return merkleize_result, merkle_leaves_dict
+        return merkleize_result, db
 
     def chunk_count(self) -> int:
         if isinstance(self.element_sedes, BasicSedes):
