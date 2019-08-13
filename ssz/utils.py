@@ -1,6 +1,7 @@
 import collections
 from typing import (
     IO,
+    Any,
     Sequence,
     Tuple,
 )
@@ -13,6 +14,7 @@ from eth_utils.toolz import (
 )
 
 from ssz.constants import (
+    BASE_TYPES,
     CHUNK_SIZE,
     EMPTY_CHUNK,
     OFFSET_SIZE,
@@ -194,3 +196,13 @@ def get_serialized_bytearray(value: Sequence[bool], bit_count: int, extra_byte: 
     for i in range(bit_count):
         as_bytearray[i // 8] |= value[i] << (i % 8)
     return as_bytearray
+
+
+def is_immutable_field_value(value: Any) -> bool:
+    return (
+        type(value) in BASE_TYPES or
+        (
+            isinstance(value, tuple) and
+            (len(value) == 0 or is_immutable_field_value(value[0]))
+        )
+    )

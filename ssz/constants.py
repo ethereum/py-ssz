@@ -28,3 +28,5 @@ ZERO_HASHES = tuple(
         iterate(lambda child: hash_eth2(child + child), ZERO_BYTES32)
     )
 )
+
+BASE_TYPES = (int, bytes, bool)

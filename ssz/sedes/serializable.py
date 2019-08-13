@@ -35,6 +35,7 @@ from ssz.sedes.container import (
 )
 from ssz.utils import (
     get_duplicates,
+    is_immutable_field_value,
 )
 
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
@@ -170,11 +171,11 @@ class BaseSerializable(collections.Sequence):
             self._meta.field_names[:len(args)]
         )
         unchanged_kwargs = {
-            key: copy.deepcopy(value)
-            for key, value
-            in self.as_dict().items()
+            key: value if is_immutable_field_value(value) else copy.deepcopy(value)
+            for key, value in self.as_dict().items()
             if key in missing_overrides
         }
+
         combined_kwargs = dict(**unchanged_kwargs, **kwargs)
         all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
         return type(self)(**all_kwargs)
@@ -182,8 +183,18 @@ class BaseSerializable(collections.Sequence):
     def __copy__(self):
         return self.copy()
 
-    def __deepcopy__(self, *args):
-        return self.copy()
+    def __deepcopy__(self, memodict=None):
+        if memodict is None:
+            memodict = {}
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memodict))
+
+        return result
 
     _hash_tree_root_cache = None
 

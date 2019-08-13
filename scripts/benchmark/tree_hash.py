@@ -1,114 +1,216 @@
 import cProfile
+import io
+import pstats
 import random
 import time
 
 import ssz
 from ssz.sedes import (
-    ByteVector,
     List,
     Serializable,
+    Vector,
+    boolean,
     bytes32,
     bytes48,
-    uint32,
+    bytes96,
     uint64,
 )
 
 random.seed(0)
 
-do_profiling = False
+do_profiling = True
+
 TOLERABLE_PERFORMANCE = 15  # Seconds
 
+VALIDATOR_REGISTRY_LIMIT = 2**40  # (= 1,099,511,627,776)
+EPOCHS_PER_HISTORICAL_VECTOR = 2**16  # (= 65,536)
 
-class ValidatorRecord(Serializable):
+FAR_FUTURE_EPOCH = 0
+
+
+class BeaconBlockHeader(ssz.SignedSerializable):
+
+    fields = [
+        ('slot', uint64),
+        ('parent_root', bytes32),
+        ('state_root', bytes32),
+        ('body_root', bytes32),
+        ('signature', bytes96),
+    ]
+
+
+class Eth1Data(ssz.Serializable):
+
+    fields = [
+        ('deposit_root', bytes32),
+        ('deposit_count', uint64),
+        ('block_hash', bytes32),
+    ]
+
+    def __init__(self,
+                 deposit_root,
+                 deposit_count,
+                 block_hash) -> None:
+        super().__init__(
+            deposit_root=deposit_root,
+            deposit_count=deposit_count,
+            block_hash=block_hash,
+        )
+
+
+class Validator(ssz.Serializable):
     fields = [
         ('pubkey', bytes48),
         ('withdrawal_credentials', bytes32),
-        ('randao_commitment', bytes32),
-        ('randao_layers', uint64),
-        ('status', uint64),
-        ('latest_status_change_slot', uint64),
-        ('exit_count', uint64),
-        ('poc_commitment', bytes32),
-        ('last_poc_change_slot', uint64),
-        ('second_last_poc_change_slot', uint64),
+        ('effective_balance', uint64),
+        ('slashed', boolean),
+        # Epoch when validator became eligible for activation
+        ('activation_eligibility_epoch', uint64),
+        # Epoch when validator activated
+        ('activation_epoch', uint64),
+        # Epoch when validator exited
+        ('exit_epoch', uint64),
+        # Epoch when validator withdrew
+        ('withdrawable_epoch', uint64),
     ]
 
-
-class CrosslinkRecord(Serializable):
-    fields = [
-        ('slot', uint64),
-        ('shard_block_root', bytes32),
-    ]
-
-
-class ShardCommittee(Serializable):
-    fields = [
-        ('shard', uint64),
-        ('committee', List(uint32)),
-        ('total_validator_count', uint64),
-    ]
+    @classmethod
+    def create_validator(cls, pubkey, withdrawal_credentials):
+        return cls(
+            pubkey=pubkey,
+            withdrawal_credentials=withdrawal_credentials,
+            effective_balance=0,
+            slashed=False,
+            activation_eligibility_epoch=FAR_FUTURE_EPOCH,
+            activation_epoch=FAR_FUTURE_EPOCH,
+            exit_epoch=FAR_FUTURE_EPOCH,
+            withdrawable_epoch=FAR_FUTURE_EPOCH,
+        )
 
 
 class State(Serializable):
     fields = [
-        ('validator_registry', List(ValidatorRecord)),
-        ('shard_and_committee_for_slots', List(List(ShardCommittee))),
-        ('latest_crosslinks', List(CrosslinkRecord)),
+        ('validators', List(Validator, VALIDATOR_REGISTRY_LIMIT)),
+        ('balances', List(uint64, VALIDATOR_REGISTRY_LIMIT)),
+        ('randao_mixes', Vector(bytes32, EPOCHS_PER_HISTORICAL_VECTOR)),
+        ('latest_block_header', BeaconBlockHeader),
+        ('eth1_data', Eth1Data),
     ]
 
 
-validator_record = ValidatorRecord(
-    pubkey=b'\x56' * 48,
-    withdrawal_credentials=b'\x56' * 32,
-    randao_commitment=b'\x56' * 32,
-    randao_layers=123,
-    status=123,
-    latest_status_change_slot=123,
-    exit_count=123,
-    poc_commitment=b'\x56' * 32,
-    last_poc_change_slot=123,
-    second_last_poc_change_slot=123,
-)
-crosslink_record = CrosslinkRecord(slot=12847, shard_block_root=b'\x67' * 32)
-crosslink_record_stubs = [crosslink_record for i in range(1024)]
+def update_tuple_item_with_fn(tuple_data,
+                              index,
+                              fn,
+                              *args):
+    """
+    Update the ``index``th item of ``tuple_data`` to the result of calling ``fn`` on the existing
+    value.
+    """
+    list_data = list(tuple_data)
+
+    try:
+        old_value = list_data[index]
+        list_data[index] = fn(old_value, *args)
+    except IndexError:
+        raise Exception(
+            "the length of the given tuple_data is {}, the given index {} is out of index".format(
+                len(tuple_data),
+                index,
+            )
+        )
+    else:
+        return tuple(list_data)
+
+
+def update_tuple_item(tuple_data,
+                      index,
+                      new_value):
+    """
+    Update the ``index``th item of ``tuple_data`` to ``new_value``
+    """
+    return update_tuple_item_with_fn(
+        tuple_data,
+        index,
+        lambda *_: new_value
+    )
 
 
 def make_state(num_validators):
-    shard_committee = ShardCommittee(
-        shard=1,
-        committee=tuple(range(num_validators // 1024)),
-        total_validator_count=num_validators,
-    )
-    shard_committee_stubs = tuple(tuple(shard_committee for i in range(16)) for i in range(64))
     state = State(
-        validator_registry=tuple(validator_record for i in range(num_validators)),
-        shard_and_committee_for_slots=shard_committee_stubs,
-        latest_crosslinks=crosslink_record_stubs,
+        validators=tuple(
+            Validator.create_validator(
+                pubkey=i.to_bytes(48, 'little'),
+                withdrawal_credentials=i.to_bytes(32, 'little'),
+            )
+            for i in range(num_validators)
+        ),
+        balances=tuple(
+            i + 1000
+            for i in range(num_validators)
+        ),
+        randao_mixes=tuple(
+            i.to_bytes(32, 'little')
+            for i in range(EPOCHS_PER_HISTORICAL_VECTOR)
+        ),
+        latest_block_header=BeaconBlockHeader(
+            slot=1,
+            parent_root=b'\x22' * 32,
+            state_root=b'\x22' * 32,
+            body_root=b'\x22' * 32,
+            signature=b'\x55' * 96,
+        ),
+        eth1_data=Eth1Data(
+            deposit_root=b'\x12' * 32,
+            deposit_count=1,
+            block_hash=b'\x12' * 32,
+        ),
     )
     return state
 
 
-def prepare_byte_vector_benchmark():
-    size = 512
-    repetitions = 10000
-    byte_vector = ByteVector(size)
-    data = tuple(
-        bytes(random.getrandbits(8) for _ in range(size))
-        for _ in range(repetitions)
+def prepare_state_benchmark():
+    num_validators = 2**13
+    state = make_state(num_validators)
+    print('state.hash_tree_root\t', state.hash_tree_root.hex())
+    index = 100
+    block_header = BeaconBlockHeader(
+        slot=1,
+        parent_root=b'\x22' * 32,
+        state_root=b'\x22' * 32,
+        body_root=b'\x22' * 32,
+        signature=b'\x66' * 96,
     )
 
     def benchmark():
-        for data_item in data:
-            ssz.get_hash_tree_root(data_item, byte_vector)
-
-    return benchmark
-
-
-def prepare_state_benchmark():
-    state = make_state(2**15)
-
-    def benchmark():
-        ssz.get_hash_tree_root(state)
+        print('----- start -----')
+        oh_state = state.copy(
+            balances=update_tuple_item(
+                state.balances,
+                index,
+                state.balances[index] + 10,
+            ),
+            validators=update_tuple_item(
+                state.validators,
+                index,
+                Validator.create_validator(
+                    pubkey=(666).to_bytes(48, 'little'),
+                    withdrawal_credentials=(666).to_bytes(32, 'little'),
+                ),
+            ),
+            randao_mixes=update_tuple_item(
+                state.randao_mixes,
+                index,
+                b'\x56' * 32,
+            ),
+            latest_block_header=block_header,
+            eth1_data=Eth1Data(
+                deposit_root=b'\x22' * 32,
+                deposit_count=1,
+                block_hash=b'\x22' * 32,
+            ),
+        )
+        print('updated\t', oh_state.hash_tree_root.hex())
+        print('----- end -----')
 
     return benchmark
 
@@ -131,10 +233,15 @@ if __name__ == '__main__':
         if do_profiling:
             profile.disable()
             profile.print_stats(sort="tottime")
+            s = io.StringIO()
+            ps = pstats.Stats(profile, stream=s).sort_stats('tottime')
+            ps.print_stats()
+            print(s.getvalue())
+            ps.dump_stats('hash_tree_root.pstats')
 
         duration = end_time - start_time
         results[name] = duration
-        print(f"{name}: {duration:.2f}s")
+        print(f"{name}: {duration:.4f}s")
 
     if "state" not in results:
         raise RuntimeError("state benchmark has not been run")
