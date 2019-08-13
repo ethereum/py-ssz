@@ -3,7 +3,6 @@ import collections
 import copy
 import operator
 import re
-
 from typing import (
     NamedTuple,
     Optional,
@@ -25,8 +24,10 @@ from eth_utils.toolz import (
 )
 
 import ssz
+from ssz.cache import (
+    get_key,
+)
 from ssz.constants import (
-    BASE_TYPES,
     FIELDS_META_ATTR,
 )
 from ssz.sedes.base import (
@@ -35,16 +36,9 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
-from ssz.cache import (
-    get_key,
-)
 from ssz.utils import (
     get_duplicates,
     is_immutable_field_value,
-)
-from ssz.db import (
-    CacheDB,
-    MemoryDB,
 )
 
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
@@ -100,7 +94,7 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 class BaseSerializable(collections.Sequence):
     db = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, db=None, *args, **kwargs):
         arg_names = self._meta.field_names or ()
         validate_args_and_kwargs(args, kwargs, arg_names)
         field_values = merge_kwargs_to_args(args, kwargs, arg_names)
@@ -118,7 +112,7 @@ class BaseSerializable(collections.Sequence):
         for value, attr in zip(field_values, self._meta.field_attrs or ()):
             setattr(self, attr, make_immutable(value))
 
-        self.db = CacheDB(db=MemoryDB(), cache_size=2**30)
+        self.db = {} if db is None else db
 
     def as_dict(self):
         return dict(
@@ -198,7 +192,11 @@ class BaseSerializable(collections.Sequence):
         return result
 
     def clear_cache(self):
-        self.db.reset_cache()
+        if hasattr(self.db, 'reset_cache'):
+            self.db.reset_cache()
+        else:
+            self.db = {}
+
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
 

@@ -1,22 +1,21 @@
 #
 # Copied from PyEVM codebase
 #
-from lru import LRU
-
 from abc import (
     ABC,
-    abstractmethod
+    abstractmethod,
 )
 from collections.abc import (
     MutableMapping,
 )
-
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     Iterator,
-    TYPE_CHECKING,
 )
+
+from lru import LRU
 
 if TYPE_CHECKING:
     MM = MutableMapping[bytes, bytes]

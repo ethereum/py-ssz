@@ -1,6 +1,5 @@
-import hashlib
-
 import functools
+import hashlib
 
 from eth_typing import (
     Hash32,

@@ -1,11 +1,11 @@
 import collections
+import functools
 from typing import (
     IO,
     Any,
     Sequence,
     Tuple,
 )
-import functools
 
 from eth_typing import (
     Hash32,

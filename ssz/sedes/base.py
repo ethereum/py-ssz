@@ -22,11 +22,11 @@ from eth_utils.toolz import (
 from ssz import (
     constants,
 )
-from ssz.exceptions import (
-    DeserializationError,
-)
 from ssz.cache import (
     get_key,
+)
+from ssz.exceptions import (
+    DeserializationError,
 )
 from ssz.utils import (
     encode_offset,

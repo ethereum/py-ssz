@@ -17,7 +17,7 @@ from eth_utils.toolz import (
 
 from ssz.cache import (
     get_merkle_leaves_with_cache,
-    get_merkle_leaves_without_cache
+    get_merkle_leaves_without_cache,
 )
 from ssz.constants import (
     CHUNK_SIZE,

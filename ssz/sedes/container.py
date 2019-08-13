@@ -14,6 +14,9 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
+from ssz.cache import (
+    get_key,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -21,9 +24,6 @@ from ssz.exceptions import (
 from ssz.sedes.base import (
     CompositeSedes,
     TSedes,
-)
-from ssz.cache import (
-    get_key,
 )
 from ssz.utils import (
     merkleize,
