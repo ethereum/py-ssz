@@ -25,7 +25,6 @@ from eth_utils.toolz import (
 
 import ssz
 from ssz.constants import (
-    BASE_TYPES,
     FIELDS_META_ATTR,
 )
 from ssz.sedes.base import (
@@ -36,6 +35,7 @@ from ssz.sedes.container import (
 )
 from ssz.utils import (
     get_duplicates,
+    is_immutable_field_value,
 )
 
 TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
@@ -170,21 +170,11 @@ class BaseSerializable(collections.Sequence):
         ).difference(
             self._meta.field_names[:len(args)]
         )
-        unchanged_kwargs = {}
-        for key, value in self.as_dict().items():
-            if key in missing_overrides:
-                is_immutable_field = (
-                    isinstance(value, BASE_TYPES) or
-                    (
-                        isinstance(value, tuple) and
-                        len(value) > 0 and
-                        isinstance(value[0], BASE_TYPES)
-                    )
-                )
-                if is_immutable_field:
-                    unchanged_kwargs[key] = value
-                else:
-                    unchanged_kwargs[key] = copy.deepcopy(value)
+        unchanged_kwargs = {
+            key: value if is_immutable_field_value(value) else copy.deepcopy(value)
+            for key, value in self.as_dict().items()
+            if key in missing_overrides
+        }
 
         combined_kwargs = dict(**unchanged_kwargs, **kwargs)
         all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
