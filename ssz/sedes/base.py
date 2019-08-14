@@ -45,40 +45,40 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     @property
     @abstractmethod
     def is_fixed_sized(self) -> bool:
-        pass
+        ...
 
     @abstractmethod
     def get_fixed_size(self) -> int:
-        pass
+        ...
 
     #
     # Serialization
     #
     @abstractmethod
     def serialize(self, value: TSerializable) -> bytes:
-        pass
+        ...
 
     #
     # Deserialization
     #
     @abstractmethod
     def deserialize(self, data: bytes) -> TDeserialized:
-        pass
+        ...
 
     #
     # Tree hashing
     #
     @abstractmethod
     def get_hash_tree_root(self, value: TSerializable) -> bytes:
-        pass
+        ...
 
     @abstractmethod
     def chunk_count(self) -> int:
-        pass
+        ...
 
     @abstractmethod
     def get_key(self, value: Any) -> bytes:
-        pass
+        ...
 
 
 TSedes = BaseSedes[Any, Any]
@@ -139,10 +139,10 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
     def _get_item_sedes_pairs(self,
                               value: Sequence[TSerializable],
                               ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
-        pass
+        ...
 
     def _validate_serializable(self, value: Any) -> None:
-        pass
+        ...
 
     def serialize(self, value: TSerializable) -> bytes:
         self._validate_serializable(value)
@@ -210,7 +210,7 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
     @abstractmethod
     def _deserialize_stream(self, stream: IO[bytes]) -> TDeserialized:
-        pass
+        ...
 
     def get_key(self, value: Any) -> bytes:
         return get_key(self, value)
