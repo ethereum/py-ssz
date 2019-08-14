@@ -139,8 +139,8 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int=None, db=None) -> Hash32:
-    with_cache = db is not None
+def merkleize(chunks: Sequence[Hash32], limit: int=None, cache=None) -> Hash32:
+    with_cache = cache is not None
 
     chunk_len = len(chunks)
 
@@ -148,10 +148,10 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None, db=None) -> Hash32:
         limit = chunk_len
 
     if limit == 0:
-        if db is None:
+        if cache is None:
             return ZERO_HASHES[0]
         else:
-            return ZERO_HASHES[0], db
+            return ZERO_HASHES[0], cache
 
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
@@ -168,22 +168,22 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None, db=None) -> Hash32:
                 if leaf_index == chunk_len and layer < chunk_depth:
                     # Keep going if we are complementing the void to the next power of 2
                     key = node + ZERO_HASHES[layer]
-                    if with_cache and key in db:
-                        node = db[key]
+                    if with_cache and key in cache:
+                        node = cache[key]
                     else:
                         node = hash_eth2(key)
                         if with_cache:
-                            db[key] = node
+                            cache[key] = node
                 else:
                     break
             else:
                 key = tmp_list[layer] + node
-                if (db is not None) and key in db:
-                    node = db[key]
+                if (cache is not None) and key in cache:
+                    node = cache[key]
                 else:
                     node = hash_eth2(key)
-                    if db is not None:
-                        db[key] = node
+                    if cache is not None:
+                        cache[key] = node
             layer += 1
 
         tmp_list[layer] = node
@@ -200,19 +200,19 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None, db=None) -> Hash32:
     # complement with zero-hashes at each depth.
     for layer in range(chunk_depth, max_depth):
         key = tmp_list[layer] + ZERO_HASHES[layer]
-        if with_cache and key in db:
-            tmp_result = db[key]
+        if with_cache and key in cache:
+            tmp_result = cache[key]
         else:
             tmp_result = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
             if with_cache:
-                db[key] = tmp_result
+                cache[key] = tmp_result
 
         tmp_list[layer + 1] = tmp_result
 
     result = tmp_list[max_depth]
 
-    if db is not None:
-        return result, db
+    if cache is not None:
+        return result, cache
     else:
         return result
 

@@ -169,7 +169,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
 
     def get_hash_tree_root_and_leaves(self,
                                       value: Iterable[TSerializable],
-                                      db) -> bytes:
+                                      cache) -> bytes:
         merkle_leaves = ()
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
@@ -186,17 +186,17 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
                 merkle_leaves = get_merkle_leaves_with_cache(
                     value,
                     self.element_sedes,
-                    db,
+                    cache,
                 )
             else:
                 merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
 
-        merkleize_result, db = merkleize(
+        merkleize_result, cache = merkleize(
             merkle_leaves,
             limit=self.chunk_count(),
-            db=db,
+            cache=cache,
         )
-        return mix_in_length(merkleize_result, len(value)), db
+        return mix_in_length(merkleize_result, len(value)), cache
 
     def chunk_count(self) -> int:
         if isinstance(self.element_sedes, BasicSedes):

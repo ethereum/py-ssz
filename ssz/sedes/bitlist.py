@@ -75,13 +75,13 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(merkleize(pack_bits(value), limit=self.chunk_count()), len(value))
 
-    def get_hash_tree_root_and_leaves(self, value: Sequence[bool], db) -> bytes:
-        root, db = merkleize(
+    def get_hash_tree_root_and_leaves(self, value: Sequence[bool], cache) -> bytes:
+        root, cache = merkleize(
             pack_bits(value),
             limit=self.chunk_count(),
-            db=db,
+            cache=cache,
         )
-        return mix_in_length(root, len(value)), db
+        return mix_in_length(root, len(value)), cache
 
     def chunk_count(self) -> int:
         return (self.max_bit_count + 255) // 256

@@ -92,9 +92,9 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 
 
 class BaseSerializable(collections.Sequence):
-    db = None
+    cache = None
 
-    def __init__(self, db=None, *args, **kwargs):
+    def __init__(self, cache=None, *args, **kwargs):
         arg_names = self._meta.field_names or ()
         validate_args_and_kwargs(args, kwargs, arg_names)
         field_values = merge_kwargs_to_args(args, kwargs, arg_names)
@@ -112,7 +112,7 @@ class BaseSerializable(collections.Sequence):
         for value, attr in zip(field_values, self._meta.field_attrs or ()):
             setattr(self, attr, make_immutable(value))
 
-        self.db = {} if db is None else db
+        self.cache = {} if cache is None else cache
 
     def as_dict(self):
         return dict(
@@ -192,10 +192,10 @@ class BaseSerializable(collections.Sequence):
         return result
 
     def clear_cache(self):
-        if hasattr(self.db, 'reset_cache'):
-            self.db.reset_cache()
+        if hasattr(self.cache, 'reset_cache'):
+            self.cache.reset_cache()
         else:
-            self.db = {}
+            self.cache = {}
 
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
@@ -212,10 +212,10 @@ class BaseSerializable(collections.Sequence):
         memodict[id(self)] = result
 
         for k, v in self.__dict__.items():
-            if k != 'db':
+            if k != 'cache':
                 setattr(result, k, copy.deepcopy(v, memodict))
 
-        setattr(result, 'db', self.db)
+        setattr(result, 'cache', self.cache)
         setattr(result, '_fixed_size_section_length_cache', self._fixed_size_section_length_cache)
 
         return result
@@ -413,12 +413,12 @@ class MetaSerializable(abc.ABCMeta):
 
     def get_hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
         # return cls._meta.container_sedes.get_hash_tree_root(value)
-        root, db = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
+        root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
             value,
-            value.db,
+            value.cache,
         )
 
-        value.db = db
+        value.cache = cache
         return root
 
     @property

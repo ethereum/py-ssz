@@ -20,7 +20,7 @@ def test_cache_db():
     foo_with_db = Foo(
         field1=10,
         field2=b'\x12' * 32,
-        db=CacheDB(db=MemoryDB(), cache_size=2**10),
+        cache=CacheDB(db=MemoryDB(), cache_size=2**10),
     )
     foo_without_db = Foo(
         field1=10,
