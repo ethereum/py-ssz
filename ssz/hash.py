@@ -6,7 +6,7 @@ from eth_typing import (
 )
 
 
-@functools.lru_cache(maxsize=2**30)
+@functools.lru_cache(maxsize=2**12)
 def hash_eth2(data: bytes) -> Hash32:
     """
     Return SHA-256 hashed result.

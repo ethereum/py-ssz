@@ -23,7 +23,6 @@ from eth_utils.toolz import (
     merge,
 )
 
-import ssz
 from ssz.cache import (
     get_key,
 )
@@ -167,7 +166,7 @@ class BaseSerializable(collections.Sequence):
             self._hash_cache = hash(self.__class__) * int.from_bytes(self.hash_tree_root, "little")
         return self._hash_cache
 
-    def copy(self, clear_cache=False, *args, **kwargs):
+    def copy(self, *args, **kwargs):
         missing_overrides = set(
             self._meta.field_names
         ).difference(
@@ -186,16 +185,13 @@ class BaseSerializable(collections.Sequence):
 
         result = type(self)(**all_kwargs)
 
-        if clear_cache:
-            result.clear_cache()
-
         return result
 
-    def clear_cache(self):
+    def reset_cache(self):
         if hasattr(self.cache, 'reset_cache'):
             self.cache.reset_cache()
         else:
-            self.cache = {}
+            self.cache.clear()
 
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
@@ -220,13 +216,12 @@ class BaseSerializable(collections.Sequence):
 
         return result
 
-    _merkle_leaves_dict = {}
     _fixed_size_section_length_cache = None
     _serialize_cache = None
 
     @property
     def hash_tree_root(self):
-        return ssz.get_hash_tree_root(self)
+        return self.__class__.get_hash_tree_root(self, cache=True)
 
     def get_key(self) -> bytes:
         return get_key(self.__class__, self)
@@ -411,15 +406,18 @@ class MetaSerializable(abc.ABCMeta):
         deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
-    def get_hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        # return cls._meta.container_sedes.get_hash_tree_root(value)
-        root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
-            value,
-            value.cache,
-        )
-
-        value.cache = cache
-        return root
+    def get_hash_tree_root(cls: Type[TSerializable],
+                           value: TSerializable,
+                           cache: bool=True) -> bytes:
+        if cache:
+            root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
+                value,
+                value.cache,
+            )
+            value.cache = cache
+            return root
+        else:
+            return cls._meta.container_sedes.get_hash_tree_root(value)
 
     @property
     def is_fixed_sized(cls):

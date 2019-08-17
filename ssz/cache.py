@@ -14,7 +14,7 @@ def get_key(sedes, value):
         return key
 
 
-@functools.lru_cache(maxsize=2**30)
+@functools.lru_cache(maxsize=2**12)
 def _get_key(sedes, value):
     return sedes.serialize(value)
 
