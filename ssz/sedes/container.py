@@ -22,8 +22,10 @@ from ssz.exceptions import (
     SerializationError,
 )
 from ssz.sedes.base import (
-    CompositeSedes,
     TSedes,
+)
+from ssz.sedes.basic import (
+    CompositeSedes,
 )
 from ssz.utils import (
     merkleize,

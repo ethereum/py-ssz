@@ -11,8 +11,8 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.sedes.base import (
-    BaseCompositeSedes,
+from ssz.sedes.basic import (
+    BasicBytesSedes,
 )
 from ssz.utils import (
     get_serialized_bytearray,
@@ -23,7 +23,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bitvector(BaseCompositeSedes[BytesOrByteArray, bytes]):
+class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
     def __init__(self, bit_count: int) -> None:
         if bit_count < 0:
             raise TypeError("Bit count cannot be negative")

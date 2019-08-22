@@ -9,7 +9,6 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-    TypeVar,
 )
 
 from eth_utils import (
@@ -35,12 +34,13 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
+from ssz.typing import (
+    TSerializable,
+)
 from ssz.utils import (
     get_duplicates,
     is_immutable_field_value,
 )
-
-TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
 
 
 class Meta(NamedTuple):

@@ -1,12 +1,15 @@
 import itertools
 from typing import (
     IO,
+    Any,
     Iterable,
     Sequence,
     Tuple,
-    TypeVar,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -30,9 +33,16 @@ from ssz.exceptions import (
 from ssz.sedes.base import (
     BaseCompositeSedes,
     BaseSedes,
+    TSedes,
+)
+from ssz.sedes.basic import (
     BasicSedes,
     CompositeSedes,
-    TSedes,
+)
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
 )
 from ssz.utils import (
     merkleize,
@@ -41,9 +51,6 @@ from ssz.utils import (
     read_exact,
     s_decode_offset,
 )
-
-TSerializable = TypeVar("TSerializable")
-TDeserialized = TypeVar("TDeserialized")
 
 EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack(())), 0)
 
@@ -70,8 +77,18 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
             raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
         return EMPTY_LIST_HASH_TREE_ROOT
 
+    def get_hash_tree_root_and_leaves(self,
+                                      value: TSerializable,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        if len(value):
+            raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
+        return EMPTY_LIST_HASH_TREE_ROOT
+
     def chunk_count(self) -> int:
         return 0
+
+    def get_key(self, value: Any) -> bytes:
+        raise NotImplementedError("Empty list does not implement `get_key`")
 
 
 empty_list = EmptyList()

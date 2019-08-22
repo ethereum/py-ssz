@@ -6,8 +6,8 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.sedes.base import (
-    BaseCompositeSedes,
+from ssz.sedes.basic import (
+    BasicBytesSedes,
 )
 from ssz.utils import (
     merkleize,
@@ -17,7 +17,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
+class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
     def __init__(self, size: int) -> None:
         if size < 0:
             raise TypeError("Size cannot be negative")

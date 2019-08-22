@@ -4,6 +4,8 @@ from collections.abc import (
 
 from .base import (  # noqa: F401
     BaseSedes,
+)
+from .basic import (  # noqa: F401
     BasicSedes,
     CompositeSedes,
 )

@@ -5,7 +5,6 @@ from typing import (
     Iterable,
     Sequence,
     Tuple,
-    TypeVar,
 )
 
 from eth_utils import (
@@ -27,9 +26,15 @@ from ssz.exceptions import (
 )
 from ssz.sedes.base import (
     BaseSedes,
+    TSedes,
+)
+from ssz.sedes.basic import (
     BasicSedes,
     CompositeSedes,
-    TSedes,
+)
+from ssz.typing import (
+    TDeserializedElement,
+    TSerializableElement,
 )
 from ssz.utils import (
     merkleize,
@@ -37,9 +42,6 @@ from ssz.utils import (
     read_exact,
     s_decode_offset,
 )
-
-TSerializableElement = TypeVar("TSerializable")
-TDeserializedElement = TypeVar("TDeserialized")
 
 TSedesPairs = Tuple[
     Tuple[BaseSedes[TSerializableElement, TDeserializedElement], TSerializableElement],
