@@ -1,0 +1,49 @@
+from collections.abc import (
+    MutableMapping,
+)
+from typing import (
+    TYPE_CHECKING,
+    Iterator,
+)
+
+from lru import LRU
+
+if TYPE_CHECKING:
+    MM = MutableMapping[bytes, bytes]
+else:
+    MM = MutableMapping
+
+
+class SSZCache(MM):
+    def __init__(self, cache_size: int=2048) -> None:
+        self._cache_size = cache_size
+        self.reset_cache()
+
+    def reset_cache(self) -> None:
+        self._cached_values = LRU(self._cache_size)
+
+    def _exists(self, key: bytes) -> bool:
+        return key in self._cached_values
+
+    def __contains__(self, key: bytes) -> bool:     # type: ignore # Breaks LSP
+        if hasattr(self, '_exists'):
+            # Classes which inherit this class would have `_exists` attr
+            return self._exists(key)    # type: ignore
+        else:
+            return super().__contains__(key)
+
+    def __getitem__(self, key: bytes) -> bytes:
+        return self._cached_values[key]
+
+    def __setitem__(self, key: bytes, value: bytes) -> None:
+        self._cached_values[key] = value
+
+    def __delitem__(self, key: bytes) -> None:
+        if key in self._cached_values:
+            del self._cached_values[key]
+
+    def __iter__(self) -> Iterator[bytes]:
+        raise NotImplementedError("By default, DB classes cannot be iterated.")
+
+    def __len__(self) -> int:
+        raise NotImplementedError("By default, DB classes cannot return the total number of keys.")

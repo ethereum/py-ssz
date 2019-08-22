@@ -14,7 +14,7 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
-from ssz.cache import (
+from ssz.cache.utils import (
     get_key,
 )
 from ssz.exceptions import (

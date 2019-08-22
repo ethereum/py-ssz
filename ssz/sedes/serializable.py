@@ -22,7 +22,7 @@ from eth_utils.toolz import (
     merge,
 )
 
-from ssz.cache import (
+from ssz.cache.utils import (
     get_key,
 )
 from ssz.constants import (

@@ -14,7 +14,7 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
-from ssz.cache import (
+from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
