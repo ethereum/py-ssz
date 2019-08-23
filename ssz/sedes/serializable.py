@@ -188,11 +188,7 @@ class BaseSerializable(collections.Sequence):
         return result
 
     def reset_cache(self):
-        if hasattr(self.cache, 'reset_cache'):
-            self.cache.reset_cache()
-        else:
-            self.cache.clear()
-
+        self.cache.clear()
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
 
@@ -211,8 +207,8 @@ class BaseSerializable(collections.Sequence):
             if k != 'cache':
                 setattr(result, k, copy.deepcopy(v, memodict))
 
-        setattr(result, 'cache', self.cache)
-        setattr(result, '_fixed_size_section_length_cache', self._fixed_size_section_length_cache)
+        result.cache = self.cache
+        result._fixed_size_section_length_cache = self._fixed_size_section_length_cache
 
         return result
 

@@ -185,8 +185,8 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
         return mix_in_length(merkleize(merkle_leaves, limit=self.chunk_count()), len(value))
 
     def get_hash_tree_root_and_leaves(self,
-                                      value: Iterable[TSerializable],
-                                      cache) -> bytes:
+                                      value: TSerializable,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(

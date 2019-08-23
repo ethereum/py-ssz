@@ -6,6 +6,9 @@ from typing import (
     Tuple,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     ValidationError,
     to_tuple,
@@ -26,6 +29,9 @@ from ssz.sedes.base import (
 )
 from ssz.sedes.basic import (
     CompositeSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     merkleize,
@@ -167,7 +173,9 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         )
         return merkleize(merkle_leaves)
 
-    def get_hash_tree_root_and_leaves(self, value: Tuple[Any, ...], cache) -> bytes:
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Tuple[Any, ...],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         for element, sedes in zip(value, self.field_sedes):
             key = sedes.get_key(element)

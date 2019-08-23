@@ -7,6 +7,9 @@ from typing import (
     Tuple,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -33,6 +36,7 @@ from ssz.sedes.basic import (
     CompositeSedes,
 )
 from ssz.typing import (
+    CacheObj,
     TDeserializedElement,
     TSerializableElement,
 )
@@ -124,7 +128,9 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             )
             return merkleize(element_tree_hashes)
 
-    def get_hash_tree_root_and_leaves(self, value: Sequence[Any], cache) -> bytes:
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Sequence[Any],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(

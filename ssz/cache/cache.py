@@ -17,9 +17,9 @@ else:
 class SSZCache(MM):
     def __init__(self, cache_size: int=2048) -> None:
         self._cache_size = cache_size
-        self.reset_cache()
+        self.clear()
 
-    def reset_cache(self) -> None:
+    def clear(self) -> None:
         self._cached_values = LRU(self._cache_size)
 
     def _exists(self, key: bytes) -> bool:
@@ -41,6 +41,8 @@ class SSZCache(MM):
     def __delitem__(self, key: bytes) -> None:
         if key in self._cached_values:
             del self._cached_values[key]
+        else:
+            raise KeyError(f"key: {key} not found")
 
     def __iter__(self) -> Iterator[bytes]:
         raise NotImplementedError("By default, DB classes cannot be iterated.")

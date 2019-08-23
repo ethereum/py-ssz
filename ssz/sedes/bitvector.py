@@ -1,8 +1,12 @@
 from typing import (
     Sequence,
+    Tuple,
     Union,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -13,6 +17,9 @@ from ssz.exceptions import (
 )
 from ssz.sedes.basic import (
     BasicBytesSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     get_serialized_bytearray,
@@ -67,7 +74,9 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
         chunk_count = (self.bit_count + 255) // 256
         return merkleize(pack_bits(value), limit=chunk_count)
 
-    def get_hash_tree_root_and_leaves(self, value: Sequence[bool], cache) -> bytes:
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Sequence[bool],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         chunk_count = (self.bit_count + 255) // 256
         root, cache = merkleize(
             pack_bits(value),

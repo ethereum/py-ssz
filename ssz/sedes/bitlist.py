@@ -4,6 +4,9 @@ from typing import (
     Union,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -14,6 +17,9 @@ from ssz.exceptions import (
 )
 from ssz.sedes.basic import (
     BasicBytesSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     get_serialized_bytearray,
@@ -75,7 +81,9 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(merkleize(pack_bits(value), limit=self.chunk_count()), len(value))
 
-    def get_hash_tree_root_and_leaves(self, value: Sequence[bool], cache) -> bytes:
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Sequence[bool],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         root, cache = merkleize(
             pack_bits(value),
             limit=self.chunk_count(),

@@ -1,5 +1,10 @@
 from typing import (
+    Tuple,
     Union,
+)
+
+from eth_typing import (
+    Hash32,
 )
 
 from ssz.exceptions import (
@@ -8,6 +13,9 @@ from ssz.exceptions import (
 )
 from ssz.sedes.basic import (
     BasicBytesSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     merkleize,
@@ -59,7 +67,9 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         serialized_value = self.serialize(value)
         return merkleize(pack_bytes(serialized_value))
 
-    def get_hash_tree_root_and_leaves(self, value: bytes, cache) -> bytes:
+    def get_hash_tree_root_and_leaves(self,
+                                      value: bytes,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
         root, cache = merkleize(
             pack_bytes(serialized_value),

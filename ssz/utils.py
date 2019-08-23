@@ -5,6 +5,7 @@ from typing import (
     Any,
     Sequence,
     Tuple,
+    Union,
 )
 
 from eth_typing import (
@@ -26,6 +27,9 @@ from ssz.exceptions import (
 )
 from ssz.hash import (
     hash_eth2,
+)
+from ssz.typing import (
+    CacheObj,
 )
 
 
@@ -139,7 +143,9 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int=None, cache=None) -> Hash32:
+def merkleize(chunks: Sequence[Hash32],
+              limit: int=None,
+              cache: CacheObj=None) -> Union[Hash32, Tuple[Hash32, CacheObj]]:
     with_cache = cache is not None
 
     chunk_len = len(chunks)

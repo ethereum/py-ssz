@@ -23,8 +23,9 @@ def get_key(sedes: TSedes, value: Any) -> str:
     key = _get_key(sedes, value).hex()
     if len(key) > 0:
         sedes_name = type(sedes).__name__
-        return sedes_name + _get_key(sedes, value).hex()
+        return sedes_name + key
     else:
+        # If the serialized result is empty, use sedes name as the key
         return key
 
 
