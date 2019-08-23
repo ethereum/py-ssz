@@ -21,8 +21,8 @@ from eth_utils.toolz import (
     assoc,
     merge,
 )
-
 from lru import LRU
+
 from ssz.cache.cache import (
     DEFAULT_CACHE_SIZE,
 )
