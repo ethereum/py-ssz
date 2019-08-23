@@ -1,6 +1,6 @@
-#
-# sedes
-#
+from .cache import (  # noqa: F401
+    SSZCache,
+)
 from .codec import (  # noqa: F401
     decode,
     encode,

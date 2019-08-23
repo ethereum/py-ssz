@@ -22,6 +22,10 @@ from eth_utils.toolz import (
     merge,
 )
 
+from lru import LRU
+from ssz.cache.cache import (
+    DEFAULT_CACHE_SIZE,
+)
 from ssz.cache.utils import (
     get_key,
 )
@@ -111,7 +115,7 @@ class BaseSerializable(collections.Sequence):
         for value, attr in zip(field_values, self._meta.field_attrs or ()):
             setattr(self, attr, make_immutable(value))
 
-        self.cache = {} if cache is None else cache
+        self.cache = LRU(DEFAULT_CACHE_SIZE) if cache is None else cache
 
     def as_dict(self):
         return dict(
