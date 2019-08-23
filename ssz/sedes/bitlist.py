@@ -24,6 +24,7 @@ from ssz.typing import (
 from ssz.utils import (
     get_serialized_bytearray,
     merkleize,
+    merkleize_with_cache,
     mix_in_length,
     pack_bits,
 )
@@ -84,10 +85,10 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     def get_hash_tree_root_and_leaves(self,
                                       value: Sequence[bool],
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
-        root, cache = merkleize(
+        root, cache = merkleize_with_cache(
             pack_bits(value),
-            limit=self.chunk_count(),
             cache=cache,
+            limit=self.chunk_count(),
         )
         return mix_in_length(root, len(value)), cache
 

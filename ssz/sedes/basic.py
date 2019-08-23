@@ -41,6 +41,7 @@ from ssz.typing import (
 from ssz.utils import (
     encode_offset,
     merkleize,
+    merkleize_with_cache,
     pack,
 )
 
@@ -71,11 +72,11 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
                                       value: TSerializable,
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
-        root, cache = merkleize(
+        return merkleize_with_cache(
             pack((serialized_value,)),
             cache=cache,
         )
-        return root, cache
+        
 
     def chunk_count(self) -> int:
         return 1
