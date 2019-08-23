@@ -142,7 +142,7 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def get_lengths(chunks: Sequence[Hash32], limit: int, chunk_len: int):
+def _get_lengths(chunks: Sequence[Hash32], limit: int, chunk_len: int) -> Tuple[int, int]:
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
     if max_depth > len(ZERO_HASHES):
@@ -151,11 +151,11 @@ def get_lengths(chunks: Sequence[Hash32], limit: int, chunk_len: int):
     return chunk_depth, max_depth
 
 
-def get_temp_merklized_result(chunks: Sequence[Hash32],
-                              chunk_len: int,
-                              chunk_depth: int,
-                              max_depth: int,
-                              cache: CacheObj) -> Tuple[Sequence[Hash32], CacheObj]:
+def _get_temp_merklized_result(chunks: Sequence[Hash32],
+                               chunk_len: int,
+                               chunk_depth: int,
+                               max_depth: int,
+                               cache: CacheObj) -> Tuple[Sequence[Hash32], CacheObj]:
     temp_list = [None for _ in range(max_depth + 1)]
 
     def merge(leaf: bytes, leaf_index: int) -> None:
@@ -197,12 +197,12 @@ def merkleize_with_cache(chunks: Sequence[Hash32],
     chunk_len = len(chunks)
     if limit is None:
         limit = chunk_len
-    chunk_depth, max_depth = get_lengths(chunks, limit, chunk_len)
+    chunk_depth, max_depth = _get_lengths(chunks, limit, chunk_len)
 
     if limit == 0:
         return ZERO_HASHES[0], cache
 
-    temp_list, cache = get_temp_merklized_result(
+    temp_list, cache = _get_temp_merklized_result(
         chunks=chunks,
         chunk_len=chunk_len,
         chunk_depth=chunk_depth,

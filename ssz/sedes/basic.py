@@ -76,7 +76,6 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
             pack((serialized_value,)),
             cache=cache,
         )
-        
 
     def chunk_count(self) -> int:
         return 1
