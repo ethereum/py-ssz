@@ -9,7 +9,6 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-    TypeVar,
 )
 
 from eth_utils import (
@@ -22,8 +21,14 @@ from eth_utils.toolz import (
     assoc,
     merge,
 )
+from lru import LRU
 
-import ssz
+from ssz.cache.cache import (
+    DEFAULT_CACHE_SIZE,
+)
+from ssz.cache.utils import (
+    get_key,
+)
 from ssz.constants import (
     FIELDS_META_ATTR,
 )
@@ -33,17 +38,18 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
+from ssz.typing import (
+    TSerializable,
+)
 from ssz.utils import (
     get_duplicates,
     is_immutable_field_value,
 )
 
-TSerializable = TypeVar("TSerializable", bound="BaseSerializable")
-
 
 class Meta(NamedTuple):
     has_fields: bool
-    fields: Optional[Tuple[Tuple[str, BaseSedes]]]
+    fields: Optional[Tuple[Tuple[str, BaseSedes], ...]]
     container_sedes: Optional[Container]
     field_names: Optional[Tuple[str, ...]]
     field_attrs: Optional[Tuple[str, ...]]
@@ -89,9 +95,9 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
 
 
 class BaseSerializable(collections.Sequence):
-    _cached_ssz = None
+    cache = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, cache=None, **kwargs):
         arg_names = self._meta.field_names or ()
         validate_args_and_kwargs(args, kwargs, arg_names)
         field_values = merge_kwargs_to_args(args, kwargs, arg_names)
@@ -108,6 +114,8 @@ class BaseSerializable(collections.Sequence):
 
         for value, attr in zip(field_values, self._meta.field_attrs or ()):
             setattr(self, attr, make_immutable(value))
+
+        self.cache = LRU(DEFAULT_CACHE_SIZE) if cache is None else cache
 
     def as_dict(self):
         return dict(
@@ -178,7 +186,15 @@ class BaseSerializable(collections.Sequence):
 
         combined_kwargs = dict(**unchanged_kwargs, **kwargs)
         all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
-        return type(self)(**all_kwargs)
+
+        result = type(self)(**all_kwargs)
+
+        return result
+
+    def reset_cache(self):
+        self.cache.clear()
+        self._fixed_size_section_length_cache = None
+        self._serialize_cache = None
 
     def __copy__(self):
         return self.copy()
@@ -192,17 +208,23 @@ class BaseSerializable(collections.Sequence):
         memodict[id(self)] = result
 
         for k, v in self.__dict__.items():
-            setattr(result, k, copy.deepcopy(v, memodict))
+            if k != 'cache':
+                setattr(result, k, copy.deepcopy(v, memodict))
+
+        result.cache = self.cache
+        result._fixed_size_section_length_cache = self._fixed_size_section_length_cache
 
         return result
 
-    _hash_tree_root_cache = None
+    _fixed_size_section_length_cache = None
+    _serialize_cache = None
 
     @property
     def hash_tree_root(self):
-        if self._hash_tree_root_cache is None:
-            self._hash_tree_root_cache = ssz.get_hash_tree_root(self)
-        return self._hash_tree_root_cache
+        return self.__class__.get_hash_tree_root(self, cache=True)
+
+    def get_key(self) -> bytes:
+        return get_key(self.__class__, self)
 
 
 def make_immutable(value):
@@ -374,15 +396,28 @@ class MetaSerializable(abc.ABCMeta):
     # Implement BaseSedes methods as pass-throughs to the container sedes
     #
     def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        return cls._meta.container_sedes.serialize(value)
+        # return cls._meta.container_sedes.serialize(value)
+        if value._serialize_cache is None:
+            value._serialize_cache = cls._meta.container_sedes.serialize(value)
+        return value._serialize_cache
 
     def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:
         deserialized_fields = cls._meta.container_sedes.deserialize(data)
         deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
-    def get_hash_tree_root(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        return cls._meta.container_sedes.get_hash_tree_root(value)
+    def get_hash_tree_root(cls: Type[TSerializable],
+                           value: TSerializable,
+                           cache: bool=True) -> bytes:
+        if cache:
+            root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
+                value,
+                value.cache,
+            )
+            value.cache = cache
+            return root
+        else:
+            return cls._meta.container_sedes.get_hash_tree_root(value)
 
     @property
     def is_fixed_sized(cls):

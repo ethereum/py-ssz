@@ -13,6 +13,7 @@ extras_require = {
         "tox>=2.9.1,<3",
         "hypothesis==3.69.5",
         "ruamel.yaml==0.15.87",
+        "mypy-extensions>=0.4.1,<1.0.0",
     ],
     'lint': [
         "flake8==3.4.1",
@@ -49,7 +50,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "eth-utils>=1,<2",
-        "mypy-extensions>=0.4.1,<1.0.0",
+        "lru-dict>=1.1.6",
     ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',

@@ -5,7 +5,7 @@ from eth_utils import (
 from ssz.exceptions import (
     DeserializationError,
 )
-from ssz.sedes.base import (
+from ssz.sedes.basic import (
     BasicSedes,
 )
 

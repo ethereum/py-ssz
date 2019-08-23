@@ -2,7 +2,7 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.sedes.base import (
+from ssz.sedes.basic import (
     BasicSedes,
 )
 

@@ -6,6 +6,9 @@ from typing import (
     Tuple,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     ValidationError,
     to_tuple,
@@ -14,13 +17,21 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
+from ssz.cache.utils import (
+    get_key,
+)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
 from ssz.sedes.base import (
-    CompositeSedes,
     TSedes,
+)
+from ssz.sedes.basic import (
+    CompositeSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     merkleize,
@@ -162,5 +173,37 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         )
         return merkleize(merkle_leaves)
 
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Tuple[Any, ...],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        merkle_leaves = ()
+        for element, sedes in zip(value, self.field_sedes):
+            key = sedes.get_key(element)
+            if key not in cache or len(key) == 0:
+                if hasattr(sedes, 'get_hash_tree_root_and_leaves'):
+                    root, cache = sedes.get_hash_tree_root_and_leaves(
+                        element,
+                        cache,
+                    )
+                    cache[key] = root
+                else:
+                    cache[key] = sedes.get_hash_tree_root(element)
+
+            merkle_leaves += (cache[key],)
+
+        return merkleize(merkle_leaves), cache
+
     def chunk_count(self) -> int:
         return len(self.field_sedes)
+
+    def serialize(self, value) -> bytes:
+        if hasattr(value, '_serialize_cache') and value._serialize_cache is not None:
+            return value._serialize_cache
+        elif hasattr(value, '_serialize_cache') and value._serialize_cache is None:
+            value._serialize_cache = super().serialize(value)
+            return value._serialize_cache
+        else:
+            return super().serialize(value)
+
+    def get_key(self, value: Any) -> bytes:
+        return get_key(self, value)

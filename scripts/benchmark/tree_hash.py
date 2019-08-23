@@ -5,6 +5,9 @@ import random
 import time
 
 import ssz
+from ssz.cache.cache import (
+    SSZCache,
+)
 from ssz.sedes import (
     List,
     Serializable,
@@ -26,6 +29,8 @@ VALIDATOR_REGISTRY_LIMIT = 2**40  # (= 1,099,511,627,776)
 EPOCHS_PER_HISTORICAL_VECTOR = 2**16  # (= 65,536)
 
 FAR_FUTURE_EPOCH = 0
+
+USE_SSZ_CACHE = True
 
 
 class BeaconBlockHeader(ssz.SignedSerializable):
@@ -164,6 +169,7 @@ def make_state(num_validators):
             deposit_count=1,
             block_hash=b'\x12' * 32,
         ),
+        cache=SSZCache() if USE_SSZ_CACHE else None,
     )
     return state
 

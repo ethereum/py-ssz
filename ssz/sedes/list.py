@@ -1,12 +1,15 @@
 import itertools
 from typing import (
     IO,
+    Any,
     Iterable,
     Sequence,
     Tuple,
-    TypeVar,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -15,6 +18,10 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
+from ssz.cache.utils import (
+    get_merkle_leaves_with_cache,
+    get_merkle_leaves_without_cache,
+)
 from ssz.constants import (
     CHUNK_SIZE,
     OFFSET_SIZE,
@@ -26,9 +33,16 @@ from ssz.exceptions import (
 from ssz.sedes.base import (
     BaseCompositeSedes,
     BaseSedes,
+    TSedes,
+)
+from ssz.sedes.basic import (
     BasicSedes,
     CompositeSedes,
-    TSedes,
+)
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
 )
 from ssz.utils import (
     merkleize,
@@ -38,10 +52,7 @@ from ssz.utils import (
     s_decode_offset,
 )
 
-TSerializable = TypeVar("TSerializable")
-TDeserialized = TypeVar("TDeserialized")
-
-EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack([])), 0)
+EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack(())), 0)
 
 
 class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
@@ -66,8 +77,18 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
             raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
         return EMPTY_LIST_HASH_TREE_ROOT
 
+    def get_hash_tree_root_and_leaves(self,
+                                      value: TSerializable,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        if len(value):
+            raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
+        return EMPTY_LIST_HASH_TREE_ROOT
+
     def chunk_count(self) -> int:
         return 0
+
+    def get_key(self, value: Any) -> bytes:
+        raise NotImplementedError("Empty list does not implement `get_key`")
 
 
 empty_list = EmptyList()
@@ -162,6 +183,37 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             )
 
         return mix_in_length(merkleize(merkle_leaves, limit=self.chunk_count()), len(value))
+
+    def get_hash_tree_root_and_leaves(self,
+                                      value: TSerializable,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        merkle_leaves = ()
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_items = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            merkle_leaves = pack(serialized_items)
+        else:
+            has_get_hash_tree_root_and_leaves = hasattr(
+                self.element_sedes,
+                'get_hash_tree_root_and_leaves',
+            )
+            if has_get_hash_tree_root_and_leaves:
+                merkle_leaves = get_merkle_leaves_with_cache(
+                    value,
+                    self.element_sedes,
+                    cache,
+                )
+            else:
+                merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
+
+        merkleize_result, cache = merkleize(
+            merkle_leaves,
+            limit=self.chunk_count(),
+            cache=cache,
+        )
+        return mix_in_length(merkleize_result, len(value)), cache
 
     def chunk_count(self) -> int:
         if isinstance(self.element_sedes, BasicSedes):

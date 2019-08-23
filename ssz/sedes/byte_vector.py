@@ -1,13 +1,21 @@
 from typing import (
+    Tuple,
     Union,
+)
+
+from eth_typing import (
+    Hash32,
 )
 
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.sedes.base import (
-    BaseCompositeSedes,
+from ssz.sedes.basic import (
+    BasicBytesSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     merkleize,
@@ -17,7 +25,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
+class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
     def __init__(self, size: int) -> None:
         if size < 0:
             raise TypeError("Size cannot be negative")
@@ -58,6 +66,16 @@ class ByteVector(BaseCompositeSedes[BytesOrByteArray, bytes]):
     def get_hash_tree_root(self, value: bytes) -> bytes:
         serialized_value = self.serialize(value)
         return merkleize(pack_bytes(serialized_value))
+
+    def get_hash_tree_root_and_leaves(self,
+                                      value: bytes,
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        serialized_value = self.serialize(value)
+        root, cache = merkleize(
+            pack_bytes(serialized_value),
+            cache=cache,
+        )
+        return root, cache
 
     def chunk_count(self) -> int:
         return self.length * self.size

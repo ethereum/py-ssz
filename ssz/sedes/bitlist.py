@@ -4,6 +4,9 @@ from typing import (
     Union,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from eth_utils import (
     to_tuple,
 )
@@ -12,8 +15,11 @@ from ssz.exceptions import (
     DeserializationError,
     SerializationError,
 )
-from ssz.sedes.base import (
-    BaseCompositeSedes,
+from ssz.sedes.basic import (
+    BasicBytesSedes,
+)
+from ssz.typing import (
+    CacheObj,
 )
 from ssz.utils import (
     get_serialized_bytearray,
@@ -25,7 +31,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
+class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     def __init__(self, max_bit_count: int) -> None:
         if max_bit_count < 0:
             raise TypeError("Max bit count cannot be negative")
@@ -74,6 +80,16 @@ class Bitlist(BaseCompositeSedes[BytesOrByteArray, bytes]):
     #
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(merkleize(pack_bits(value), limit=self.chunk_count()), len(value))
+
+    def get_hash_tree_root_and_leaves(self,
+                                      value: Sequence[bool],
+                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+        root, cache = merkleize(
+            pack_bits(value),
+            limit=self.chunk_count(),
+            cache=cache,
+        )
+        return mix_in_length(root, len(value)), cache
 
     def chunk_count(self) -> int:
         return (self.max_bit_count + 255) // 256

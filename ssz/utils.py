@@ -1,9 +1,11 @@
 import collections
+import functools
 from typing import (
     IO,
     Any,
     Sequence,
     Tuple,
+    Union,
 )
 
 from eth_typing import (
@@ -25,6 +27,9 @@ from ssz.exceptions import (
 )
 from ssz.hash import (
     hash_eth2,
+)
+from ssz.typing import (
+    CacheObj,
 )
 
 
@@ -78,6 +83,7 @@ def pad_zeros(value: bytes) -> bytes:
     return value.ljust(CHUNK_SIZE, b"\x00")
 
 
+@functools.lru_cache(maxsize=2**12)
 def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
@@ -94,6 +100,7 @@ def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
         return full_chunks + (last_chunk,)
 
 
+@functools.lru_cache(maxsize=2**12)
 def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
@@ -102,6 +109,7 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return to_chunks(data)
 
 
+@functools.lru_cache(maxsize=2**12)
 def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
@@ -109,6 +117,7 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     return to_chunks(byte_string)
 
 
+@functools.lru_cache(maxsize=2**12)
 def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
     as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)
@@ -134,14 +143,21 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
+def merkleize(chunks: Sequence[Hash32],
+              limit: int=None,
+              cache: CacheObj=None) -> Union[Hash32, Tuple[Hash32, CacheObj]]:
+    with_cache = cache is not None
+
     chunk_len = len(chunks)
 
     if limit is None:
         limit = chunk_len
 
     if limit == 0:
-        return ZERO_HASHES[0]
+        if cache is None:
+            return ZERO_HASHES[0]
+        else:
+            return ZERO_HASHES[0], cache
 
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
@@ -157,12 +173,25 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
             if leaf_index & (1 << layer) == 0:
                 if leaf_index == chunk_len and layer < chunk_depth:
                     # Keep going if we are complementing the void to the next power of 2
-                    node = hash_eth2(node + ZERO_HASHES[layer])
+                    key = node + ZERO_HASHES[layer]
+                    if with_cache and key in cache:
+                        node = cache[key]
+                    else:
+                        node = hash_eth2(key)
+                        if with_cache:
+                            cache[key] = node
                 else:
                     break
             else:
-                node = hash_eth2(tmp_list[layer] + node)
+                key = tmp_list[layer] + node
+                if (cache is not None) and key in cache:
+                    node = cache[key]
+                else:
+                    node = hash_eth2(key)
+                    if cache is not None:
+                        cache[key] = node
             layer += 1
+
         tmp_list[layer] = node
 
     # Merge in leaf by leaf.
@@ -176,9 +205,22 @@ def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
     # The next power of two may be smaller than the ultimate virtual size,
     # complement with zero-hashes at each depth.
     for layer in range(chunk_depth, max_depth):
-        tmp_list[layer + 1] = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
+        key = tmp_list[layer] + ZERO_HASHES[layer]
+        if with_cache and key in cache:
+            tmp_result = cache[key]
+        else:
+            tmp_result = hash_eth2(tmp_list[layer] + ZERO_HASHES[layer])
+            if with_cache:
+                cache[key] = tmp_result
 
-    return tmp_list[max_depth]
+        tmp_list[layer + 1] = tmp_result
+
+    result = tmp_list[max_depth]
+
+    if cache is not None:
+        return result, cache
+    else:
+        return result
 
 
 def mix_in_length(root: Hash32, length: int) -> Hash32:
