@@ -142,7 +142,7 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return parent_layer
 
 
-def _get_lengths(chunks: Sequence[Hash32], limit: int, chunk_len: int) -> Tuple[int, int]:
+def _get_chunk_and_max_depth(chunks: Sequence[Hash32], limit: int, chunk_len: int) -> Tuple[int, int]:
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
     if max_depth > len(ZERO_HASHES):
@@ -197,7 +197,11 @@ def merkleize_with_cache(chunks: Sequence[Hash32],
     chunk_len = len(chunks)
     if limit is None:
         limit = chunk_len
-    chunk_depth, max_depth = _get_lengths(chunks, limit, chunk_len)
+    chunk_depth, max_depth = _get_chunk_and_max_depth(
+        chunks,
+        limit,
+        chunk_len,
+    )
 
     if limit == 0:
         return ZERO_HASHES[0], cache
@@ -225,7 +229,7 @@ def merkleize_with_cache(chunks: Sequence[Hash32],
 
 
 def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
-    root, _ = merkleize_with_cache(chunks, dict(), limit)
+    root, _ = merkleize_with_cache(chunks, {}, limit)
     return root
 
 
