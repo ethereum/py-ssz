@@ -179,7 +179,7 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         merkle_leaves = ()
         for element, sedes in zip(value, self.field_sedes):
             key = sedes.get_key(element)
-            if key not in cache or len(key) == 0:
+            if key not in cache:
                 if hasattr(sedes, 'get_hash_tree_root_and_leaves'):
                     root, cache = sedes.get_hash_tree_root_and_leaves(
                         element,
