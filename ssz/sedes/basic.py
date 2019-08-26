@@ -7,6 +7,7 @@ from typing import (
     IO,
     Any,
     Iterable,
+    Optional,
     Sequence,
     Tuple,
 )
@@ -99,8 +100,12 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
                               ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
         ...
 
-    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
-        pairs = self._get_item_sedes_pairs(value)
+    def get_fixed_size_section_length(
+            self,
+            value: Sequence[TSerializable],
+            pairs: Optional[Tuple[Tuple[TSerializable, TSedes], ...]]=None) -> int:
+        if pairs is None:
+            pairs = self._get_item_sedes_pairs(value)
         element_sedes = tuple(sedes for element, sedes in pairs)
         return _compute_fixed_size_section_length(element_sedes)
 
@@ -115,7 +120,7 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
         pairs = self._get_item_sedes_pairs(value)
         if fixed_size_section_length is None:
-            fixed_size_section_length = self.get_fixed_size_section_length(value)
+            fixed_size_section_length = self.get_fixed_size_section_length(value, pairs=pairs)
 
         variable_size_section_parts = tuple(
             sedes.serialize(item)  # slow

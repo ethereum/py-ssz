@@ -3,6 +3,7 @@ from typing import (
     IO,
     Any,
     Iterable,
+    Optional,
     Sequence,
     Tuple,
 )
@@ -90,7 +91,10 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
     def get_key(self, value: Any) -> bytes:
         raise NotImplementedError("Empty list does not implement `get_key`")
 
-    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
+    def get_fixed_size_section_length(
+            self,
+            value: Sequence[TSerializable],
+            pairs: Optional[Tuple[Tuple[TSerializable, TSedes], ...]]=None) -> int:
         raise NotImplementedError("Empty list does not implement `get_fixed_size_section_length`")
 
 

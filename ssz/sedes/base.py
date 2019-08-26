@@ -5,6 +5,7 @@ from abc import (
 from typing import (
     Any,
     Generic,
+    Optional,
     Sequence,
     Tuple,
 )
@@ -74,5 +75,8 @@ TSedes = BaseSedes[Any, Any]
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
-    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
+    def get_fixed_size_section_length(
+            self,
+            value: Sequence[TSerializable],
+            pairs: Optional[Tuple[Tuple[TSerializable, TSedes], ...]]=None) -> int:
         ...
