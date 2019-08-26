@@ -396,9 +396,13 @@ class MetaSerializable(abc.ABCMeta):
     # Implement BaseSedes methods as pass-throughs to the container sedes
     #
     def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
-        # return cls._meta.container_sedes.serialize(value)
         if value._serialize_cache is None:
-            value._serialize_cache = cls._meta.container_sedes.serialize(value)
+            value._serialize_cache, value._fixed_size_section_length_cache = (
+                cls._meta.container_sedes.serialize_with_cache(
+                    value,
+                    value._fixed_size_section_length_cache,
+                )
+            )
         return value._serialize_cache
 
     def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:

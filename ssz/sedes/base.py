@@ -5,6 +5,7 @@ from abc import (
 from typing import (
     Any,
     Generic,
+    Sequence,
     Tuple,
 )
 
@@ -76,8 +77,12 @@ class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> bytes:
         ...
 
+    @abstractmethod
+    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
+        ...
 
-class BaseByteSedes(BaseSedes[TSerializable, TDeserialized]):
+
+class BaseBytesSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
     def get_key(self, value: Any) -> bytes:
         ...

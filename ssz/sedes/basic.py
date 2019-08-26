@@ -29,6 +29,7 @@ from ssz.exceptions import (
     DeserializationError,
 )
 from ssz.sedes.base import (
+    BaseBytesSedes,
     BaseCompositeSedes,
     BaseSedes,
     TSedes,
@@ -99,27 +100,23 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
                               ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
         ...
 
+    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
+        pairs = self._get_item_sedes_pairs(value)
+        element_sedes = tuple(sedes for element, sedes in pairs)
+        return _compute_fixed_size_section_length(element_sedes)
+
     def _validate_serializable(self, value: Any) -> None:
         ...
 
-    def serialize(self, value: TSerializable) -> bytes:
+    def serialize(self, value: TSerializable, fixed_size_section_length=None) -> bytes:
         self._validate_serializable(value)
 
         if not len(value):
             return b''
 
-        pairs = self._get_item_sedes_pairs(value)  # slow
-        element_sedes = tuple(sedes for element, sedes in pairs)
-
-        has_fixed_size_section_length_cache = hasattr(value, '_fixed_size_section_length_cache')
-        if has_fixed_size_section_length_cache:
-            if value._fixed_size_section_length_cache is None:
-                fixed_size_section_length = _compute_fixed_size_section_length(element_sedes)
-                value._fixed_size_section_length_cache = fixed_size_section_length
-            else:
-                fixed_size_section_length = value._fixed_size_section_length_cache
-        else:
-            fixed_size_section_length = _compute_fixed_size_section_length(element_sedes)
+        pairs = self._get_item_sedes_pairs(value)
+        if fixed_size_section_length is None:
+            fixed_size_section_length = self.get_fixed_size_section_length(value)
 
         variable_size_section_parts = tuple(
             sedes.serialize(item)  # slow
@@ -174,6 +171,6 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         return get_key(self, value)
 
 
-class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
+class BasicBytesSedes(BaseBytesSedes[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> bytes:
         return get_key(self, value)

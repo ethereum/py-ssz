@@ -32,6 +32,7 @@ from ssz.sedes.basic import (
 )
 from ssz.typing import (
     CacheObj,
+    TSerializable,
 )
 from ssz.utils import (
     merkleize,
@@ -196,14 +197,24 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def chunk_count(self) -> int:
         return len(self.field_sedes)
 
-    def serialize(self, value) -> bytes:
+    def serialize(self, value, fixed_size_section_length=None) -> bytes:
+        # if value._serialize_cache is not None:
         if hasattr(value, '_serialize_cache') and value._serialize_cache is not None:
             return value._serialize_cache
         elif hasattr(value, '_serialize_cache') and value._serialize_cache is None:
-            value._serialize_cache = super().serialize(value)
+            value._serialize_cache = super().serialize(value, fixed_size_section_length)
             return value._serialize_cache
         else:
             return super().serialize(value)
+
+    def serialize_with_cache(self,
+                             value: TSerializable,
+                             fixed_size_section_length_cache: int) -> Tuple[bytes, int]:
+        if fixed_size_section_length_cache is None:
+            fixed_size_section_length_cache = self.get_fixed_size_section_length(value)
+
+        serialized_result = self.serialize(value, fixed_size_section_length_cache)
+        return serialized_result, fixed_size_section_length_cache
 
     def get_key(self, value: Any) -> bytes:
         return get_key(self, value)

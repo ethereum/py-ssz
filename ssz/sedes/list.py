@@ -91,6 +91,9 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
     def get_key(self, value: Any) -> bytes:
         raise NotImplementedError("Empty list does not implement `get_key`")
 
+    def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
+        raise NotImplementedError("Empty list does not implement `get_fixed_size_section_length`")
+
 
 empty_list = EmptyList()
 
