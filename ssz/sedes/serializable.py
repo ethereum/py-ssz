@@ -401,6 +401,7 @@ class MetaSerializable(abc.ABCMeta):
                 cls._meta.container_sedes.serialize_with_cache(
                     value,
                     value._fixed_size_section_length_cache,
+                    value._serialize_cache,
                 )
             )
         return value._serialize_cache
