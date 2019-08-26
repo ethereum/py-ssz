@@ -74,15 +74,5 @@ TSedes = BaseSedes[Any, Any]
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     @abstractmethod
-    def get_key(self, value: Any) -> bytes:
-        ...
-
-    @abstractmethod
     def get_fixed_size_section_length(self, value: Sequence[TSerializable]):
-        ...
-
-
-class BaseBytesSedes(BaseSedes[TSerializable, TDeserialized]):
-    @abstractmethod
-    def get_key(self, value: Any) -> bytes:
         ...

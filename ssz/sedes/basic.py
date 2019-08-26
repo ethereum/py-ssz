@@ -29,7 +29,6 @@ from ssz.exceptions import (
     DeserializationError,
 )
 from ssz.sedes.base import (
-    BaseBytesSedes,
     BaseCompositeSedes,
     BaseSedes,
     TSedes,
@@ -171,6 +170,6 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         return get_key(self, value)
 
 
-class BasicBytesSedes(BaseBytesSedes[TSerializable, TDeserialized]):
+class BasicBytesSedes(BaseSedes[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> bytes:
         return get_key(self, value)
