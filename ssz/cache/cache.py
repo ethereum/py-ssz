@@ -27,12 +27,8 @@ class SSZCache(MM):
     def _exists(self, key: bytes) -> bool:
         return key in self._cached_values
 
-    def __contains__(self, key: bytes) -> bool:     # type: ignore # Breaks LSP
-        if hasattr(self, '_exists'):
-            # Classes which inherit this class would have `_exists` attr
-            return self._exists(key)    # type: ignore
-        else:
-            return super().__contains__(key)
+    def __contains__(self, key: bytes) -> bool:
+        return self._exists(key)
 
     def __getitem__(self, key: bytes) -> bytes:
         return self._cached_values[key]

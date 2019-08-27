@@ -21,12 +21,12 @@ from ssz.typing import (
 
 def get_key(sedes: TSedes, value: Any) -> str:
     key = _get_key(sedes, value).hex()
+    sedes_name = type(sedes).__name__
     if len(key) > 0:
-        sedes_name = type(sedes).__name__
         return sedes_name + key
     else:
         # If the serialized result is empty, use sedes name as the key
-        return key
+        return sedes_name
 
 
 @functools.lru_cache(maxsize=2**12)
@@ -49,7 +49,7 @@ def get_merkle_leaves_with_cache(value: Any,
     """
     for element in value:
         key = element_sedes.get_key(element)
-        if key not in cache or len(key) == 0:
+        if key not in cache:
             root, cache = (
                 element_sedes.get_hash_tree_root_and_leaves(
                     element,
