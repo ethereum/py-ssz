@@ -26,7 +26,10 @@ def get_key(sedes: TSedes, value: Any) -> str:
         return sedes_name + key
     else:
         # If the serialized result is empty, use sedes name as the key
-        return sedes_name
+        if hasattr(sedes, 'element_sedes'):
+            return sedes_name + str(sedes.max_length)
+        else:
+            return sedes_name
 
 
 @functools.lru_cache(maxsize=2**12)

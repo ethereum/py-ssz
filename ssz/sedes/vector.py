@@ -80,6 +80,10 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
         else:
             return self.length * self.element_sedes.get_fixed_size()
 
+    @property
+    def max_length(self) -> int:
+        return self.length
+
     #
     # Serialization
     #
