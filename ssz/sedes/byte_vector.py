@@ -19,6 +19,7 @@ from ssz.typing import (
 )
 from ssz.utils import (
     merkleize,
+    merkleize_with_cache,
     pack_bytes,
 )
 
@@ -71,11 +72,10 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
                                       value: bytes,
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
-        root, cache = merkleize(
+        return merkleize_with_cache(
             pack_bytes(serialized_value),
             cache=cache,
         )
-        return root, cache
 
     def chunk_count(self) -> int:
         return self.length * self.size

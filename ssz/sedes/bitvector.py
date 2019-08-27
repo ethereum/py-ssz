@@ -24,6 +24,7 @@ from ssz.typing import (
 from ssz.utils import (
     get_serialized_bytearray,
     merkleize,
+    merkleize_with_cache,
     pack_bits,
 )
 
@@ -78,12 +79,11 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
                                       value: Sequence[bool],
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         chunk_count = (self.bit_count + 255) // 256
-        root, cache = merkleize(
+        return merkleize_with_cache(
             pack_bits(value),
-            limit=chunk_count,
             cache=cache,
+            limit=chunk_count,
         )
-        return root, cache
 
     def chunk_count(self) -> int:
         return (self.bit_count + 255) // 256

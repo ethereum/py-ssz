@@ -46,6 +46,7 @@ from ssz.typing import (
 )
 from ssz.utils import (
     merkleize,
+    merkleize_with_cache,
     mix_in_length,
     pack,
     read_exact,
@@ -208,10 +209,10 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
             else:
                 merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
 
-        merkleize_result, cache = merkleize(
+        merkleize_result, cache = merkleize_with_cache(
             merkle_leaves,
-            limit=self.chunk_count(),
             cache=cache,
+            limit=self.chunk_count(),
         )
         return mix_in_length(merkleize_result, len(value)), cache
 

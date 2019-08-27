@@ -42,6 +42,7 @@ from ssz.typing import (
 )
 from ssz.utils import (
     merkleize,
+    merkleize_with_cache,
     pack,
     read_exact,
     s_decode_offset,
@@ -152,12 +153,11 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
             else:
                 merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
 
-        merkleize_result, cache = merkleize(
+        return merkleize_with_cache(
             merkle_leaves,
-            limit=self.chunk_count(),
             cache=cache,
+            limit=self.chunk_count(),
         )
-        return merkleize_result, cache
 
     def chunk_count(self) -> int:
         if isinstance(self.element_sedes, BasicSedes):
