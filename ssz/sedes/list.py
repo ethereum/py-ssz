@@ -19,9 +19,6 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
-from ssz.cache.utils import (
-    get_merkle_leaves_with_cache,
-)
 from ssz.constants import (
     CHUNK_SIZE,
     OFFSET_SIZE,
@@ -37,7 +34,7 @@ from ssz.sedes.base import (
 )
 from ssz.sedes.basic import (
     BasicSedes,
-    CompositeSedes,
+    HomogeneousCompositeSedes,
 )
 from ssz.typing import (
     CacheObj,
@@ -83,7 +80,7 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
         if len(value):
             raise ValueError("Cannot compute tree hash for non-empty value using `EmptyList` sedes")
-        return EMPTY_LIST_HASH_TREE_ROOT
+        return EMPTY_LIST_HASH_TREE_ROOT, cache
 
     def chunk_count(self) -> int:
         return 0
@@ -104,7 +101,7 @@ empty_list = EmptyList()
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
 
 
-class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
+class List(HomogeneousCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
                  element_sedes: TSedes,
                  max_length: int) -> None:
@@ -194,26 +191,7 @@ class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def get_hash_tree_root_and_leaves(self,
                                       value: TSerializable,
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
-        merkle_leaves = ()
-        if isinstance(self.element_sedes, BasicSedes):
-            serialized_items = tuple(
-                self.element_sedes.serialize(element)
-                for element in value
-            )
-            merkle_leaves = pack(serialized_items)
-        else:
-            has_get_hash_tree_root_and_leaves = hasattr(
-                self.element_sedes,
-                'get_hash_tree_root_and_leaves',
-            )
-            if has_get_hash_tree_root_and_leaves:
-                merkle_leaves = get_merkle_leaves_with_cache(
-                    value,
-                    self.element_sedes,
-                    cache,
-                )
-            else:
-                merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
+        merkle_leaves, cache = self.get_merkle_leaves(value, cache)
 
         merkleize_result, cache = merkleize_with_cache(
             merkle_leaves,

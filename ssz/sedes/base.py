@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+import collections
 from typing import (
     Any,
     Generic,
@@ -80,3 +81,7 @@ class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
             value: Sequence[TSerializable],
             pairs: Optional[Tuple[Tuple[TSerializable, TSedes], ...]]=None) -> int:
         ...
+
+
+class BaseSerializable(collections.Sequence):
+    ...

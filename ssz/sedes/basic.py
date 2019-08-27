@@ -15,6 +15,9 @@ from typing import (
 from eth_typing import (
     Hash32,
 )
+from eth_utils import (
+    to_tuple,
+)
 from eth_utils.toolz import (
     accumulate,
     concatv,
@@ -24,6 +27,7 @@ from ssz import (
     constants,
 )
 from ssz.cache.utils import (
+    _get_key,
     get_key,
 )
 from ssz.exceptions import (
@@ -91,6 +95,11 @@ def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
         if sedes.is_fixed_sized else constants.OFFSET_SIZE
         for sedes in element_sedes
     )
+
+
+class BasicBytesSedes(BaseSedes[TSerializable, TDeserialized]):
+    def get_key(self, value: Any) -> bytes:
+        return get_key(self, value)
 
 
 class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
@@ -175,6 +184,65 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         return get_key(self, value)
 
 
-class BasicBytesSedes(BaseSedes[TSerializable, TDeserialized]):
-    def get_key(self, value: Any) -> bytes:
-        return get_key(self, value)
+class HomogeneousCompositeSedes(CompositeSedes[TSerializable, TDeserialized]):
+    def get_key(self, value: Any) -> str:
+        key = _get_key(self, value).hex()
+        sedes_name = type(self).__name__
+        if len(key) > 0:
+            return sedes_name + key
+        else:
+            return sedes_name + str(self.max_length)
+
+    def get_merkle_leaves(self, value: Any, cache: CacheObj) -> Tuple[Tuple[Hash32], CacheObj]:
+        merkle_leaves = ()
+        if isinstance(self.element_sedes, BasicSedes):
+            serialized_elements = tuple(
+                self.element_sedes.serialize(element)
+                for element in value
+            )
+            merkle_leaves = pack(serialized_elements)
+        else:
+            has_get_hash_tree_root_and_leaves = hasattr(
+                self.element_sedes,
+                'get_hash_tree_root_and_leaves',
+            )
+            if has_get_hash_tree_root_and_leaves:
+                merkle_leaves, cache = self.get_merkle_leaves_with_cache(
+                    value,
+                    cache,
+                )
+            else:
+                merkle_leaves = self.get_merkle_leaves_without_cache(value)
+
+        return merkle_leaves, cache
+
+    def get_merkle_leaves_with_cache(self,
+                                     value: Any,
+                                     cache: CacheObj) -> Tuple[Tuple[Hash32], CacheObj]:
+        result = self._get_merkle_leaves_with_cache(value, cache)
+        return result, cache
+
+    @to_tuple
+    def _get_merkle_leaves_with_cache(self,
+                                      value: Any,
+                                      cache: CacheObj) -> Iterable[Hash32]:
+        """
+        NOTE: cache is mutable
+        """
+        for element in value:
+            key = self.element_sedes.get_key(element)
+            if key not in cache:
+                root, cache = (
+                    self.element_sedes.get_hash_tree_root_and_leaves(element, cache)
+                )
+                cache[key] = root
+            yield cache[key]
+
+    @to_tuple
+    def get_merkle_leaves_without_cache(self, value: Any) -> Iterable[Hash32]:
+        for element in value:
+            yield self.element_sedes.get_hash_tree_root(element)
+
+
+class NonhomogeneousCompositeSedes(CompositeSedes[TSerializable, TDeserialized]):
+    ...

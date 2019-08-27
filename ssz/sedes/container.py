@@ -28,7 +28,7 @@ from ssz.sedes.base import (
     TSedes,
 )
 from ssz.sedes.basic import (
-    CompositeSedes,
+    NonhomogeneousCompositeSedes,
 )
 from ssz.typing import (
     CacheObj,
@@ -52,7 +52,7 @@ def _deserialize_fixed_size_items_and_offsets(stream, field_sedes):
             yield (s_decode_offset(stream), sedes)
 
 
-class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
+class Container(NonhomogeneousCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def __init__(self, field_sedes: Sequence[TSedes]) -> None:
         if len(field_sedes) == 0:
             raise ValidationError("Cannot define container without any fields")

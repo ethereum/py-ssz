@@ -17,10 +17,6 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
-from ssz.cache.utils import (
-    get_merkle_leaves_with_cache,
-    get_merkle_leaves_without_cache,
-)
 from ssz.constants import (
     CHUNK_SIZE,
 )
@@ -33,7 +29,7 @@ from ssz.sedes.base import (
 )
 from ssz.sedes.basic import (
     BasicSedes,
-    CompositeSedes,
+    HomogeneousCompositeSedes,
 )
 from ssz.typing import (
     CacheObj,
@@ -54,7 +50,8 @@ TSedesPairs = Tuple[
 ]
 
 
-class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]]):
+class Vector(HomogeneousCompositeSedes[Sequence[TSerializableElement],
+             Tuple[TDeserializedElement, ...]]):
     def __init__(self,
                  element_sedes: TSedes,
                  length: int) -> None:
@@ -136,27 +133,7 @@ class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedE
     def get_hash_tree_root_and_leaves(self,
                                       value: Sequence[Any],
                                       cache: CacheObj) -> Tuple[Hash32, CacheObj]:
-        merkle_leaves = ()
-        if isinstance(self.element_sedes, BasicSedes):
-            serialized_elements = tuple(
-                self.element_sedes.serialize(element)
-                for element in value
-            )
-            merkle_leaves = pack(serialized_elements)
-        else:
-            has_get_hash_tree_root_and_leaves = hasattr(
-                self.element_sedes,
-                'get_hash_tree_root_and_leaves',
-            )
-            if has_get_hash_tree_root_and_leaves:
-                merkle_leaves = get_merkle_leaves_with_cache(
-                    value,
-                    self.element_sedes,
-                    cache,
-                )
-            else:
-                merkle_leaves = get_merkle_leaves_without_cache(value, self.element_sedes)
-
+        merkle_leaves, cache = self.get_merkle_leaves(value, cache)
         return merkleize_with_cache(
             merkle_leaves,
             cache=cache,
