@@ -13,6 +13,7 @@ class UInt(BasicSedes[int, int]):
             raise ValueError(
                 "Number of bits must be a multiple of 8"
             )
+        self.num_bits = num_bits
         super().__init__(num_bits // 8)
 
     def serialize(self, value: int) -> bytes:
@@ -34,6 +35,9 @@ class UInt(BasicSedes[int, int]):
                 f"Cannot deserialize length {len(data)} byte-string as uint{self.size*8}"
             )
         return int.from_bytes(data, "little")
+
+    def get_sedes_id(self) -> str:
+        return f"{self.__class__.__name__}{self.num_bits}"
 
 
 uint8 = UInt(8)

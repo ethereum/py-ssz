@@ -49,3 +49,12 @@ def test_bitvector_deserialize_values(size, value, expected):
 def test_bitvector_round_trip_no_sedes(size, value):
     foo = Bitvector(size)
     assert decode(encode(value, foo), foo) == value
+
+    @pytest.mark.parametrize(
+        ("sedes", "id"),
+        (
+            (Bitvector(64), 'Bitvector64'),
+        ),
+    )
+    def test_get_sedes_id(sedes, id):
+        assert sedes.get_sedes_id() == id

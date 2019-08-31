@@ -33,6 +33,9 @@ class Boolean(BasicSedes[bool, bool]):
                 f"{encode_hex(data)})",
             )
 
+    def get_sedes_id(self) -> str:
+        return self.__class__.__name__
+
 
 class Bit(Boolean):
     pass

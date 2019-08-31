@@ -2,6 +2,7 @@ import pytest
 
 import ssz
 from ssz.sedes import (
+    List,
     uint8,
 )
 
@@ -151,3 +152,18 @@ def test_root():
 
     test = Test(1, 2)
     assert test.hash_tree_root == ssz.get_hash_tree_root(test, Test)
+
+
+class Foo(ssz.Serializable):
+    ...
+
+
+@pytest.mark.parametrize(
+    ("sedes", "id"),
+    (
+        (Foo(), 'Foo'),
+        (List(Foo, 64), 'List(Foo,64)')
+    ),
+)
+def test_get_sedes_id(sedes, id):
+    assert sedes.get_sedes_id() == id

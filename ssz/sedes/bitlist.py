@@ -95,6 +95,9 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     def chunk_count(self) -> int:
         return (self.max_bit_count + 255) // 256
 
+    def get_sedes_id(self) -> str:
+        return f"{self.__class__.__name__}{self.max_bit_count}"
+
 
 def get_bitlist_len(x: int) -> int:
     return x.bit_length() - 1

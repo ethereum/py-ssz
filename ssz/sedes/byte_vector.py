@@ -80,6 +80,9 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
     def chunk_count(self) -> int:
         return self.length * self.size
 
+    def get_sedes_id(self) -> str:
+        return f"{self.__class__.__name__}{self.size}"
+
 
 bytes1 = ByteVector(1)
 bytes4 = ByteVector(4)

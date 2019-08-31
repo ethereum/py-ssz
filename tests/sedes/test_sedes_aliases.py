@@ -71,3 +71,14 @@ def test_byte_vector_invalid_length(value, expected_length):
     properly_serialized_value = ssz.encode(value, ByteVector(len(value)))
     with pytest.raises(DeserializationError):
         ssz.decode(properly_serialized_value, byte_vector)
+
+
+@pytest.mark.parametrize(
+    ("sedes", "id"),
+    (
+        (byte, 'Byte'),
+        (ByteVector(64), 'ByteVector64')
+    ),
+)
+def test_get_sedes_id(sedes, id):
+    assert sedes.get_sedes_id() == id
