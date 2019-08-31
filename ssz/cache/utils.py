@@ -27,7 +27,7 @@ def get_key(sedes: TSedes, value: Any) -> str:
     else:
         # If the serialized result is empty, use sedes name as the key
         if hasattr(sedes, 'element_sedes'):
-            return sedes_name + str(sedes.max_length)
+            return f"{sedes_name}[{sedes.max_length}]({type(sedes.element_sedes).__name__})"
         else:
             return sedes_name
 
