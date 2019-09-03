@@ -188,6 +188,7 @@ class BaseSerializable(collections.Sequence):
         all_kwargs = merge_args_to_kwargs(args, combined_kwargs, self._meta.field_names)
 
         result = type(self)(**all_kwargs)
+        result.cache = self.cache
 
         return result
 
