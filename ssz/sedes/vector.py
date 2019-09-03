@@ -33,7 +33,7 @@ from ssz.sedes.base import (
 )
 from ssz.sedes.basic import (
     BasicSedes,
-    CompositeSedes,
+    HomogeneousCompositeSedes,
 )
 from ssz.typing import (
     CacheObj,
@@ -54,7 +54,9 @@ TSedesPairs = Tuple[
 ]
 
 
-class Vector(CompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]]):
+class Vector(
+    HomogeneousCompositeSedes[Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]]
+):
     def __init__(self,
                  element_sedes: TSedes,
                  length: int) -> None:

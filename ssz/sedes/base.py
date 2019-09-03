@@ -64,7 +64,11 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
         ...
 
     @abstractmethod
-    def get_key(self, value: Any) -> bytes:
+    def get_sedes_id(self) -> str:
+        ...
+
+    @abstractmethod
+    def get_key(self, value: Any) -> str:
         ...
 
 
@@ -72,12 +76,8 @@ TSedes = BaseSedes[Any, Any]
 
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
-    @abstractmethod
-    def get_key(self, value: Any) -> bytes:
-        ...
+    ...
 
 
 class BaseByteSedes(BaseSedes[TSerializable, TDeserialized]):
-    @abstractmethod
-    def get_key(self, value: Any) -> bytes:
-        ...
+    ...

@@ -47,3 +47,13 @@ def test_bitlist_deserialize_values(size, value, expected):
 def test_bitlist_round_trip_no_sedes(size, value):
     foo = Bitlist(size)
     assert decode(encode(value, foo), foo) == value
+
+
+@pytest.mark.parametrize(
+    ("sedes", "id"),
+    (
+        (Bitlist(64), 'Bitlist64'),
+    ),
+)
+def test_get_sedes_id(sedes, id):
+    assert sedes.get_sedes_id() == id

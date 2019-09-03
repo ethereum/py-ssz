@@ -45,3 +45,14 @@ def test_uint(bit_length, value, serialized):
     uint = UInt(bit_length)
     assert encode_hex(ssz.encode(value, uint)) == serialized
     assert ssz.decode(decode_hex(serialized), uint) == value
+
+
+@pytest.mark.parametrize(
+    ("sedes", "id"),
+    (
+        (UInt(64), 'UInt64'),
+        (boolean, 'Boolean'),
+    ),
+)
+def test_get_sedes_id(sedes, id):
+    assert sedes.get_sedes_id() == id

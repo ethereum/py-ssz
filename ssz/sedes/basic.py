@@ -80,7 +80,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     def chunk_count(self) -> int:
         return 1
 
-    def get_key(self, value: Any) -> bytes:
+    def get_key(self, value: Any) -> str:
         return get_key(self, value)
 
 
@@ -90,6 +90,11 @@ def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
         if sedes.is_fixed_sized else constants.OFFSET_SIZE
         for sedes in element_sedes
     )
+
+
+class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
+    def get_key(self, value: Any) -> str:
+        return get_key(self, value)
 
 
 class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
@@ -170,10 +175,11 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
     def _deserialize_stream(self, stream: IO[bytes]) -> TDeserialized:
         ...
 
-    def get_key(self, value: Any) -> bytes:
+    def get_key(self, value: Any) -> str:
         return get_key(self, value)
 
 
-class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
-    def get_key(self, value: Any) -> bytes:
-        return get_key(self, value)
+class HomogeneousCompositeSedes(CompositeSedes[TSerializable, TDeserialized]):
+    def get_sedes_id(self) -> str:
+        sedes_name = self.__class__.__name__
+        return f"{sedes_name}({self.element_sedes.get_sedes_id()},{self.max_length})"

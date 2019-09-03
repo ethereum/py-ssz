@@ -27,5 +27,8 @@ class Byte(BasicSedes[bytes, bytes]):
             )
         return data
 
+    def get_sedes_id(self) -> str:
+        return self.__class__.__name__
+
 
 byte = Byte()

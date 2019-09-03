@@ -14,6 +14,7 @@ from ssz.sedes import (
     Container,
     List,
     Vector,
+    bytes32,
     uint8,
 )
 
@@ -110,3 +111,17 @@ def test_container_of_dynamic_sized_fields(fields, value, serialized):
 
     assert encode_hex(ssz.encode(value, sedes)) == serialized
     assert ssz.decode(decode_hex(serialized), sedes) == value
+
+
+@pytest.mark.parametrize(
+    ("sedes", "id"),
+    (
+        (List(uint8, 2), 'List(UInt8,2)'),
+        (Vector(uint8, 2), 'Vector(UInt8,2)'),
+        (Container((uint8, bytes32)), 'UInt8,ByteVector32'),
+        (Container((uint8, List(uint8, 2))), 'UInt8,List(UInt8,2)'),
+        (Vector(Container((uint8, List(uint8, 2))), 2), 'Vector(UInt8,List(UInt8,2),2)'),
+    ),
+)
+def test_get_sedes_id(sedes, id):
+    assert sedes.get_sedes_id() == id

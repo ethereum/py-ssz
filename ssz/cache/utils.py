@@ -19,21 +19,15 @@ from ssz.typing import (
 )
 
 
-def get_key(sedes: TSedes, value: Any) -> str:
-    key = _get_key(sedes, value).hex()
-    sedes_name = type(sedes).__name__
-    if len(key) > 0:
-        return sedes_name + key
-    else:
-        # If the serialized result is empty, use sedes name as the key
-        if hasattr(sedes, 'element_sedes'):
-            return sedes_name + str(sedes.max_length)
-        else:
-            return sedes_name
+def get_key(sedes, value: Any) -> str:
+    key = get_base_key(sedes, value).hex()
+    if len(key) == 0:
+        key = ''
+    return f"{sedes.get_sedes_id()}{key}"
 
 
 @functools.lru_cache(maxsize=2**12)
-def _get_key(sedes: TSedes, value: Any) -> bytes:
+def get_base_key(sedes: TSedes, value: Any) -> bytes:
     return sedes.serialize(value)
 
 

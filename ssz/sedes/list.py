@@ -37,7 +37,7 @@ from ssz.sedes.base import (
 )
 from ssz.sedes.basic import (
     BasicSedes,
-    CompositeSedes,
+    HomogeneousCompositeSedes,
 )
 from ssz.typing import (
     CacheObj,
@@ -88,7 +88,10 @@ class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable,
     def chunk_count(self) -> int:
         return 0
 
-    def get_key(self, value: Any) -> bytes:
+    def get_sedes_id(self) -> str:
+        raise NotImplementedError("Empty list does not implement `get_sedes_id`")
+
+    def get_key(self, value: Any) -> str:
         raise NotImplementedError("Empty list does not implement `get_key`")
 
 
@@ -98,7 +101,7 @@ empty_list = EmptyList()
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
 
 
-class List(CompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
+class List(HomogeneousCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]):
     def __init__(self,
                  element_sedes: TSedes,
                  max_length: int) -> None:

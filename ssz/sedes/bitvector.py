@@ -87,3 +87,6 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
 
     def chunk_count(self) -> int:
         return (self.bit_count + 255) // 256
+
+    def get_sedes_id(self) -> str:
+        return f"{self.__class__.__name__}{self.bit_count}"

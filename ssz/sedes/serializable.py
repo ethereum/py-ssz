@@ -27,7 +27,7 @@ from ssz.cache.cache import (
     DEFAULT_CACHE_SIZE,
 )
 from ssz.cache.utils import (
-    get_key,
+    get_base_key,
 )
 from ssz.constants import (
     FIELDS_META_ATTR,
@@ -223,8 +223,19 @@ class BaseSerializable(collections.Sequence):
     def hash_tree_root(self):
         return self.__class__.get_hash_tree_root(self, cache=True)
 
+    @classmethod
+    def get_sedes_id(cls) -> str:
+        # Serializable implementation name should be unique
+        return cls.__name__
+
     def get_key(self) -> bytes:
-        return get_key(self.__class__, self)
+        # Serilaize with self._meta.container_sedes
+        key = get_base_key(self._meta.container_sedes, self).hex()
+
+        if len(key) == 0:
+            key = ''
+
+        return f"{self.__class__.get_sedes_id()}{key}"
 
 
 def make_immutable(value):

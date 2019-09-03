@@ -17,9 +17,6 @@ from eth_utils.toolz import (
     sliding_window,
 )
 
-from ssz.cache.utils import (
-    get_key,
-)
 from ssz.exceptions import (
     DeserializationError,
     SerializationError,
@@ -205,5 +202,5 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         else:
             return super().serialize(value)
 
-    def get_key(self, value: Any) -> bytes:
-        return get_key(self, value)
+    def get_sedes_id(self) -> str:
+        return ','.join(field.get_sedes_id() for field in self.field_sedes)
