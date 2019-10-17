@@ -17,7 +17,8 @@ extras_require = {
     ],
     'lint': [
         "flake8==3.4.1",
-        "isort>=4.2.15,<5",
+        "isort==4.3.21",
+        "black==19.3b",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",
