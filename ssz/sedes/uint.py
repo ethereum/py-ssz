@@ -1,25 +1,18 @@
-from ssz.exceptions import (
-    DeserializationError,
-    SerializationError,
-)
-from ssz.sedes.basic import (
-    BasicSedes,
-)
+from ssz.exceptions import DeserializationError, SerializationError
+from ssz.sedes.basic import BasicSedes
 
 
 class UInt(BasicSedes[int, int]):
     def __init__(self, num_bits: int) -> None:
         if num_bits % 8 != 0:
-            raise ValueError(
-                "Number of bits must be a multiple of 8"
-            )
+            raise ValueError("Number of bits must be a multiple of 8")
         self.num_bits = num_bits
         super().__init__(num_bits // 8)
 
     def serialize(self, value: int) -> bytes:
         if value < 0:
             raise SerializationError(
-                f"Can only serialize non-negative integers, got {value}",
+                f"Can only serialize non-negative integers, got {value}"
             )
 
         try:

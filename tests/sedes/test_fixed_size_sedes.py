@@ -24,7 +24,7 @@ from ssz.sedes import (
         (Vector(uint8, 0), 0),
         (Vector(uint8, 2), 2),
         (Container((uint8, Vector(uint8, 4))), 5),
-        (Vector(List(uint8, 2**32), 0), 0),
+        (Vector(List(uint8, 2 ** 32), 0), 0),
         (Vector(Container((uint8, Vector(uint8, 4))), 4), 20),
         (byte, 1),
         (ByteVector(0), 0),
@@ -41,14 +41,14 @@ def test_fixed_size(sedes, size):
 @pytest.mark.parametrize(
     "sedes",
     (
-        List(uint8, 2**32),
-        List(Vector(uint8, 2), 2**32),
-        List(List(uint8, 2**32), 2**32),
-        List(Container((uint8, Vector(uint8, 4))), 2**32),
-        Vector(List(uint8, 2**32), 2),
-        Container((List(uint8, 2**32),)),
-        Container((uint8, List(uint8, 2**32), uint8)),
-        Container((Container((List(uint8, 2**32),)),)),
+        List(uint8, 2 ** 32),
+        List(Vector(uint8, 2), 2 ** 32),
+        List(List(uint8, 2 ** 32), 2 ** 32),
+        List(Container((uint8, Vector(uint8, 4))), 2 ** 32),
+        Vector(List(uint8, 2 ** 32), 2),
+        Container((List(uint8, 2 ** 32),)),
+        Container((uint8, List(uint8, 2 ** 32), uint8)),
+        Container((Container((List(uint8, 2 ** 32),)),)),
     ),
 )
 def test_dynamic_size(sedes):

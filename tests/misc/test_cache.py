@@ -1,37 +1,21 @@
 import pytest
 
-from ssz import (
-    Serializable,
-    bytes32,
-    uint8,
-)
-from ssz.cache.cache import (
-    SSZCache,
-)
+from ssz import Serializable, bytes32, uint8
+from ssz.cache.cache import SSZCache
 
 
 class Foo(Serializable):
-    fields = (
-        ("field1", uint8),
-        ("field2", bytes32),
-    )
+    fields = (("field1", uint8), ("field2", bytes32))
 
 
 @pytest.fixture
 def foo_with_db():
-    return Foo(
-        field1=10,
-        field2=b'\x12' * 32,
-        cache=SSZCache(cache_size=2**10),
-    )
+    return Foo(field1=10, field2=b"\x12" * 32, cache=SSZCache(cache_size=2 ** 10))
 
 
 @pytest.fixture
 def foo_without_db():
-    return Foo(
-        field1=10,
-        field2=b'\x12' * 32,
-    )
+    return Foo(field1=10, field2=b"\x12" * 32)
 
 
 def test_cache_sanity(foo_with_db, foo_without_db):

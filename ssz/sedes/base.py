@@ -1,22 +1,9 @@
-from abc import (
-    ABC,
-    abstractmethod,
-)
-from typing import (
-    Any,
-    Generic,
-    Tuple,
-)
+from abc import ABC, abstractmethod
+from typing import Any, Generic, Tuple
 
-from eth_typing import (
-    Hash32,
-)
+from eth_typing import Hash32
 
-from ssz.typing import (
-    CacheObj,
-    TDeserialized,
-    TSerializable,
-)
+from ssz.typing import CacheObj, TDeserialized, TSerializable
 
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
@@ -54,9 +41,9 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
         ...
 
     @abstractmethod
-    def get_hash_tree_root_and_leaves(self,
-                                      value: TSerializable,
-                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+    def get_hash_tree_root_and_leaves(
+        self, value: TSerializable, cache: CacheObj
+    ) -> Tuple[Hash32, CacheObj]:
         ...
 
     @abstractmethod

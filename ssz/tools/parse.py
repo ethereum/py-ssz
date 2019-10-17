@@ -1,13 +1,7 @@
-from collections.abc import (
-    Mapping,
-)
-from typing import (
-    Sequence,
-)
+from collections.abc import Mapping
+from typing import Sequence
 
-from eth_utils import (
-    to_tuple,
-)
+from eth_utils import to_tuple
 
 from ssz.sedes import (
     BaseSedes,
@@ -20,13 +14,9 @@ from ssz.sedes import (
     UInt,
     Vector,
 )
-from ssz.sedes.serializable import (
-    MetaSerializable,
-)
+from ssz.sedes.serializable import MetaSerializable
 
-from .codec import (
-    DefaultCodec,
-)
+from .codec import DefaultCodec
 
 
 def from_formatted_dict(value, sedes, codec=DefaultCodec):
@@ -51,7 +41,9 @@ def parse(value, sedes, codec=DefaultCodec):
     elif isinstance(sedes, MetaSerializable):
         return parse_serializable(value, sedes, codec)
     elif isinstance(sedes, BaseSedes):
-        raise Exception(f"Unreachable: All sedes types have been checked, {sedes} was not found")
+        raise Exception(
+            f"Unreachable: All sedes types have been checked, {sedes} was not found"
+        )
     else:
         raise TypeError(f"Expected BaseSedes, got {type(sedes)}")
 
@@ -98,20 +90,20 @@ def parse_container(value, sedes, codec):
     if not isinstance(value, Sequence):
         raise ValueError(f"Expected Sequence, got {type(value)}")
     elif not len(value) == len(sedes.field_sedes):
-        raise ValueError(f"Expected {len(sedes.field_sedes)} elements, got {len(value)}")
+        raise ValueError(
+            f"Expected {len(sedes.field_sedes)} elements, got {len(value)}"
+        )
 
     for element, element_sedes in zip(value, sedes.field_sedes):
-        yield parse(
-            element,
-            element_sedes,
-            codec,
-        )
+        yield parse(element, element_sedes, codec)
 
 
 def parse_serializable(value, serializable_cls, codec):
     if not isinstance(value, Mapping):
         raise ValueError(f"Expected Mapping, got {type(value)}")
-    parse_args = tuple(value[field_name] for field_name in serializable_cls._meta.field_names)
+    parse_args = tuple(
+        value[field_name] for field_name in serializable_cls._meta.field_names
+    )
     input_args = parse(parse_args, serializable_cls._meta.container_sedes)
     input_kwargs = dict(zip(serializable_cls._meta.field_names, input_args))
     return serializable_cls(**input_kwargs)

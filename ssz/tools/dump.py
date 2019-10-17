@@ -1,10 +1,6 @@
-from typing import (
-    Sequence,
-)
+from typing import Sequence
 
-from eth_utils import (
-    to_tuple,
-)
+from eth_utils import to_tuple
 
 from ssz.sedes import (
     BaseSedes,
@@ -18,13 +14,9 @@ from ssz.sedes import (
     UInt,
     Vector,
 )
-from ssz.sedes.serializable import (
-    MetaSerializable,
-)
+from ssz.sedes.serializable import MetaSerializable
 
-from .codec import (
-    DefaultCodec,
-)
+from .codec import DefaultCodec
 
 
 def to_formatted_dict(value, sedes=None, codec=DefaultCodec):
@@ -55,7 +47,9 @@ def dump(value, sedes=None, codec=DefaultCodec):
     elif isinstance(sedes, MetaSerializable):
         return dump_serializable(value, codec)
     elif isinstance(sedes, BaseSedes):
-        raise Exception(f"Unreachable: All sedes types have been checked, {sedes} was not found")
+        raise Exception(
+            f"Unreachable: All sedes types have been checked, {sedes} was not found"
+        )
     else:
         raise TypeError(f"Expected BaseSedes, got {type(sedes)}")
 
@@ -97,14 +91,12 @@ def dump_container(value, sedes, codec):
     if not isinstance(value, Sequence):
         raise ValueError(f"Expected Sequence, got {type(value)}")
     elif not len(value) == len(sedes.field_sedes):
-        raise ValueError(f"Expected {len(sedes.field_sedes)} elements, got {len(value)}")
+        raise ValueError(
+            f"Expected {len(sedes.field_sedes)} elements, got {len(value)}"
+        )
 
     for element, element_sedes in zip(value, sedes.field_sedes):
-        yield dump(
-            element,
-            element_sedes,
-            codec,
-        )
+        yield dump(element, element_sedes, codec)
 
 
 def dump_serializable(value, codec):

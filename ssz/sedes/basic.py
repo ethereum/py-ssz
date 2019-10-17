@@ -1,49 +1,17 @@
-from abc import (
-    abstractmethod,
-)
+from abc import abstractmethod
 import io
 import operator
-from typing import (
-    IO,
-    Any,
-    Iterable,
-    Sequence,
-    Tuple,
-)
+from typing import IO, Any, Iterable, Sequence, Tuple
 
-from eth_typing import (
-    Hash32,
-)
-from eth_utils.toolz import (
-    accumulate,
-    concatv,
-)
+from eth_typing import Hash32
+from eth_utils.toolz import accumulate, concatv
 
-from ssz import (
-    constants,
-)
-from ssz.cache.utils import (
-    get_key,
-)
-from ssz.exceptions import (
-    DeserializationError,
-)
-from ssz.sedes.base import (
-    BaseCompositeSedes,
-    BaseSedes,
-    TSedes,
-)
-from ssz.typing import (
-    CacheObj,
-    TDeserialized,
-    TSerializable,
-)
-from ssz.utils import (
-    encode_offset,
-    merkleize,
-    merkleize_with_cache,
-    pack,
-)
+from ssz import constants
+from ssz.cache.utils import get_key
+from ssz.exceptions import DeserializationError
+from ssz.sedes.base import BaseCompositeSedes, BaseSedes, TSedes
+from ssz.typing import CacheObj, TDeserialized, TSerializable
+from ssz.utils import encode_offset, merkleize, merkleize_with_cache, pack
 
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
@@ -68,14 +36,11 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
 
-    def get_hash_tree_root_and_leaves(self,
-                                      value: TSerializable,
-                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+    def get_hash_tree_root_and_leaves(
+        self, value: TSerializable, cache: CacheObj
+    ) -> Tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
-        return merkleize_with_cache(
-            pack((serialized_value,)),
-            cache=cache,
-        )
+        return merkleize_with_cache(pack((serialized_value,)), cache=cache)
 
     def chunk_count(self) -> int:
         return 1
@@ -86,8 +51,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
 
 def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
     return sum(
-        sedes.get_fixed_size()
-        if sedes.is_fixed_sized else constants.OFFSET_SIZE
+        sedes.get_fixed_size() if sedes.is_fixed_sized else constants.OFFSET_SIZE
         for sedes in element_sedes
     )
 
@@ -99,9 +63,9 @@ class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
 class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
     @abstractmethod
-    def _get_item_sedes_pairs(self,
-                              value: Sequence[TSerializable],
-                              ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
+    def _get_item_sedes_pairs(
+        self, value: Sequence[TSerializable]
+    ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
         ...
 
     def _validate_serializable(self, value: Any) -> None:
@@ -111,34 +75,41 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         self._validate_serializable(value)
 
         if not len(value):
-            return b''
+            return b""
 
         pairs = self._get_item_sedes_pairs(value)  # slow
         element_sedes = tuple(sedes for element, sedes in pairs)
 
-        has_fixed_size_section_length_cache = hasattr(value, '_fixed_size_section_length_cache')
+        has_fixed_size_section_length_cache = hasattr(
+            value, "_fixed_size_section_length_cache"
+        )
         if has_fixed_size_section_length_cache:
             if value._fixed_size_section_length_cache is None:
-                fixed_size_section_length = _compute_fixed_size_section_length(element_sedes)
+                fixed_size_section_length = _compute_fixed_size_section_length(
+                    element_sedes
+                )
                 value._fixed_size_section_length_cache = fixed_size_section_length
             else:
                 fixed_size_section_length = value._fixed_size_section_length_cache
         else:
-            fixed_size_section_length = _compute_fixed_size_section_length(element_sedes)
+            fixed_size_section_length = _compute_fixed_size_section_length(
+                element_sedes
+            )
 
         variable_size_section_parts = tuple(
             sedes.serialize(item)  # slow
-            for item, sedes
-            in pairs
+            for item, sedes in pairs
             if not sedes.is_fixed_sized
         )
 
         if variable_size_section_parts:
-            offsets = tuple(accumulate(
-                operator.add,
-                map(len, variable_size_section_parts[:-1]),
-                fixed_size_section_length,
-            ))
+            offsets = tuple(
+                accumulate(
+                    operator.add,
+                    map(len, variable_size_section_parts[:-1]),
+                    fixed_size_section_length,
+                )
+            )
         else:
             offsets = ()
 
@@ -156,12 +127,11 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         except StopIteration:
             pass
         else:
-            raise DeserializationError("Did not consume all offsets while decoding value")
+            raise DeserializationError(
+                "Did not consume all offsets while decoding value"
+            )
 
-        return b"".join(concatv(
-            fixed_size_section_parts,
-            variable_size_section_parts,
-        ))
+        return b"".join(concatv(fixed_size_section_parts, variable_size_section_parts))
 
     def deserialize(self, data: bytes) -> TDeserialized:
         stream = io.BytesIO(data)

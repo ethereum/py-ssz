@@ -1,13 +1,7 @@
-from eth_utils import (
-    encode_hex,
-)
+from eth_utils import encode_hex
 
-from ssz.exceptions import (
-    DeserializationError,
-)
-from ssz.sedes.basic import (
-    BasicSedes,
-)
+from ssz.exceptions import DeserializationError
+from ssz.sedes.basic import BasicSedes
 
 
 class Boolean(BasicSedes[bool, bool]):
@@ -30,7 +24,7 @@ class Boolean(BasicSedes[bool, bool]):
         else:
             raise DeserializationError(
                 f"Invalid serialized boolean (must be either 0x01 or 0x00, got "
-                f"{encode_hex(data)})",
+                f"{encode_hex(data)})"
             )
 
     def get_sedes_id(self) -> str:

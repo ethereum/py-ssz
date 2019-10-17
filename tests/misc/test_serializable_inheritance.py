@@ -1,9 +1,7 @@
 import pytest
 
 import ssz
-from ssz.sedes import (
-    uint8,
-)
+from ssz.sedes import uint8
 
 
 def create_inheritance_structure(structure):
@@ -25,11 +23,12 @@ def create_inheritance_structure(structure):
         if parent_names_start == parent_names_end:
             parent_names = ()
         else:
-            parent_names = class_definition[parent_names_start:parent_names_end].split(",")
+            parent_names = class_definition[parent_names_start:parent_names_end].split(
+                ","
+            )
 
         assert all(
-            parent_name in class_dict
-            for parent_name in parent_names
+            parent_name in class_dict for parent_name in parent_names
         ), "invalid class definition"
 
         # define fields if necessary and figure out expected argument names
@@ -63,31 +62,31 @@ def create_inheritance_structure(structure):
     return class_dict, field_names_dict
 
 
-@pytest.mark.parametrize("structure", (
-    "A()",
-    "A()*",
-    "A()  B(A)",
-    "A()  B(A)*",
-    "A()* B(A)",
-    "A()* B(A)*",
-
-    "A()  B()  C(A,B)",
-    "A()  B()  C(A,B)*",
-    "A()* B()  C(A,B)",
-    "A()* B()  C(A,B)*",
-    "A()  B()* C(A,B)",
-    "A()  B()* C(A,B)*",
-    "A()* B()* C(A,B)*",
-
-    "A()  B(A)  C(A)  D(B,C)",
-    "A()  B(A)* C(A)  D(B,C)",
-    "A()  B(A)  C(A)* D(B,C)",
-    "A()  B(A)  C(A)  D(B,C)*",
-
-    "A()* B(A)* C(A)  D(B,C)*",
-    "A()* B(A)  C(A)* D(B,C)*",
-    "A()* B(A)  C(A)  D(B,C)*",
-))
+@pytest.mark.parametrize(
+    "structure",
+    (
+        "A()",
+        "A()*",
+        "A()  B(A)",
+        "A()  B(A)*",
+        "A()* B(A)",
+        "A()* B(A)*",
+        "A()  B()  C(A,B)",
+        "A()  B()  C(A,B)*",
+        "A()* B()  C(A,B)",
+        "A()* B()  C(A,B)*",
+        "A()  B()* C(A,B)",
+        "A()  B()* C(A,B)*",
+        "A()* B()* C(A,B)*",
+        "A()  B(A)  C(A)  D(B,C)",
+        "A()  B(A)* C(A)  D(B,C)",
+        "A()  B(A)  C(A)* D(B,C)",
+        "A()  B(A)  C(A)  D(B,C)*",
+        "A()* B(A)* C(A)  D(B,C)*",
+        "A()* B(A)  C(A)* D(B,C)*",
+        "A()* B(A)  C(A)  D(B,C)*",
+    ),
+)
 def test_valid_inheritance(structure):
     class_dict, field_names_dict = create_inheritance_structure(structure)
 
@@ -101,15 +100,17 @@ def test_valid_inheritance(structure):
             assert hasattr(instance, field_name)
 
 
-@pytest.mark.parametrize("structure", (
-    "A()* B()* C(A,B)",
-
-    "A()  B(A)* C(A)* D(B,C)",
-    "A()* B(A)  C(A)  D(B,C)",
-    "A()* B(A)* C(A)  D(B,C)",
-    "A()* B(A)  C(A)* D(B,C)",
-    "A()* B(A)* C(A)* D(B,C)",
-))
+@pytest.mark.parametrize(
+    "structure",
+    (
+        "A()* B()* C(A,B)",
+        "A()  B(A)* C(A)* D(B,C)",
+        "A()* B(A)  C(A)  D(B,C)",
+        "A()* B(A)* C(A)  D(B,C)",
+        "A()* B(A)  C(A)* D(B,C)",
+        "A()* B(A)* C(A)* D(B,C)",
+    ),
+)
 def test_invalid_inheritance(structure):
     with pytest.raises(TypeError):
         create_inheritance_structure(structure)

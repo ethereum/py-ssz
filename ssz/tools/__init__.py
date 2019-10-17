@@ -1,9 +1,3 @@
-from .codec import (  # noqa: F401
-    DefaultCodec,
-)
-from .dump import (  # noqa: F401
-    to_formatted_dict,
-)
-from .parse import (  # noqa: F401
-    from_formatted_dict,
-)
+from .codec import DefaultCodec  # noqa: F401
+from .dump import to_formatted_dict  # noqa: F401
+from .parse import from_formatted_dict  # noqa: F401

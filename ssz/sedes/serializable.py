@@ -3,48 +3,19 @@ import collections
 import copy
 import operator
 import re
-from typing import (
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-)
+from typing import NamedTuple, Optional, Sequence, Tuple, Type
 
-from eth_utils import (
-    ValidationError,
-    to_dict,
-    to_set,
-    to_tuple,
-)
-from eth_utils.toolz import (
-    assoc,
-    merge,
-)
+from eth_utils import ValidationError, to_dict, to_set, to_tuple
+from eth_utils.toolz import assoc, merge
+
 from lru import LRU
-
-from ssz.cache.cache import (
-    DEFAULT_CACHE_SIZE,
-)
-from ssz.cache.utils import (
-    get_base_key,
-)
-from ssz.constants import (
-    FIELDS_META_ATTR,
-)
-from ssz.sedes.base import (
-    BaseSedes,
-)
-from ssz.sedes.container import (
-    Container,
-)
-from ssz.typing import (
-    TSerializable,
-)
-from ssz.utils import (
-    get_duplicates,
-    is_immutable_field_value,
-)
+from ssz.cache.cache import DEFAULT_CACHE_SIZE
+from ssz.cache.utils import get_base_key
+from ssz.constants import FIELDS_META_ATTR
+from ssz.sedes.base import BaseSedes
+from ssz.sedes.container import Container
+from ssz.typing import TSerializable
+from ssz.utils import get_duplicates, is_immutable_field_value
 
 
 class Meta(NamedTuple):
@@ -58,10 +29,12 @@ class Meta(NamedTuple):
 def validate_args_and_kwargs(args, kwargs, arg_names):
     duplicate_arg_names = get_duplicates(arg_names)
     if duplicate_arg_names:
-        raise ValueError("Duplicate argument names: {0}".format(sorted(duplicate_arg_names)))
+        raise ValueError(
+            "Duplicate argument names: {0}".format(sorted(duplicate_arg_names))
+        )
 
-    needed_arg_names = set(arg_names[len(args):])
-    used_arg_names = set(arg_names[:len(args)])
+    needed_arg_names = set(arg_names[len(args) :])
+    used_arg_names = set(arg_names[: len(args)])
 
     duplicate_arg_names = used_arg_names.intersection(kwargs.keys())
     if duplicate_arg_names:
@@ -80,7 +53,7 @@ def validate_args_and_kwargs(args, kwargs, arg_names):
 def merge_kwargs_to_args(args, kwargs, arg_names):
     validate_args_and_kwargs(args, kwargs, arg_names)
 
-    needed_arg_names = arg_names[len(args):]
+    needed_arg_names = arg_names[len(args) :]
 
     yield from args
     for arg_name in needed_arg_names:
@@ -105,10 +78,10 @@ class BaseSerializable(collections.Sequence):
         # Ensure that all the fields have been given values in initialization
         if len(field_values) != len(arg_names):
             raise TypeError(
-                'Argument count mismatch. expected {0} - got {1} - missing {2}'.format(
+                "Argument count mismatch. expected {0} - got {1} - missing {2}".format(
                     len(arg_names),
                     len(field_values),
-                    ','.join(arg_names[len(field_values):]),
+                    ",".join(arg_names[len(field_values) :]),
                 )
             )
 
@@ -119,9 +92,7 @@ class BaseSerializable(collections.Sequence):
 
     def as_dict(self):
         return dict(
-            (field, value)
-            for field, value
-            in zip(self._meta.field_names, self)
+            (field, value) for field, value in zip(self._meta.field_names, self)
         )
 
     def __iter__(self):
@@ -138,16 +109,17 @@ class BaseSerializable(collections.Sequence):
         elif isinstance(index, str):
             return getattr(self, index)
         else:
-            raise IndexError("Unsupported type for __getitem__: {0}".format(type(index)))
+            raise IndexError(
+                "Unsupported type for __getitem__: {0}".format(type(index))
+            )
 
     def __len__(self):
         return len(self._meta.fields)
 
     def __eq__(self, other):
-        satisfies_class_relationship = (
-            issubclass(self.__class__, other.__class__) or
-            issubclass(other.__class__, self.__class__)
-        )
+        satisfies_class_relationship = issubclass(
+            self.__class__, other.__class__
+        ) or issubclass(other.__class__, self.__class__)
 
         if not satisfies_class_relationship:
             return False
@@ -160,23 +132,23 @@ class BaseSerializable(collections.Sequence):
         # (https://docs.python.org/3/reference/datamodel.html#object.__hash__), so we do this here
         # to ensure pickled instances don't carry the cached hash() as that may cause issues like
         # https://github.com/ethereum/py-evm/issues/1318
-        state['_hash_cache'] = None
+        state["_hash_cache"] = None
         return state
 
     _hash_cache = None
 
     def __hash__(self):
         if self._hash_cache is None:
-            self._hash_cache = hash(self.__class__) * int.from_bytes(self.hash_tree_root, "little")
+            self._hash_cache = hash(self.__class__) * int.from_bytes(
+                self.hash_tree_root, "little"
+            )
         return self._hash_cache
 
     def copy(self, *args, **kwargs):
-        missing_overrides = set(
-            self._meta.field_names
-        ).difference(
-            kwargs.keys()
-        ).difference(
-            self._meta.field_names[:len(args)]
+        missing_overrides = (
+            set(self._meta.field_names)
+            .difference(kwargs.keys())
+            .difference(self._meta.field_names[: len(args)])
         )
         unchanged_kwargs = {
             key: value if is_immutable_field_value(value) else copy.deepcopy(value)
@@ -209,7 +181,7 @@ class BaseSerializable(collections.Sequence):
         memodict[id(self)] = result
 
         for k, v in self.__dict__.items():
-            if k != 'cache':
+            if k != "cache":
                 setattr(result, k, copy.deepcopy(v, memodict))
 
         result.cache = self.cache
@@ -234,7 +206,7 @@ class BaseSerializable(collections.Sequence):
         key = get_base_key(self._meta.container_sedes, self).hex()
 
         if len(key) == 0:
-            key = ''
+            key = ""
 
         return f"{self.__class__.get_sedes_id()}{key}"
 
@@ -251,7 +223,7 @@ def _mk_field_attrs(field_names, extra_namespace):
     namespace = set(field_names).union(extra_namespace)
     for field in field_names:
         while True:
-            field = '_' + field
+            field = "_" + field
             if field not in namespace:
                 namespace.add(field)
                 yield field
@@ -277,10 +249,7 @@ def _validate_field_names(field_names: Sequence[str]) -> None:
 
     # check that field names are valid identifiers
     invalid_field_names = {
-        field_name
-        for field_name
-        in field_names
-        if not _is_valid_identifier(field_name)
+        field_name for field_name in field_names if not _is_valid_identifier(field_name)
     }
     if invalid_field_names:
         raise TypeError(
@@ -302,9 +271,9 @@ def _is_valid_identifier(value):
 
 @to_set
 def _get_class_namespace(cls):
-    if hasattr(cls, '__dict__'):
+    if hasattr(cls, "__dict__"):
         yield from cls.__dict__.keys()
-    if hasattr(cls, '__slots__'):
+    if hasattr(cls, "__slots__"):
         yield from cls.__slots__
 
 
@@ -324,8 +293,12 @@ class MetaSerializable(abc.ABCMeta):
                 raise TypeError(str(exception)) from exception
 
         else:
-            serializable_bases = tuple(base for base in bases if isinstance(base, MetaSerializable))
-            bases_with_fields = tuple(base for base in serializable_bases if base._meta.has_fields)
+            serializable_bases = tuple(
+                base for base in bases if isinstance(base, MetaSerializable)
+            )
+            bases_with_fields = tuple(
+                base for base in serializable_bases if base._meta.has_fields
+            )
 
             if len(bases_with_fields) == 0:
                 has_fields = False
@@ -351,22 +324,15 @@ class MetaSerializable(abc.ABCMeta):
                 field_names=None,
                 field_attrs=None,
             )
-            return super().__new__(
-                mcls,
-                name,
-                bases,
-                assoc(
-                    namespace,
-                    "_meta",
-                    meta,
-                )
-            )
+            return super().__new__(mcls, name, bases, assoc(namespace, "_meta", meta))
 
         # from here on, we can assume that we've got fields and a sedes object
         if sedes is None:
             raise Exception("Invariant: sedes has been initialized earlier")
         if len(fields) == 0:
-            raise Exception("Invariant: number of fields has been checked at initializion of sedes")
+            raise Exception(
+                "Invariant: number of fields has been checked at initializion of sedes"
+            )
 
         field_names, _ = zip(*fields)
         _validate_field_names(field_names)
@@ -392,16 +358,7 @@ class MetaSerializable(abc.ABCMeta):
             field_attrs=field_attrs,
         )
         return super().__new__(
-            mcls,
-            name,
-            bases,
-            merge(
-                namespace,
-                field_props,
-                {
-                    "_meta": meta,
-                }
-            )
+            mcls, name, bases, merge(namespace, field_props, {"_meta": meta})
         )
 
     #
@@ -418,13 +375,12 @@ class MetaSerializable(abc.ABCMeta):
         deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
-    def get_hash_tree_root(cls: Type[TSerializable],
-                           value: TSerializable,
-                           cache: bool=True) -> bytes:
+    def get_hash_tree_root(
+        cls: Type[TSerializable], value: TSerializable, cache: bool = True
+    ) -> bytes:
         if cache:
             root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
-                value,
-                value.cache,
+                value, value.cache
             )
             value.cache = cache
             return root
@@ -447,6 +403,7 @@ class Serializable(BaseSerializable, metaclass=MetaSerializable):
     """
     The base class for serializable objects.
     """
+
     def __str__(self) -> str:
         return f"[{', '.join((str(v) for v in self))}]"
 

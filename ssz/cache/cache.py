@@ -1,10 +1,5 @@
-from collections.abc import (
-    MutableMapping,
-)
-from typing import (
-    TYPE_CHECKING,
-    Iterator,
-)
+from collections.abc import MutableMapping
+from typing import TYPE_CHECKING, Iterator
 
 from lru import LRU
 
@@ -13,11 +8,11 @@ if TYPE_CHECKING:
 else:
     MM = MutableMapping
 
-DEFAULT_CACHE_SIZE = 2**10
+DEFAULT_CACHE_SIZE = 2 ** 10
 
 
 class SSZCache(MM):
-    def __init__(self, cache_size: int=DEFAULT_CACHE_SIZE) -> None:
+    def __init__(self, cache_size: int = DEFAULT_CACHE_SIZE) -> None:
         self._cache_size = cache_size
         self.clear()
 
@@ -46,7 +41,9 @@ class SSZCache(MM):
         raise NotImplementedError("By default, DB classes cannot be iterated.")
 
     def __len__(self) -> int:
-        raise NotImplementedError("By default, classes cannot return the total number of keys.")
+        raise NotImplementedError(
+            "By default, classes cannot return the total number of keys."
+        )
 
     @property
     def cache_size(self) -> int:
