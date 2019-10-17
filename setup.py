@@ -29,6 +29,7 @@ extras_require = {
         "wheel",
         "twine",
         "ipython",
+        "pre-commit==1.18.3",
     ],
 }
 
