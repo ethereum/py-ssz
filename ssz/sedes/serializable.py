@@ -7,8 +7,8 @@ from typing import NamedTuple, Optional, Sequence, Tuple, Type
 
 from eth_utils import ValidationError, to_dict, to_set, to_tuple
 from eth_utils.toolz import assoc, merge
-
 from lru import LRU
+
 from ssz.cache.cache import DEFAULT_CACHE_SIZE
 from ssz.cache.utils import get_base_key
 from ssz.constants import FIELDS_META_ATTR
