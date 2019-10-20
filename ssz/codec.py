@@ -1,14 +1,7 @@
-from eth_utils import (
-    is_bytes,
-)
+from eth_utils import is_bytes
 
-from ssz.sedes import (
-    infer_sedes,
-    sedes_by_name,
-)
-from ssz.sedes.base import (
-    BaseSedes,
-)
+from ssz.sedes import infer_sedes, sedes_by_name
+from ssz.sedes.base import BaseSedes
 
 
 def encode(value, sedes=None):

@@ -1,28 +1,11 @@
-from collections.abc import (
-    Iterable,
-)
+from collections.abc import Iterable
 
-from .base import (  # noqa: F401
-    BaseSedes,
-)
-from .basic import (  # noqa: F401
-    BasicSedes,
-    CompositeSedes,
-)
-from .bitlist import (  # noqa: F401
-    Bitlist,
-)
-from .bitvector import (  # noqa: F401
-    Bitvector,
-)
-from .boolean import (  # noqa: F401
-    Boolean,
-    boolean,
-)
-from .byte import (  # noqa: F401
-    Byte,
-    byte,
-)
+from .base import BaseSedes  # noqa: F401
+from .basic import BasicSedes, CompositeSedes  # noqa: F401
+from .bitlist import Bitlist  # noqa: F401
+from .bitvector import Bitvector  # noqa: F401
+from .boolean import Boolean, boolean  # noqa: F401
+from .byte import Byte, byte  # noqa: F401
 from .byte_vector import (  # noqa: F401
     ByteVector,
     bytes1,
@@ -31,42 +14,21 @@ from .byte_vector import (  # noqa: F401
     bytes48,
     bytes96,
 )
-from .container import (  # noqa: F401
-    Container,
-)
-from .list import (  # noqa: F401
-    List,
-    empty_list,
-)
-from .serializable import (  # noqa: F401
-    Serializable,
-)
-from .signed_serializable import (  # noqa: F401
-    SignedSerializable,
-)
-from .uint import (  # noqa: F401
-    UInt,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    uint128,
-    uint256,
-)
-from .vector import (  # noqa: F401
-    Vector,
-)
+from .container import Container  # noqa: F401
+from .list import List, empty_list  # noqa: F401
+from .serializable import Serializable  # noqa: F401
+from .signed_serializable import SignedSerializable  # noqa: F401
+from .uint import UInt, uint8, uint16, uint32, uint64, uint128, uint256  # noqa: F401
+from .vector import Vector  # noqa: F401
 
 sedes_by_name = {
     "bool": boolean,
-
     "byte": byte,
     "bytes4": bytes4,
     "bytes32": bytes32,
     "bytes48": bytes48,
     "bytes96": bytes96,
     "empty_list": empty_list,
-
     "uint8": uint8,
     "uint16": uint16,
     "uint32": uint32,
@@ -85,7 +47,9 @@ def infer_sedes(value):
     elif isinstance(value, bool):
         return boolean
     elif isinstance(value, int):
-        raise TypeError("uint sedes object or uint string needs to be specified for ints")
+        raise TypeError(
+            "uint sedes object or uint string needs to be specified for ints"
+        )
     elif isinstance(value, Iterable):
         raise TypeError("Cannot infer list sedes for iterables that are not sequences")
     else:

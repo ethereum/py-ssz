@@ -1,24 +1,10 @@
 import json
 
-from eth_utils import (
-    decode_hex,
-    encode_hex,
-)
+from eth_utils import decode_hex, encode_hex
 
-from ssz.examples.zoo import (
-    Animal,
-    Zoo,
-    octopus,
-    zoo,
-)
-from ssz.sedes import (
-    List,
-)
-from ssz.tools import (
-    DefaultCodec,
-    from_formatted_dict,
-    to_formatted_dict,
-)
+from ssz.examples.zoo import Animal, Zoo, octopus, zoo
+from ssz.sedes import List
+from ssz.tools import DefaultCodec, from_formatted_dict, to_formatted_dict
 
 
 def test_parsing_and_dumping():
@@ -33,8 +19,8 @@ def test_dump_serializble_with_explicit_sedes():
 
 def test_not_serializable():
     octopi = (octopus, octopus, octopus)
-    output = to_formatted_dict(octopi, List(Animal, 2**32))
-    assert octopi == from_formatted_dict(output, List(Animal, 2**32))
+    output = to_formatted_dict(octopi, List(Animal, 2 ** 32))
+    assert octopi == from_formatted_dict(output, List(Animal, 2 ** 32))
 
 
 def test_custom_codec():

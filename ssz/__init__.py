@@ -1,10 +1,5 @@
-from .cache import (  # noqa: F401
-    SSZCache,
-)
-from .codec import (  # noqa: F401
-    decode,
-    encode,
-)
+from .cache import SSZCache  # noqa: F401
+from .codec import decode, encode  # noqa: F401
 from .exceptions import (  # noqa: F401
     DeserializationError,
     SerializationError,
@@ -39,6 +34,4 @@ from .sedes import (  # noqa: F401
     uint128,
     uint256,
 )
-from .tree_hash import (  # noqa: F401
-    get_hash_tree_root,
-)
+from .tree_hash import get_hash_tree_root  # noqa: F401

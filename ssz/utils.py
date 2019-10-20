@@ -1,59 +1,36 @@
 import collections
 import functools
-from typing import (
-    IO,
-    Any,
-    Sequence,
-    Tuple,
-)
+from typing import IO, Any, Sequence, Tuple
 
-from eth_typing import (
-    Hash32,
-)
-from eth_utils.toolz import (
-    partition,
-)
+from eth_typing import Hash32
+from eth_utils.toolz import partition
 
-from ssz.constants import (
-    BASE_TYPES,
-    CHUNK_SIZE,
-    EMPTY_CHUNK,
-    OFFSET_SIZE,
-    ZERO_HASHES,
-)
-from ssz.exceptions import (
-    DeserializationError,
-)
-from ssz.hash import (
-    hash_eth2,
-)
-from ssz.typing import (
-    CacheObj,
-)
+from ssz.constants import BASE_TYPES, CHUNK_SIZE, EMPTY_CHUNK, OFFSET_SIZE, ZERO_HASHES
+from ssz.exceptions import DeserializationError
+from ssz.hash import hash_eth2
+from ssz.typing import CacheObj
 
 
 def get_duplicates(values):
     counts = collections.Counter(values)
-    return tuple(
-        item
-        for item, num in counts.items()
-        if num > 1
-    )
+    return tuple(item for item, num in counts.items() if num > 1)
 
 
 def read_exact(num_bytes: int, stream: IO[bytes]) -> bytes:
     data = stream.read(num_bytes)
     if len(data) != num_bytes:
-        raise DeserializationError(f"Tried to read {num_bytes}. Only got {len(data)} bytes")
+        raise DeserializationError(
+            f"Tried to read {num_bytes}. Only got {len(data)} bytes"
+        )
     return data
 
 
 def encode_offset(offset: int) -> bytes:
-    return offset.to_bytes(OFFSET_SIZE, 'little')
+    return offset.to_bytes(OFFSET_SIZE, "little")
 
 
 def decode_offset(data: bytes) -> int:
-    return int.from_bytes(data, 'little')
+    return int.from_bytes(data, "little")
 
 
 def s_decode_offset(stream: IO[bytes]) -> int:
@@ -82,33 +59,33 @@ def pad_zeros(value: bytes) -> bytes:
     return value.ljust(CHUNK_SIZE, b"\x00")
 
 
-@functools.lru_cache(maxsize=2**12)
+@functools.lru_cache(maxsize=2 ** 12)
 def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
     last_chunk_is_full = size % CHUNK_SIZE == 0
 
     full_chunks = tuple(
-        packed_data[chunk_index * CHUNK_SIZE:(chunk_index + 1) * CHUNK_SIZE]
+        packed_data[chunk_index * CHUNK_SIZE : (chunk_index + 1) * CHUNK_SIZE]
         for chunk_index in range(number_of_full_chunks)
     )
     if last_chunk_is_full:
         return full_chunks
     else:
-        last_chunk = pad_zeros(packed_data[number_of_full_chunks * CHUNK_SIZE:])
+        last_chunk = pad_zeros(packed_data[number_of_full_chunks * CHUNK_SIZE :])
         return full_chunks + (last_chunk,)
 
 
-@functools.lru_cache(maxsize=2**12)
+@functools.lru_cache(maxsize=2 ** 12)
 def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
 
-    data = b''.join(serialized_values)
+    data = b"".join(serialized_values)
     return to_chunks(data)
 
 
-@functools.lru_cache(maxsize=2**12)
+@functools.lru_cache(maxsize=2 ** 12)
 def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
@@ -116,7 +93,7 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     return to_chunks(byte_string)
 
 
-@functools.lru_cache(maxsize=2**12)
+@functools.lru_cache(maxsize=2 ** 12)
 def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
     as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)
@@ -127,7 +104,7 @@ def get_next_power_of_two(value: int) -> int:
     if value <= 0:
         return 1
     else:
-        return 2**(value - 1).bit_length()
+        return 2 ** (value - 1).bit_length()
 
 
 def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
@@ -136,15 +113,14 @@ def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
 
     child_pairs = partition(2, child_layer)
     parent_layer = tuple(
-        hash_eth2(left_child + right_child)
-        for left_child, right_child in child_pairs
+        hash_eth2(left_child + right_child) for left_child, right_child in child_pairs
     )
     return parent_layer
 
 
-def _get_chunk_and_max_depth(chunks: Sequence[Hash32],
-                             limit: int,
-                             chunk_len: int) -> Tuple[int, int]:
+def _get_chunk_and_max_depth(
+    chunks: Sequence[Hash32], limit: int, chunk_len: int
+) -> Tuple[int, int]:
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
     if max_depth > len(ZERO_HASHES):
@@ -153,11 +129,13 @@ def _get_chunk_and_max_depth(chunks: Sequence[Hash32],
     return chunk_depth, max_depth
 
 
-def _get_merkleized_result(chunks: Sequence[Hash32],
-                           chunk_len: int,
-                           chunk_depth: int,
-                           max_depth: int,
-                           cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+def _get_merkleized_result(
+    chunks: Sequence[Hash32],
+    chunk_len: int,
+    chunk_depth: int,
+    max_depth: int,
+    cache: CacheObj,
+) -> Tuple[Hash32, CacheObj]:
     merkleized_result_per_layers = [None for _ in range(max_depth + 1)]
 
     def merge(leaf: bytes, leaf_index: int) -> None:
@@ -195,7 +173,9 @@ def _get_merkleized_result(chunks: Sequence[Hash32],
     for layer in range(chunk_depth, max_depth):
         key = merkleized_result_per_layers[layer] + ZERO_HASHES[layer]
         if key not in cache:
-            cache[key] = hash_eth2(merkleized_result_per_layers[layer] + ZERO_HASHES[layer])
+            cache[key] = hash_eth2(
+                merkleized_result_per_layers[layer] + ZERO_HASHES[layer]
+            )
         merkleized_result_per_layers[layer + 1] = cache[key]
 
     root = merkleized_result_per_layers[max_depth]
@@ -203,17 +183,13 @@ def _get_merkleized_result(chunks: Sequence[Hash32],
     return root, cache
 
 
-def merkleize_with_cache(chunks: Sequence[Hash32],
-                         cache: CacheObj,
-                         limit: int=None) -> Tuple[Hash32, CacheObj]:
+def merkleize_with_cache(
+    chunks: Sequence[Hash32], cache: CacheObj, limit: int = None
+) -> Tuple[Hash32, CacheObj]:
     chunk_len = len(chunks)
     if limit is None:
         limit = chunk_len
-    chunk_depth, max_depth = _get_chunk_and_max_depth(
-        chunks,
-        limit,
-        chunk_len,
-    )
+    chunk_depth, max_depth = _get_chunk_and_max_depth(chunks, limit, chunk_len)
 
     if limit == 0:
         return ZERO_HASHES[0], cache
@@ -227,7 +203,7 @@ def merkleize_with_cache(chunks: Sequence[Hash32],
     )
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int=None) -> Hash32:
+def merkleize(chunks: Sequence[Hash32], limit: int = None) -> Hash32:
     root, _ = merkleize_with_cache(chunks, {}, limit)
     return root
 
@@ -236,7 +212,9 @@ def mix_in_length(root: Hash32, length: int) -> Hash32:
     return hash_eth2(root + length.to_bytes(CHUNK_SIZE, "little"))
 
 
-def get_serialized_bytearray(value: Sequence[bool], bit_count: int, extra_byte: bool) -> bytearray:
+def get_serialized_bytearray(
+    value: Sequence[bool], bit_count: int, extra_byte: bool
+) -> bytearray:
     if extra_byte:
         # Serialize Bitlist
         as_bytearray = bytearray(bit_count // 8 + 1)
@@ -250,10 +228,7 @@ def get_serialized_bytearray(value: Sequence[bool], bit_count: int, extra_byte: 
 
 
 def is_immutable_field_value(value: Any) -> bool:
-    return (
-        type(value) in BASE_TYPES or
-        (
-            isinstance(value, tuple) and
-            (len(value) == 0 or is_immutable_field_value(value[0]))
-        )
+    return type(value) in BASE_TYPES or (
+        isinstance(value, tuple)
+        and (len(value) == 0 or is_immutable_field_value(value[0]))
     )

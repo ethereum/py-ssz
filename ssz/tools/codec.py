@@ -1,11 +1,7 @@
-from eth_utils import (
-    decode_hex,
-    encode_hex,
-)
+from eth_utils import decode_hex, encode_hex
 
 
 class DefaultCodec:
-
     @staticmethod
     def encode_integer(value: int, sedes):
         return value

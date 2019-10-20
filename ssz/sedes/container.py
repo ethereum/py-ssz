@@ -1,40 +1,14 @@
-from typing import (
-    IO,
-    Any,
-    Iterable,
-    Sequence,
-    Tuple,
-)
+from typing import IO, Any, Iterable, Sequence, Tuple
 
-from eth_typing import (
-    Hash32,
-)
-from eth_utils import (
-    ValidationError,
-    to_tuple,
-)
-from eth_utils.toolz import (
-    sliding_window,
-)
+from eth_typing import Hash32
+from eth_utils import ValidationError, to_tuple
+from eth_utils.toolz import sliding_window
 
-from ssz.exceptions import (
-    DeserializationError,
-    SerializationError,
-)
-from ssz.sedes.base import (
-    TSedes,
-)
-from ssz.sedes.basic import (
-    CompositeSedes,
-)
-from ssz.typing import (
-    CacheObj,
-)
-from ssz.utils import (
-    merkleize,
-    read_exact,
-    s_decode_offset,
-)
+from ssz.exceptions import DeserializationError, SerializationError
+from ssz.sedes.base import TSedes
+from ssz.sedes.basic import CompositeSedes
+from ssz.typing import CacheObj
+from ssz.utils import merkleize, read_exact, s_decode_offset
 
 
 @to_tuple
@@ -70,9 +44,9 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Serialization
     #
-    def _get_item_sedes_pairs(self,
-                              value: Sequence[Any],
-                              ) -> Tuple[Tuple[Any, TSedes], ...]:
+    def _get_item_sedes_pairs(
+        self, value: Sequence[Any]
+    ) -> Tuple[Tuple[Any, TSedes], ...]:
         return tuple(zip(value, self.field_sedes))
 
     def _validate_serializable(self, value: Sequence[Any]) -> bytes:
@@ -84,35 +58,32 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Deserialization
     #
-    def deserialize_fixed_size_parts(self,
-                                     stream: IO[bytes],
-                                     ) -> Iterable[Tuple[Tuple[Any], Tuple[int, TSedes]]]:
+    def deserialize_fixed_size_parts(
+        self, stream: IO[bytes]
+    ) -> Iterable[Tuple[Tuple[Any], Tuple[int, TSedes]]]:
         fixed_items_and_offets = _deserialize_fixed_size_items_and_offsets(
-            stream,
-            self.field_sedes,
+            stream, self.field_sedes
         )
         fixed_size_values = tuple(
-            item
-            for item, sedes
-            in fixed_items_and_offets
-            if sedes.is_fixed_sized
+            item for item, sedes in fixed_items_and_offets if sedes.is_fixed_sized
         )
         offset_pairs = tuple(
             (item, sedes)
-            for item, sedes
-            in fixed_items_and_offets
+            for item, sedes in fixed_items_and_offets
             if not sedes.is_fixed_sized
         )
         return fixed_size_values, offset_pairs
 
     @to_tuple
-    def deserialize_variable_size_parts(self,
-                                        offset_pairs: Tuple[Tuple[int, TSedes], ...],
-                                        stream: IO[bytes]) -> Iterable[Any]:
+    def deserialize_variable_size_parts(
+        self, offset_pairs: Tuple[Tuple[int, TSedes], ...], stream: IO[bytes]
+    ) -> Iterable[Any]:
         offsets, fields = zip(*offset_pairs)
 
         *head_fields, last_field = fields
-        for sedes, (left_offset, right_offset) in zip(head_fields, sliding_window(2, offsets)):
+        for sedes, (left_offset, right_offset) in zip(
+            head_fields, sliding_window(2, offsets)
+        ):
             field_length = right_offset - left_offset
             field_data = read_exact(field_length, stream)
             yield sedes.deserialize(field_data)
@@ -132,15 +103,18 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         if not offset_pairs:
             return fixed_size_values
 
-        variable_size_values = self.deserialize_variable_size_parts(offset_pairs, stream)
+        variable_size_values = self.deserialize_variable_size_parts(
+            offset_pairs, stream
+        )
 
         fixed_size_parts_iter = iter(fixed_size_values)
         variable_size_parts_iter = iter(variable_size_values)
 
         value = tuple(
-            next(fixed_size_parts_iter) if sedes.is_fixed_sized else next(variable_size_parts_iter)
-            for sedes
-            in self.field_sedes
+            next(fixed_size_parts_iter)
+            if sedes.is_fixed_sized
+            else next(variable_size_parts_iter)
+            for sedes in self.field_sedes
         )
 
         # Verify that both iterables have been fully consumed.
@@ -170,18 +144,15 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         )
         return merkleize(merkle_leaves)
 
-    def get_hash_tree_root_and_leaves(self,
-                                      value: Tuple[Any, ...],
-                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+    def get_hash_tree_root_and_leaves(
+        self, value: Tuple[Any, ...], cache: CacheObj
+    ) -> Tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         for element, sedes in zip(value, self.field_sedes):
             key = sedes.get_key(element)
             if key not in cache:
-                if hasattr(sedes, 'get_hash_tree_root_and_leaves'):
-                    root, cache = sedes.get_hash_tree_root_and_leaves(
-                        element,
-                        cache,
-                    )
+                if hasattr(sedes, "get_hash_tree_root_and_leaves"):
+                    root, cache = sedes.get_hash_tree_root_and_leaves(element, cache)
                     cache[key] = root
                 else:
                     cache[key] = sedes.get_hash_tree_root(element)
@@ -194,13 +165,13 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         return len(self.field_sedes)
 
     def serialize(self, value) -> bytes:
-        if hasattr(value, '_serialize_cache') and value._serialize_cache is not None:
+        if hasattr(value, "_serialize_cache") and value._serialize_cache is not None:
             return value._serialize_cache
-        elif hasattr(value, '_serialize_cache') and value._serialize_cache is None:
+        elif hasattr(value, "_serialize_cache") and value._serialize_cache is None:
             value._serialize_cache = super().serialize(value)
             return value._serialize_cache
         else:
             return super().serialize(value)
 
     def get_sedes_id(self) -> str:
-        return ','.join(field.get_sedes_id() for field in self.field_sedes)
+        return ",".join(field.get_sedes_id() for field in self.field_sedes)

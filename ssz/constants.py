@@ -1,14 +1,7 @@
-from eth_typing import (
-    Hash32,
-)
-from eth_utils.toolz import (
-    iterate,
-    take,
-)
+from eth_typing import Hash32
+from eth_utils.toolz import iterate, take
 
-from ssz.hash import (
-    hash_eth2,
-)
+from ssz.hash import hash_eth2
 
 CHUNK_SIZE = 32  # named BYTES_PER_CHUNK in the spec
 EMPTY_CHUNK = Hash32(b"\x00" * CHUNK_SIZE)
@@ -20,12 +13,12 @@ OFFSET_SIZE = 4
 
 FIELDS_META_ATTR = "fields"
 
-ZERO_BYTES32 = b'\x00' * 32
+ZERO_BYTES32 = b"\x00" * 32
 MAX_ZERO_HASHES_LAYER = 100
 ZERO_HASHES = tuple(
     take(
         MAX_ZERO_HASHES_LAYER,
-        iterate(lambda child: hash_eth2(child + child), ZERO_BYTES32)
+        iterate(lambda child: hash_eth2(child + child), ZERO_BYTES32),
     )
 )
 

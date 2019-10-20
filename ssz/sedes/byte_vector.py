@@ -1,27 +1,11 @@
-from typing import (
-    Tuple,
-    Union,
-)
+from typing import Tuple, Union
 
-from eth_typing import (
-    Hash32,
-)
+from eth_typing import Hash32
 
-from ssz.exceptions import (
-    DeserializationError,
-    SerializationError,
-)
-from ssz.sedes.basic import (
-    BasicBytesSedes,
-)
-from ssz.typing import (
-    CacheObj,
-)
-from ssz.utils import (
-    merkleize,
-    merkleize_with_cache,
-    pack_bytes,
-)
+from ssz.exceptions import DeserializationError, SerializationError
+from ssz.sedes.basic import BasicBytesSedes
+from ssz.typing import CacheObj
+from ssz.utils import merkleize, merkleize_with_cache, pack_bytes
 
 BytesOrByteArray = Union[bytes, bytearray]
 
@@ -68,14 +52,11 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         serialized_value = self.serialize(value)
         return merkleize(pack_bytes(serialized_value))
 
-    def get_hash_tree_root_and_leaves(self,
-                                      value: bytes,
-                                      cache: CacheObj) -> Tuple[Hash32, CacheObj]:
+    def get_hash_tree_root_and_leaves(
+        self, value: bytes, cache: CacheObj
+    ) -> Tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
-        return merkleize_with_cache(
-            pack_bytes(serialized_value),
-            cache=cache,
-        )
+        return merkleize_with_cache(pack_bytes(serialized_value), cache=cache)
 
     def chunk_count(self) -> int:
         return self.length * self.size

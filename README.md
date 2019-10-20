@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/ssz.svg)](https://badge.fury.io/py/ssz)
 [![Python versions](https://img.shields.io/pypi/pyversions/ssz.svg)](https://pypi.python.org/pypi/ssz)
 [![Docs build](https://readthedocs.org/projects/ssz/badge/?version=latest)](http://ssz.readthedocs.io/en/latest/?badge=latest)
-   
+
 
 Python implementation of the Simple Serialization encoding and decoding
 
@@ -89,7 +89,7 @@ To issue the next version in line, specify which part to bump,
 like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
 master branch, except when releasing a beta (in which case the beta is released from master,
 and the previous stable branch is released from said branch). To include changes made with each
-release, update "docs/releases.rst" with the changes, and apply commit directly to master 
+release, update "docs/releases.rst" with the changes, and apply commit directly to master
 before release.
 
 If you are in a beta version, `make release bump=stage` will switch to a stable.
