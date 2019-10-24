@@ -3,7 +3,6 @@ import functools
 from typing import IO, Any, Sequence, Tuple
 
 from eth_typing import Hash32
-from eth_utils.toolz import partition
 
 from ssz.constants import BASE_TYPES, CHUNK_SIZE, EMPTY_CHUNK, OFFSET_SIZE, ZERO_HASHES
 from ssz.exceptions import DeserializationError
@@ -105,17 +104,6 @@ def get_next_power_of_two(value: int) -> int:
         return 1
     else:
         return 2 ** (value - 1).bit_length()
-
-
-def hash_layer(child_layer: Sequence[bytes]) -> Tuple[Hash32, ...]:
-    if len(child_layer) % 2 != 0:
-        raise ValueError("Layer must have an even number of elements")
-
-    child_pairs = partition(2, child_layer)
-    parent_layer = tuple(
-        hash_eth2(left_child + right_child) for left_child, right_child in child_pairs
-    )
-    return parent_layer
 
 
 def _get_chunk_and_max_depth(
