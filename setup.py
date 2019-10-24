@@ -34,7 +34,7 @@ setup(
     author_email="ethcalibur+pip@gmail.com",
     url="https://github.com/ethereum/py-ssz",
     include_package_data=True,
-    install_requires=["eth-utils>=1,<2", "lru-dict>=1.1.6"],
+    install_requires=["eth-utils>=1,<2", "lru-dict>=1.1.6", "pyrsistent>=0.15.4,<0.16"],
     setup_requires=["setuptools-markdown"],
     python_requires=">=3.6, <4",
     extras_require=extras_require,
