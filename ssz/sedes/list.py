@@ -1,4 +1,3 @@
-import itertools
 from typing import IO, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
@@ -45,8 +44,8 @@ class List(
     #
     # Deserialization
     #
-    def _get_item_sedes_pairs(self, value: Sequence[TSerializable]) -> TSedesPairs:
-        return tuple(zip(value, itertools.repeat(self.element_sedes)))
+    def get_element_sedes(self, index) -> BaseSedes[TSerializable, TDeserialized]:
+        return self.element_sedes
 
     @to_tuple
     def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:

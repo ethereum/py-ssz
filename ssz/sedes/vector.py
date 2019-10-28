@@ -1,4 +1,3 @@
-import itertools
 from typing import IO, Any, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
@@ -31,10 +30,10 @@ class Vector(
         self.element_sedes = element_sedes
         self.length = length
 
-    def _get_item_sedes_pairs(
-        self, value: Sequence[TSerializableElement]
-    ) -> TSedesPairs:
-        return tuple(zip(value, itertools.repeat(self.element_sedes)))
+    def get_element_sedes(
+        self, index
+    ) -> BaseSedes[TSerializableElement, TDeserializedElement]:
+        return self.element_sedes
 
     #
     # Size

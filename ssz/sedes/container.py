@@ -5,7 +5,7 @@ from eth_utils import ValidationError, to_tuple
 from eth_utils.toolz import sliding_window
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import TSedes
+from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import CompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import merkleize, read_exact, s_decode_offset
@@ -44,10 +44,8 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Serialization
     #
-    def _get_item_sedes_pairs(
-        self, value: Sequence[Any]
-    ) -> Tuple[Tuple[Any, TSedes], ...]:
-        return tuple(zip(value, self.field_sedes))
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        return self.field_sedes[index]
 
     def _validate_serializable(self, value: Sequence[Any]) -> bytes:
         if len(value) != len(self.field_sedes):

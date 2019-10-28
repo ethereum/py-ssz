@@ -63,7 +63,9 @@ TSedes = BaseSedes[Any, Any]
 
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
-    ...
+    @abstractmethod
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        ...
 
 
 class BaseByteSedes(BaseSedes[TSerializable, TDeserialized]):

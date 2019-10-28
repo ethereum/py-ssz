@@ -1,9 +1,10 @@
 from abc import abstractmethod
 import io
 import operator
-from typing import IO, Any, Iterable, Sequence, Tuple
+from typing import IO, Any, Generator, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
+from eth_utils import to_tuple
 from eth_utils.toolz import accumulate, concatv
 
 from ssz import constants
@@ -62,11 +63,12 @@ class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
 
 class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
-    @abstractmethod
+    @to_tuple
     def _get_item_sedes_pairs(
         self, value: Sequence[TSerializable]
-    ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
-        ...
+    ) -> Generator[Tuple[TSerializable, TSedes], None, None]:
+        for index, element in enumerate(value):
+            yield element, self.get_element_sedes(index)
 
     def _validate_serializable(self, value: Any) -> None:
         ...
