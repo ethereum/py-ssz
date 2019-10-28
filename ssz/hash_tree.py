@@ -3,6 +3,9 @@ import itertools
 from numbers import Integral
 from typing import Any, Generator, Iterable, Optional, Union
 
+# `transform` comes from a non-public API which is considered stable, but future changes can not be
+# ruled out completely. Therefore, the implementation should be reviewed whenever pyrsistent is
+# updated. See https://github.com/tobgu/pyrsistent/issues/180 for more information.
 from eth_typing import Hash32
 from eth_utils.toolz import drop, iterate, partition, pipe, take
 from pyrsistent import pmap, pvector
