@@ -32,6 +32,14 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    def is_packing(self) -> bool:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
+    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.size:
             raise SerializationError(
@@ -63,6 +71,7 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack_bytes(serialized_value), cache=cache)
 
+    @property
     def chunk_count(self) -> int:
         return self.length * self.size
 

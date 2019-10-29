@@ -132,16 +132,16 @@ def test_get_updated_and_appended_chunks(
 
 
 @pytest.mark.parametrize(
-    ("elements", "sedes", "limit"),
+    ("elements", "sedes"),
     (
-        ([], List(uint8, 8), 8),
-        ([1, 2, 3], List(uint8, 8), None),
-        ([1, 2, 3], List(uint128, 8), None),
-        ([[1, 2], [1], [1, 2, 3, 4, 5]], List(List(uint128, 8), 8), None),
+        ([], List(uint8, 8)),
+        ([1, 2, 3], List(uint8, 8)),
+        ([1, 2, 3], List(uint128, 8)),
+        ([[1, 2], [1], [1, 2, 3, 4, 5]], List(List(uint128, 8), 8)),
     ),
 )
-def test_hashable_structure_initialization(elements, sedes, limit):
-    hashable_structure = BaseHashableStructure.from_iterable(elements, sedes, limit)
+def test_hashable_structure_initialization(elements, sedes):
+    hashable_structure = BaseHashableStructure.from_iterable(elements, sedes)
     assert len(hashable_structure) == len(elements)
     for element_in_structure, element in zip(hashable_structure, elements):
         assert element_in_structure == element

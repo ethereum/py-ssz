@@ -30,6 +30,18 @@ class Vector(
         self.element_sedes = element_sedes
         self.length = length
 
+    @property
+    def is_packing(self) -> bool:
+        return isinstance(self.element_sedes, BasicSedes)
+
+    @property
+    def chunk_count(self) -> int:
+        if isinstance(self.element_sedes, BasicSedes):
+            element_size = self.element_sedes.get_fixed_size()
+            return (element_size * self.length + CHUNK_SIZE - 1) // CHUNK_SIZE
+        else:
+            return self.length
+
     def get_element_sedes(
         self, index
     ) -> BaseSedes[TSerializableElement, TDeserializedElement]:
@@ -124,13 +136,4 @@ class Vector(
                     value, self.element_sedes
                 )
 
-        return merkleize_with_cache(
-            merkle_leaves, cache=cache, limit=self.chunk_count()
-        )
-
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            base_size = self.length * self.element_sedes.get_fixed_size()
-            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.length
+        return merkleize_with_cache(merkle_leaves, cache=cache, limit=self.chunk_count)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Tuple
+from typing import Any, Generic, Optional, Tuple
 
 from eth_typing import Hash32
 
@@ -63,8 +63,22 @@ TSedes = BaseSedes[Any, Any]
 
 
 class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+    @property
+    @abstractmethod
+    def is_packing(self) -> bool:
+        ...
+
     @abstractmethod
     def get_element_sedes(self, index: int) -> BaseSedes:
+        ...
+
+    @abstractmethod
+    def serialize_element_for_tree(self, index: int, element: TSerializable) -> bytes:
+        ...
+
+    @property
+    @abstractmethod
+    def chunk_count(self) -> Optional[int]:
         ...
 
 

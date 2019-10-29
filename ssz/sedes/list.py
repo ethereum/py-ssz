@@ -47,6 +47,18 @@ class List(
     def get_element_sedes(self, index) -> BaseSedes[TSerializable, TDeserialized]:
         return self.element_sedes
 
+    @property
+    def is_packing(self) -> bool:
+        return isinstance(self.element_sedes, BasicSedes)
+
+    @property
+    def chunk_count(self) -> int:
+        if isinstance(self.element_sedes, BasicSedes):
+            element_size = self.element_sedes.get_fixed_size()
+            return (element_size * self.max_length + CHUNK_SIZE - 1) // CHUNK_SIZE
+        else:
+            return self.max_length
+
     @to_tuple
     def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:
         if self.element_sedes.is_fixed_sized:
@@ -111,7 +123,7 @@ class List(
             )
 
         return mix_in_length(
-            merkleize(merkle_leaves, limit=self.chunk_count()), len(value)
+            merkleize(merkle_leaves, limit=self.chunk_count), len(value)
         )
 
     def get_hash_tree_root_and_leaves(
@@ -137,13 +149,6 @@ class List(
                 )
 
         merkleize_result, cache = merkleize_with_cache(
-            merkle_leaves, cache=cache, limit=self.chunk_count()
+            merkle_leaves, cache=cache, limit=self.chunk_count
         )
         return mix_in_length(merkleize_result, len(value)), cache
-
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            base_size = self.max_length * self.element_sedes.get_fixed_size()
-            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.max_length

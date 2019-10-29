@@ -1,17 +1,6 @@
 import functools
 import itertools
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, Dict, Iterable, Iterator, List, Sequence, Tuple, TypeVar, Union
 
 from eth_typing import Hash32
 from eth_utils.toolz import groupby, partition, pipe
@@ -19,7 +8,6 @@ from pyrsistent import pvector
 from pyrsistent._transformations import transform
 from pyrsistent.typing import PVector
 
-import ssz
 from ssz.abc import (
     HashableStructureAPI,
     HashableStructureEvolverAPI,
@@ -29,9 +17,6 @@ from ssz.abc import (
 from ssz.constants import CHUNK_SIZE, ZERO_BYTES32
 from ssz.hash_tree import HashTree
 from ssz.sedes.base import BaseCompositeSedes
-from ssz.sedes.basic import BasicSedes
-from ssz.sedes.list import List as ListSedes
-from ssz.sedes.vector import Vector
 
 TStructure = TypeVar("TStructure", bound="BaseHashableStructure")
 TElement = TypeVar("TElement")
@@ -141,32 +126,26 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         self._hash_tree = hash_tree
         self._sedes = sedes
 
-        self._is_packing_cache: Optional[bool] = None
-
     @classmethod
     def from_iterable(
-        cls: TStructure,
-        iterable: Iterable[TElement],
-        sedes: BaseCompositeSedes,
-        limit: Optional[int],
+        cls: TStructure, iterable: Iterable[TElement], sedes: BaseCompositeSedes
     ) -> TStructure:
-
-        # create an empty structure first to get access to some helpful instance methods
-        minimal_hash_tree = HashTree.compute([ZERO_BYTES32], limit)
-        hashable_structure_template = cls([], minimal_hash_tree, sedes)
-
         # now create the actual object
         elements = pvector(iterable)
         serialized_elements = [
-            hashable_structure_template.serialize_element_for_tree(index, element)
+            sedes.serialize_element_for_tree(index, element)
             for index, element in enumerate(elements)
         ]
         updated_chunks, appended_chunks = get_updated_and_appended_chunks(
-            {}, serialized_elements, minimal_hash_tree.chunks, 0
+            {}, serialized_elements, [], 0
         )
+        if updated_chunks:
+            raise Exception(
+                "Invariant: No chunks exist yet, so nothing that can be updated"
+            )
 
         hash_tree = HashTree.compute(
-            [updated_chunks.get(0, ZERO_BYTES32)] + appended_chunks, limit
+            appended_chunks or [ZERO_BYTES32], sedes.chunk_count
         )
         return cls(elements, hash_tree, sedes)
 
@@ -189,30 +168,6 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     @property
     def sedes(self) -> BaseCompositeSedes:
         return self._sedes
-
-    @property
-    def is_packing(self) -> bool:
-        if self._is_packing_cache is None:
-
-            def has_basic_elements(sedes):
-                return isinstance(sedes.element_sedes, BasicSedes)
-
-            self._is_packing_cache = any(
-                (
-                    isinstance(self.sedes, Vector) and has_basic_elements(self.sedes),
-                    isinstance(self.sedes, ListSedes)
-                    and has_basic_elements(self.sedes),
-                )
-            )
-
-        return self._is_packing_cache
-
-    def serialize_element_for_tree(self, index: int, element: TElement) -> bytes:
-        element_sedes = self.sedes.get_element_sedes(index)
-        if self.is_packing:
-            return ssz.encode(element, element_sedes)
-        else:
-            return ssz.get_hash_tree_root(element, element_sedes)
 
     #
     # PVector interface
@@ -282,11 +237,13 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure]):
             return self._original_structure
 
         updated_elements = {
-            index: self._original_structure.serialize_element_for_tree(index, element)
+            index: self._original_structure.sedes.serialize_element_for_tree(
+                index, element
+            )
             for index, element in self._updated_elements.items()
         }
         appended_elements = [
-            self._original_structure.serialize_element_for_tree(index, element)
+            self._original_structure.sedes.serialize_element_for_tree(index, element)
             for index, element in enumerate(
                 self._appended_elements, start=len(self._original_structure)
             )
@@ -299,7 +256,7 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure]):
         )
 
         elements = self._original_structure.elements.mset(
-            *itertools.chain(self._updated_elements.items())
+            *itertools.chain(*self._updated_elements.items())
         ).extend(self._appended_elements)
         hash_tree = self._original_structure.hash_tree.mset(
             *itertools.chain(*updated_chunks.items())

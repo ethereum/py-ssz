@@ -38,6 +38,14 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    def is_packing(self) -> bool:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
+    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: Sequence[bool]) -> bytes:
         if len(value) != self.bit_count:
             raise SerializationError(
@@ -71,6 +79,7 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
         chunk_count = (self.bit_count + 255) // 256
         return merkleize_with_cache(pack_bits(value), cache=cache, limit=chunk_count)
 
+    @property
     def chunk_count(self) -> int:
         return (self.bit_count + 255) // 256
 

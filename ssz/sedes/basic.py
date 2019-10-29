@@ -135,6 +135,13 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
         return b"".join(concatv(fixed_size_section_parts, variable_size_section_parts))
 
+    def serialize_element_for_tree(self, index: int, element: TSerializable) -> bytes:
+        sedes = self.get_element_sedes(index)
+        if self.is_packing:
+            return sedes.serialize(element)
+        else:
+            return sedes.get_hash_tree_root(element)
+
     def deserialize(self, data: bytes) -> TDeserialized:
         stream = io.BytesIO(data)
         value = self._deserialize_stream(stream)

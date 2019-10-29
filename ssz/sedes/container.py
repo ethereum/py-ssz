@@ -47,6 +47,14 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def get_element_sedes(self, index: int) -> BaseSedes:
         return self.field_sedes[index]
 
+    @property
+    def is_packing(self) -> bool:
+        return False
+
+    @property
+    def chunk_count(self) -> int:
+        return len(self.field_sedes)
+
     def _validate_serializable(self, value: Sequence[Any]) -> bytes:
         if len(value) != len(self.field_sedes):
             raise SerializationError(
@@ -158,9 +166,6 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
             merkle_leaves += (cache[key],)
 
         return merkleize(merkle_leaves), cache
-
-    def chunk_count(self) -> int:
-        return len(self.field_sedes)
 
     def serialize(self, value) -> bytes:
         if hasattr(value, "_serialize_cache") and value._serialize_cache is not None:

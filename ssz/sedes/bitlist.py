@@ -39,6 +39,19 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    @property
+    def is_packing(self) -> bool:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
+    @property
+    def chunk_count(self) -> int:
+        return (self.max_bit_count + 255) // 256
+
+    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
         if len_value > self.max_bit_count:
@@ -73,19 +86,16 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(
-            merkleize(pack_bits(value), limit=self.chunk_count()), len(value)
+            merkleize(pack_bits(value), limit=self.chunk_count), len(value)
         )
 
     def get_hash_tree_root_and_leaves(
         self, value: Sequence[bool], cache: CacheObj
     ) -> Tuple[Hash32, CacheObj]:
         root, cache = merkleize_with_cache(
-            pack_bits(value), cache=cache, limit=self.chunk_count()
+            pack_bits(value), cache=cache, limit=self.chunk_count
         )
         return mix_in_length(root, len(value)), cache
-
-    def chunk_count(self) -> int:
-        return (self.max_bit_count + 255) // 256
 
     def get_sedes_id(self) -> str:
         return f"{self.__class__.__name__}{self.max_bit_count}"
