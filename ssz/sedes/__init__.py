@@ -15,7 +15,7 @@ from .byte_vector import (  # noqa: F401
     bytes96,
 )
 from .container import Container  # noqa: F401
-from .list import List, empty_list  # noqa: F401
+from .list import List  # noqa: F401
 from .serializable import Serializable  # noqa: F401
 from .signed_serializable import SignedSerializable  # noqa: F401
 from .uint import UInt, uint8, uint16, uint32, uint64, uint128, uint256  # noqa: F401
@@ -28,7 +28,6 @@ sedes_by_name = {
     "bytes32": bytes32,
     "bytes48": bytes48,
     "bytes96": bytes96,
-    "empty_list": empty_list,
     "uint8": uint8,
     "uint16": uint16,
     "uint32": uint32,

@@ -4,6 +4,7 @@ from eth_typing import Hash32
 from eth_utils import to_tuple
 
 from ssz.exceptions import DeserializationError, SerializationError
+from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BasicBytesSedes
 from ssz.typing import CacheObj
 from ssz.utils import (
@@ -34,6 +35,10 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
         if len_value > self.max_bit_count:

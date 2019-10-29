@@ -3,6 +3,7 @@ from typing import Tuple, Union
 from eth_typing import Hash32
 
 from ssz.exceptions import DeserializationError, SerializationError
+from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BasicBytesSedes
 from ssz.typing import CacheObj
 from ssz.utils import merkleize, merkleize_with_cache, pack_bytes
@@ -27,6 +28,10 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.size:
             raise SerializationError(
