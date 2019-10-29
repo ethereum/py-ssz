@@ -378,6 +378,8 @@ class MetaSerializable(abc.ABCMeta):
     def get_hash_tree_root(
         cls: Type[TSerializable], value: TSerializable, cache: bool = True
     ) -> bytes:
+        if hasattr(value, "root"):
+            return value.root
         if cache:
             root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(
                 value, value.cache

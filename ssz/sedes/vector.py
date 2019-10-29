@@ -103,6 +103,8 @@ class Vector(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Sequence[Any]) -> bytes:
+        if hasattr(value, "root"):
+            return value.root
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(
                 self.element_sedes.serialize(element) for element in value

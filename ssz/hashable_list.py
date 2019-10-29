@@ -28,8 +28,9 @@ class HashableList(BaseHashableStructure):
         # TODO: check max length when changing list size? Partially, but not fully, checked during
         # chunk count check
 
-        sedes = List(element_sedes, len(elements))
+        sedes = List(element_sedes, max_length)
         return super().from_iterable(elements, sedes)
 
+    @property
     def root(self) -> Hash32:
         return mix_in_length(self.raw_root, len(self))

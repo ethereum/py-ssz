@@ -20,5 +20,6 @@ class HashableContainer(BaseHashableStructure, ABC):
         elements = [kwargs[field_name] for field_name, _ in field_names_and_sedes]
         return cls.from_iterable(elements, container)
 
+    @property
     def root(self) -> Hash32:
         return self.raw_root

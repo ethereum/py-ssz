@@ -112,6 +112,8 @@ class List(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
+        if hasattr(value, "root"):
+            return value.root
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element) for element in value
