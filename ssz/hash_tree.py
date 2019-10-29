@@ -20,24 +20,25 @@ RawHashTreeLayer = PVector[Hash32]
 RawHashTree = PVector[RawHashTreeLayer]
 
 
-def validate_limit(limit: Optional[int]) -> None:
-    if limit is not None:
-        if limit <= 0:
-            raise ValueError(f"Limit is not positive: {limit}")
-        if 2 ** (limit.bit_length() - 1) != limit:
-            raise ValueError(f"Limit is not a power of two: {limit}")
+def validate_chunk_count(chunk_count: Optional[int]) -> None:
+    if chunk_count is not None:
+        if chunk_count <= 0:
+            raise ValueError(f"Chunk count is not positive: {chunk_count}")
 
 
-def validate_raw_hash_tree(raw_hash_tree: RawHashTree, limit: Optional[int]) -> None:
+def validate_raw_hash_tree(
+    raw_hash_tree: RawHashTree, chunk_count: Optional[int] = None
+) -> None:
     if len(raw_hash_tree) == 0:
         raise ValueError("Hash tree is empty")
 
     if len(raw_hash_tree[0]) == 0:
         raise ValueError("Hash tree contains zero chunks")
 
-    if limit is not None and len(raw_hash_tree[0]) > limit:
+    if chunk_count is not None and len(raw_hash_tree[0]) > chunk_count:
         raise ValueError(
-            f"Hash tree contains {len(raw_hash_tree[0])} chunks which exceeds limit {limit}"
+            f"Hash tree contains {len(raw_hash_tree[0])} chunks which exceeds chunk count "
+            f"{chunk_count}"
         )
 
     if len(raw_hash_tree[-1]) != 1:
@@ -47,19 +48,21 @@ def validate_raw_hash_tree(raw_hash_tree: RawHashTree, limit: Optional[int]) -> 
 
 
 class HashTree(PVector[Hash32]):
-    def __init__(self, raw_hash_tree: RawHashTree, limit: Optional[int] = None) -> None:
-        validate_limit(limit)
-        validate_raw_hash_tree(raw_hash_tree, limit)
+    def __init__(
+        self, raw_hash_tree: RawHashTree, chunk_count: Optional[int] = None
+    ) -> None:
+        validate_chunk_count(chunk_count)
+        validate_raw_hash_tree(raw_hash_tree, chunk_count)
 
-        self.limit = limit
+        self.chunk_count = chunk_count
         self.raw_hash_tree = raw_hash_tree
 
     @classmethod
     def compute(
-        cls, chunks: Iterable[Hash32], limit: Optional[int] = None
+        cls, chunks: Iterable[Hash32], chunk_count: Optional[int] = None
     ) -> "HashTree":
-        raw_hash_tree = compute_hash_tree(chunks, limit)
-        return cls(raw_hash_tree, limit)
+        raw_hash_tree = compute_hash_tree(chunks, chunk_count)
+        return cls(raw_hash_tree, chunk_count)
 
     @property
     def chunks(self) -> RawHashTreeLayer:
@@ -79,13 +82,13 @@ class HashTree(PVector[Hash32]):
     # Comparison
     #
     def __hash__(self) -> int:
-        return hash((self.root, self.limit))
+        return hash((self.root, self.chunk_count))
 
     def __eq__(self, other: Any) -> bool:
         return (
             isinstance(other, HashTree)
             and self.root == other.root
-            and self.limit == other.limit
+            and self.chunk_count == other.chunk_count
         )
 
     #
@@ -151,11 +154,11 @@ class HashTree(PVector[Hash32]):
         if stop is None:
             stop = index + 1
         chunks = self.chunks.delete(index, stop)
-        return self.__class__.compute(chunks, self.limit)
+        return self.__class__.compute(chunks, self.chunk_count)
 
     def remove(self, value: Hash32) -> "HashTree":
         chunks = self.chunks.remove(value)
-        return self.__class__.compute(chunks, self.limit)
+        return self.__class__.compute(chunks, self.chunk_count)
 
 
 class HashTreeEvolver:
@@ -211,16 +214,16 @@ class HashTreeEvolver:
     #
     def append(self, value: Hash32) -> None:
         self.appended_chunks = self.appended_chunks.append(value)
-        self._check_limit()
+        self._check_chunk_count()
 
     def extend(self, values: Iterable[Hash32]) -> None:
         self.appended_chunks = self.appended_chunks.extend(values)
-        self._check_limit()
+        self._check_chunk_count()
 
-    def _check_limit(self) -> None:
-        limit = self.original_hash_tree.limit
-        if limit is not None and len(self) > limit:
-            raise ValueError("Hash tree exceeds size limit {limit}")
+    def _check_chunk_count(self) -> None:
+        chunk_count = self.original_hash_tree.chunk_count
+        if chunk_count is not None and len(self) > chunk_count:
+            raise ValueError("Hash tree exceeds size chunk count {chunk_count}")
 
     #
     # Not implemented
@@ -253,7 +256,7 @@ class HashTreeEvolver:
                 self.original_hash_tree.raw_hash_tree, *setters, *appenders
             )
             return self.original_hash_tree.__class__(
-                raw_hash_tree, self.original_hash_tree.limit
+                raw_hash_tree, self.original_hash_tree.chunk_count
             )
 
 
@@ -289,9 +292,9 @@ def generate_hash_tree_layers(
         previous_layer = next_layer
 
 
-def get_num_layers(num_chunks: int, limit: Optional[int]) -> int:
-    if limit is not None:
-        virtual_size = limit
+def get_num_layers(num_chunks: int, chunk_count: Optional[int]) -> int:
+    if chunk_count is not None:
+        virtual_size = chunk_count
     else:
         virtual_size = num_chunks
 
@@ -299,19 +302,19 @@ def get_num_layers(num_chunks: int, limit: Optional[int]) -> int:
 
 
 def generate_chunk_tree_padding(
-    unpadded_chunk_tree: PVector[Hash32], limit: Optional[int]
+    unpadded_chunk_tree: PVector[Hash32], chunk_count: Optional[int]
 ) -> Generator[Hash32, None, None]:
-    if limit is None:
+    if chunk_count is None:
         return
 
     num_chunks = len(unpadded_chunk_tree[0])
-    if num_chunks > limit:
+    if num_chunks > chunk_count:
         raise ValueError(
-            f"Number of chunks in tree ({num_chunks}) exceeds limit {limit}"
+            f"Number of chunks in tree ({num_chunks}) exceeds chunk count {chunk_count}"
         )
 
     num_existing_layers = len(unpadded_chunk_tree)
-    num_target_layers = get_next_power_of_two(limit).bit_length()
+    num_target_layers = get_next_power_of_two(chunk_count).bit_length()
 
     previous_root = unpadded_chunk_tree[-1][0]
     for previous_layer_index in range(num_existing_layers - 1, num_target_layers - 1):
@@ -321,26 +324,28 @@ def generate_chunk_tree_padding(
 
 
 def pad_hash_tree(
-    unpadded_chunk_tree: RawHashTree, limit: Optional[int] = None
+    unpadded_chunk_tree: RawHashTree, chunk_count: Optional[int] = None
 ) -> RawHashTree:
-    padding = pvector(generate_chunk_tree_padding(unpadded_chunk_tree, limit))
+    padding = pvector(generate_chunk_tree_padding(unpadded_chunk_tree, chunk_count))
     return unpadded_chunk_tree + padding
 
 
 def compute_hash_tree(
-    chunks: Iterable[Hash32], limit: Optional[int] = None
+    chunks: Iterable[Hash32], chunk_count: Optional[int] = None
 ) -> RawHashTree:
-    validate_limit(limit)
+    validate_chunk_count(chunk_count)
 
     chunks = pvector(chunks)
 
     if not chunks:
         raise ValueError("Number of chunks is 0")
-    if limit is not None and len(chunks) > limit:
-        raise ValueError(f"Number of chunks ({len(chunks)}) exceeds limit ({limit})")
+    if chunk_count is not None and len(chunks) > chunk_count:
+        raise ValueError(
+            f"Number of chunks ({len(chunks)}) exceeds chunk_count ({chunk_count})"
+        )
 
     unpadded_chunk_tree = pvector(generate_hash_tree_layers(chunks))
-    return pad_hash_tree(unpadded_chunk_tree, limit)
+    return pad_hash_tree(unpadded_chunk_tree, chunk_count)
 
 
 def recompute_hash_in_tree(
