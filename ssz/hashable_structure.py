@@ -1,3 +1,4 @@
+import functools
 import itertools
 from typing import (
     Any,
@@ -60,9 +61,7 @@ def update_elements_in_chunk(
     return pipe(
         original_chunk,
         *(
-            lambda chunk, index=index, element=element: update_element_in_chunk(
-                chunk, index, element
-            )
+            functools.partial(update_element_in_chunk, index=index, element=element)
             for index, element in updated_elements.items()
         ),
     )
@@ -91,14 +90,12 @@ def get_updated_and_appended_chunks(
         len(original_chunks) * CHUNK_SIZE - num_original_elements * element_size
     )
     num_elements_in_padding = padding_length // element_size
-    effective_updated_elements = {
-        **updated_elements,
-        **dict(
-            enumerate(
-                appended_elements[:num_elements_in_padding], start=num_original_elements
-            )
-        ),
-    }
+    padding_elements_with_indices = dict(
+        enumerate(
+            appended_elements[:num_elements_in_padding], start=num_original_elements
+        )
+    )
+    effective_updated_elements = {**updated_elements, **padding_elements_with_indices}
 
     # Compute the updated chunks
     element_indices = effective_updated_elements.keys()

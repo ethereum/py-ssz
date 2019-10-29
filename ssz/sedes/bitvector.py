@@ -35,6 +35,7 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
     # Serialization
     #
     def get_element_sedes(self, index: int) -> BaseSedes:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
     def serialize(self, value: Sequence[bool]) -> bytes:
