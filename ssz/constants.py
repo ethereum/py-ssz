@@ -13,7 +13,7 @@ OFFSET_SIZE = 4
 
 FIELDS_META_ATTR = "fields"
 
-ZERO_BYTES32 = b"\x00" * 32
+ZERO_BYTES32 = Hash32(b"\x00" * 32)
 MAX_ZERO_HASHES_LAYER = 100
 ZERO_HASHES = tuple(
     take(
