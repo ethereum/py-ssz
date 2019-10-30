@@ -19,6 +19,9 @@ from ssz.hash_tree import HashTree
 from ssz.sedes.base import BaseCompositeSedes
 
 TStructure = TypeVar("TStructure", bound="BaseHashableStructure")
+TResizableStructure = TypeVar(
+    "TResizableStructure", bound="BaseResizableHashableStructure"
+)
 TElement = TypeVar("TElement")
 
 
@@ -127,10 +130,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         self._sedes = sedes
 
     @classmethod
-    def from_iterable(
-        cls: TStructure, iterable: Iterable[TElement], sedes: BaseCompositeSedes
-    ) -> TStructure:
-        # now create the actual object
+    def from_iterable(cls, iterable: Iterable[TElement], sedes: BaseCompositeSedes):
         elements = pvector(iterable)
         serialized_elements = [
             sedes.serialize_element_for_tree(index, element)
@@ -198,29 +198,31 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     def set(self: TStructure, index: int, value: TElement) -> TStructure:
         return self.mset(index, value)
 
-    def evolver(self: TStructure) -> "HashableStructureEvolverAPI[TStructure]":
+    def evolver(
+        self: TStructure
+    ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
         return HashableStructureEvolver(self)
 
 
-class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure]):
+class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]):
     def __init__(self, hashable_structure: TStructure) -> None:
         self._original_structure = hashable_structure
-        self._updated_elements: Dict[int, Any] = {}
+        self._updated_elements: Dict[int, TElement] = {}
         # `self._appended_elements` is only used in the subclass ResizableHashableStructureEvolver,
         # but the implementation of `persistent` already processes it so that it does not have to
         # be implemented twice.
-        self._appended_elements: List[Any] = []
+        self._appended_elements: List[TElement] = []
 
-    def __getitem__(self, index: int) -> Any:
+    def __getitem__(self, index: int) -> TElement:
         if index in self._updated_elements:
             return self._updated_elements[index]
         else:
             return self._original_structure[index]
 
-    def set(self, index: int, element: Any) -> None:
+    def set(self, index: int, element: TElement) -> None:
         self[index] = element
 
-    def __setitem__(self, index: int, element: Any) -> None:
+    def __setitem__(self, index: int, element: TElement) -> None:
         if 0 <= index < len(self):
             self._updated_elements[index] = element
         else:
@@ -270,38 +272,42 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure]):
 class BaseResizableHashableStructure(
     BaseHashableStructure, ResizableHashableStructureAPI[TElement]
 ):
-    def append(self: TStructure, value: TElement) -> TStructure:
+    def append(self: TResizableStructure, value: TElement) -> TResizableStructure:
         evolver = self.evolver()
         evolver.append(value)
         return evolver.persistent()
 
-    def extend(self: TStructure, values: Iterable[TElement]) -> TStructure:
+    def extend(
+        self: TResizableStructure, values: Iterable[TElement]
+    ) -> TResizableStructure:
         evolver = self.evolver()
         evolver.extend(values)
         return evolver.persistent()
 
-    def __add__(self: TStructure, values: Iterable[TElement]) -> TStructure:
+    def __add__(
+        self: TResizableStructure, values: Iterable[TElement]
+    ) -> TResizableStructure:
         return self.extend(values)
 
-    def __mul__(self: TStructure, times: int) -> TStructure:
-        if times < 0:
-            raise ValueError("Multiplication factor must not be negative: {times}")
-        elif times == 0:
-            return None
+    def __mul__(self: TResizableStructure, times: int) -> TResizableStructure:
+        if times <= 0:
+            raise ValueError("Multiplication factor must be positive: {times}")
         elif times == 1:
             return self
         else:
             return (self + self) * (times - 1)
 
-    def evolver(self: TStructure) -> "ResizableHashableStructureEvolverAPI[TStructure]":
+    def evolver(
+        self: TResizableStructure,
+    ) -> "ResizableHashableStructureEvolverAPI[TResizableStructure, TElement]":
         return ResizableHashableStructureEvolver(self)
 
 
 class ResizableHashableStructureEvolver(
-    HashableStructureEvolver, ResizableHashableStructureEvolverAPI[TStructure]
+    HashableStructureEvolver, ResizableHashableStructureEvolverAPI[TStructure, TElement]
 ):
-    def append(self, element: Any) -> None:
+    def append(self, element: TElement) -> None:
         self._appended_elements.append(element)
 
-    def extend(self, iterable: Iterable[Any]) -> None:
-        self._appended_elements.extend(iterable)
+    def extend(self, elements: Iterable[TElement]) -> None:
+        self._appended_elements.extend(elements)

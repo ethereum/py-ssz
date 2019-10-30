@@ -5,15 +5,16 @@ from eth_typing import Hash32
 from pyrsistent.typing import PVector
 
 from ssz.hash_tree import HashTree
+from ssz.sedes.base import BaseCompositeSedes
 
 TStructure = TypeVar("TStructure")
 TElement = TypeVar("TElement")
 
 
 class HashableStructureAPI(ABC, Generic[TElement]):
-    @property
+    @classmethod
     @abstractmethod
-    def raw_root(self) -> Hash32:
+    def from_iterable(cls, iterable: Iterable[TElement], sedes: BaseCompositeSedes):
         ...
 
     #
@@ -34,6 +35,16 @@ class HashableStructureAPI(ABC, Generic[TElement]):
     def hash_tree(self) -> HashTree:
         ...
 
+    @property
+    @abstractmethod
+    def raw_root(self) -> Hash32:
+        ...
+
+    @property
+    @abstractmethod
+    def root(self) -> Hash32:
+        ...
+
     #
     # Partial PVector interface
     #
@@ -49,13 +60,13 @@ class HashableStructureAPI(ABC, Generic[TElement]):
     def __iter__(self) -> Iterator[TElement]:
         ...
 
-    # @abstractmethod
-    # def __hash__(self) -> int:
-    #     ...
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...
 
-    # @abstractmethod
-    # def __eq__(self, other: Any) -> bool:
-    #     ...
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...
 
     @abstractmethod
     def transform(self, *transformations):
@@ -70,7 +81,9 @@ class HashableStructureAPI(ABC, Generic[TElement]):
         ...
 
     @abstractmethod
-    def evolver(self: TStructure) -> "HashableStructureEvolverAPI[TStructure]":
+    def evolver(
+        self: TStructure
+    ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
         ...
 
 
@@ -92,25 +105,27 @@ class ResizableHashableStructureAPI(HashableStructureAPI[TElement]):
         ...
 
     @abstractmethod
-    def evolver(self: TStructure) -> "ResizableHashableStructureEvolverAPI[TStructure]":
+    def evolver(
+        self: TStructure
+    ) -> "ResizableHashableStructureEvolverAPI[TStructure, TElement]":
         ...
 
 
-class HashableStructureEvolverAPI(ABC, Generic[TStructure]):
+class HashableStructureEvolverAPI(ABC, Generic[TStructure, TElement]):
     @abstractmethod
     def __init__(self, hashable_structure: TStructure) -> None:
         ...
 
     @abstractmethod
-    def __getitem__(self, index: int) -> Any:
+    def __getitem__(self, index: int) -> TElement:
         ...
 
     @abstractmethod
-    def set(self, index: int, element: Any) -> None:
+    def set(self, index: int, element: TElement) -> None:
         ...
 
     @abstractmethod
-    def __setitem__(self, index: int, element: Any) -> None:
+    def __setitem__(self, index: int, element: TElement) -> None:
         ...
 
     @abstractmethod
@@ -126,11 +141,13 @@ class HashableStructureEvolverAPI(ABC, Generic[TStructure]):
         ...
 
 
-class ResizableHashableStructureEvolverAPI(HashableStructureEvolverAPI[TStructure]):
+class ResizableHashableStructureEvolverAPI(
+    HashableStructureEvolverAPI[TStructure, TElement]
+):
     @abstractmethod
-    def append(self, element: Any) -> None:
+    def append(self, element: TElement) -> None:
         ...
 
     @abstractmethod
-    def extend(self, iterable: Iterable[Any]) -> None:
+    def extend(self, iterable: Iterable[TElement]) -> None:
         ...
