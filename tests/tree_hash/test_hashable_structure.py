@@ -1,147 +1,128 @@
-import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from ssz.hashable_structure import (
-    BaseHashableStructure,
-    get_updated_and_appended_chunks,
+    get_appended_chunks,
+    get_num_padding_elements,
+    get_updated_chunks,
     update_element_in_chunk,
     update_elements_in_chunk,
 )
-from ssz.sedes import List, uint8, uint128
-
-
-@pytest.mark.parametrize(
-    ("original_chunk", "element_index", "element", "updated_chunk"),
-    (
-        (b"aabbcc", 0, b"xx", b"xxbbcc"),
-        (b"aabbcc", 1, b"xx", b"aaxxcc"),
-        (b"aabbcc", 2, b"xx", b"aabbxx"),
-        (b"aabbcc", 0, b"xxxxxx", b"xxxxxx"),
-    ),
+from tests.tree_hash.strategies import (
+    chunk_st,
+    chunk_updates_st,
+    element_size_st,
+    element_st,
+    elements_st,
+    in_chunk_index_and_element_st,
 )
-def test_update_element_in_chunk(original_chunk, element_index, element, updated_chunk):
+
+
+@given(chunk_st(), in_chunk_index_and_element_st())
+def test_update_element_in_chunk(original_chunk, in_chunk_index_and_element):
+    index, element = in_chunk_index_and_element
+    updated_chunk = update_element_in_chunk(original_chunk, index, element)
+    element_size = len(element)
     assert (
-        update_element_in_chunk(original_chunk, element_index, element) == updated_chunk
+        updated_chunk[: index * element_size] == original_chunk[: index * element_size]
+    )
+    assert updated_chunk[index * element_size : (index + 1) * element_size] == element
+    assert (
+        updated_chunk[(index + 1) * element_size :]
+        == original_chunk[(index + 1) * element_size :]
     )
 
 
-@pytest.mark.parametrize(
-    ("original_chunk", "updates", "updated_chunk"),
-    (
-        (b"aabbcc", {}, b"aabbcc"),
-        (b"aabbcc", {0: b"xx"}, b"xxbbcc"),
-        (b"aabbcc", {0: b"xx", 2: b"yy"}, b"xxbbyy"),
-    ),
-)
-def test_update_elements_in_chunk(original_chunk, updates, updated_chunk):
-    assert update_elements_in_chunk(original_chunk, updates) == updated_chunk
+@given(st.data(), chunk_st(), element_size_st())
+def test_update_elements_in_chunk(data, original_chunk, element_size):
+    updates = data.draw(chunk_updates_st(32 // element_size, element_size))
+    updated_chunk = update_elements_in_chunk(original_chunk, updates)
+
+    expected_updated_chunk = original_chunk
+    for index, element in updates.items():
+        expected_updated_chunk = update_element_in_chunk(
+            expected_updated_chunk, index, element
+        )
+
+    assert updated_chunk == expected_updated_chunk
 
 
-@pytest.mark.parametrize(
-    (
-        "updated_elements",
-        "appended_elements",
-        "original_chunks",
-        "num_original_elements",
-        "updated_chunks",
-        "appended_chunks",
-    ),
-    (
-        ({}, [], [b"00000000000000000000000000000000"], 0, {}, []),
-        (
-            {0: b"xx"},
-            [],
-            [b"xx000000000000000000000000000000"],
-            8,
-            {0: b"xx000000000000000000000000000000"},
-            [],
-        ),
-        (
-            {0: b"xx", 15: b"yy"},
-            [],
-            [b"00000000000000000000000000000000"],
-            8,
-            {0: b"xx0000000000000000000000000000yy"},
-            [],
-        ),
-        (
-            {16: b"xx"},
-            [],
-            [b"00000000000000000000000000000000", b"00000000000000000000000000000000"],
-            20,
-            {1: b"xx000000000000000000000000000000"},
-            [],
-        ),
-        (
-            {0: b"xx", 31: b"yy"},
-            [],
-            [b"00000000000000000000000000000000", b"00000000000000000000000000000000"],
-            20,
-            {
-                0: b"xx000000000000000000000000000000",
-                1: b"000000000000000000000000000000yy",
-            },
-            [],
-        ),
-        (
-            {},
-            [b"xx"],
-            [b"00000000000000000000000000000000"],
-            0,
-            {0: b"xx000000000000000000000000000000"},
-            [],
-        ),
-        (
-            {},
-            [b"xx"],
-            [b"00000000000000000000000000000000"],
-            8,
-            {0: b"0000000000000000xx00000000000000"},
-            [],
-        ),
-        (
-            {},
-            [b"xx"],
-            [b"00000000000000000000000000000000"],
-            16,
-            {},
-            [b"xx" + b"\x00" * 30],
-        ),
-        (
-            {},
-            [b"xx", b"yy"],
-            [b"00000000000000000000000000000000"],
-            16,
-            {},
-            [b"xxyy" + b"\x00" * 28],
-        ),
-    ),
-)
-def test_get_updated_and_appended_chunks(
-    updated_elements,
-    appended_elements,
-    original_chunks,
-    num_original_elements,
-    updated_chunks,
-    appended_chunks,
-):
-    updated, appended = get_updated_and_appended_chunks(
-        updated_elements, appended_elements, original_chunks, num_original_elements
+@given(st.integers(min_value=0), element_size_st())
+def test_get_num_padding(num_original_elements, element_size):
+    num_original_chunks = (num_original_elements * element_size + 31) // 32
+
+    num_padding = get_num_padding_elements(
+        num_original_chunks, num_original_elements, element_size
     )
-    assert updated == updated_chunks
-    assert appended == appended_chunks
+    assert ((num_original_elements + num_padding) * element_size) % 32 == 0
+    assert (
+        num_original_elements + num_padding
+    ) * element_size == num_original_chunks * 32
+    assert 0 <= num_padding < 32 // element_size
 
 
-@pytest.mark.parametrize(
-    ("elements", "sedes"),
-    (
-        ([], List(uint8, 8)),
-        ([1, 2, 3], List(uint8, 8)),
-        ([1, 2, 3], List(uint128, 8)),
-        ([[1, 2], [1], [1, 2, 3, 4, 5]], List(List(uint128, 8), 8)),
-    ),
-)
-def test_hashable_structure_initialization(elements, sedes):
-    hashable_structure = BaseHashableStructure.from_iterable(elements, sedes)
-    assert len(hashable_structure) == len(elements)
-    for element_in_structure, element in zip(hashable_structure, elements):
-        assert element_in_structure == element
+@given(elements_st(), st.integers(min_value=0))
+def test_appended_chunks(appended_elements, num_padding_elements):
+    chunks = get_appended_chunks(appended_elements, num_padding_elements)
+
+    effective_appended_elements = appended_elements[num_padding_elements:]
+    if not effective_appended_elements:
+        assert chunks == ()
+
+    joined_elements = b"".join(effective_appended_elements)
+    joined_chunks = b"".join(chunks)
+
+    padding_length = (len(joined_elements) + 31) // 32 * 32 - len(joined_elements)
+    assert len(joined_chunks) == len(joined_elements) + padding_length
+    assert joined_chunks == joined_elements + b"\x00" * padding_length
+
+
+@given(st.data(), element_size_st())
+def test_updated_chunks(data, element_size):
+    original_elements = data.draw(st.lists(element_st(size=element_size), min_size=1))
+    original_chunks = get_appended_chunks(original_elements, 0)
+    num_padding_elements = get_num_padding_elements(
+        len(original_chunks), len(original_elements), element_size
+    )
+    num_elements_per_chunk = 32 // element_size
+
+    appended_elements = data.draw(st.lists(element_st(size=element_size)))
+    updated_elements = data.draw(chunk_updates_st(len(original_elements), element_size))
+
+    updated_chunks = get_updated_chunks(
+        updated_elements,
+        appended_elements,
+        original_chunks,
+        len(original_elements),
+        num_padding_elements,
+    )
+
+    assert 0 <= min(updated_chunks.keys(), default=0)
+    assert max(updated_chunks.keys(), default=0) < len(original_chunks)
+
+    for element_index, element in updated_elements.items():
+        chunk_index = element_index // num_elements_per_chunk
+        in_chunk_index = element_index % num_elements_per_chunk
+        first_byte_in_chunk = in_chunk_index * element_size
+        last_byte_in_chunk = first_byte_in_chunk + element_size
+
+        assert chunk_index in updated_chunks
+        updated_chunk = updated_chunks[chunk_index]
+        updated_element = updated_chunk[first_byte_in_chunk:last_byte_in_chunk]
+        assert updated_element == element
+
+    if num_padding_elements > 0 and appended_elements:
+        padding_replacement = b"".join(appended_elements[:num_padding_elements])
+        first_padding_element_index = len(original_elements) % num_elements_per_chunk
+        last_padding_element_index = first_padding_element_index + min(
+            num_padding_elements, len(appended_elements)
+        )
+        first_padding_replacement_byte = first_padding_element_index * element_size
+        last_padding_replacement_byte = last_padding_element_index * element_size
+
+        last_chunk = updated_chunks[len(original_chunks) - 1]
+
+        assert (
+            last_chunk[first_padding_replacement_byte:last_padding_replacement_byte]
+            == padding_replacement
+        )

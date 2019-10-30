@@ -1,40 +1,11 @@
 from hypothesis import assume, given
 from hypothesis import strategies as st
-from pyrsistent import pvector
 import pytest
 
 from ssz.constants import ZERO_HASHES
 from ssz.hash_tree import HashTree
 from ssz.utils import merkleize
-
-
-#
-# Strategies
-#
-def chunk_count_st():
-    return st.one_of(st.none(), st.integers(min_value=1, max_value=2 ** 5))
-
-
-def chunk_st():
-    return st.binary(min_size=32, max_size=32)
-
-
-@st.composite
-def chunks_and_chunk_count_st(draw):
-    chunk_count = draw(chunk_count_st())
-    if chunk_count:
-        max_size = chunk_count
-    else:
-        max_size = 5
-    chunks = draw(st.lists(chunk_st(), min_size=1, max_size=max_size))
-    return pvector(chunks), chunk_count
-
-
-def hash_tree_st():
-    return st.builds(
-        lambda chunks_and_chunk_count: HashTree.compute(*chunks_and_chunk_count),
-        chunks_and_chunk_count_st(),
-    )
+from tests.tree_hash.strategies import chunk_st, chunks_and_chunk_count_st, hash_tree_st
 
 
 #
