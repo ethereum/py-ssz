@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Iterable, Iterator, TypeVar, Union
+from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar, Union
 
 from eth_typing import Hash32
 from pyrsistent.typing import PVector
@@ -14,7 +14,12 @@ TElement = TypeVar("TElement")
 class HashableStructureAPI(ABC, Generic[TElement]):
     @classmethod
     @abstractmethod
-    def from_iterable(cls, iterable: Iterable[TElement], sedes: BaseCompositeSedes):
+    def from_iterable_and_sedes(
+        cls,
+        iterable: Iterable[TElement],
+        sedes: BaseCompositeSedes,
+        max_length: Optional[int],
+    ):
         ...
 
     #

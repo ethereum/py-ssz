@@ -1,20 +1,25 @@
-from typing import Iterable, Type
+from typing import Iterable, TypeVar
 
 from eth_typing import Hash32
 from pyrsistent import pvector
 
 from ssz.hashable_structure import BaseHashableStructure
-from ssz.sedes import BaseSedes, Vector
+from ssz.sedes import Vector
+
+TElement = TypeVar("TElement")
 
 
-class HashableVector(BaseHashableStructure):
+class HashableVector(BaseHashableStructure[TElement]):
     @classmethod
     def from_iterable(
-        cls: "Type[HashableVector]", iterable: Iterable, element_sedes: BaseSedes
-    ) -> "HashableVector":
+        cls, iterable: Iterable[TElement], sedes: Vector[TElement, TElement]
+    ):
         elements = pvector(iterable)
-        sedes = Vector(element_sedes, len(elements))
-        return super().from_iterable(elements, sedes)
+        if len(elements) != sedes.length:
+            raise ValueError(
+                "Vector has length {sedes.length}, but {len(elements)} elements are given"
+            )
+        return super().from_iterable_and_sedes(elements, sedes, max_length=None)
 
     @property
     def root(self) -> Hash32:

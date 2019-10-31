@@ -6,6 +6,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Optional,
     Sequence,
     Tuple,
     TypeVar,
@@ -177,14 +178,24 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         elements: PVector[TElement],
         hash_tree: HashTree,
         sedes: BaseCompositeSedes,
+        max_length: Optional[int] = None,
     ) -> None:
         self._elements = elements
         self._hash_tree = hash_tree
         self._sedes = sedes
+        self._max_length = max_length
 
     @classmethod
-    def from_iterable(cls, iterable: Iterable[TElement], sedes: BaseCompositeSedes):
+    def from_iterable_and_sedes(
+        cls,
+        iterable: Iterable[TElement],
+        sedes: BaseCompositeSedes,
+        max_length: Optional[int] = None,
+    ):
         elements = pvector(iterable)
+        if max_length and len(elements) > max_length:
+            raise ValueError("Number of elements exceeds maximum length {max_length}")
+
         serialized_elements = [
             sedes.serialize_element_for_tree(index, element)
             for index, element in enumerate(elements)
@@ -193,7 +204,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         hash_tree = HashTree.compute(
             appended_chunks or [ZERO_BYTES32], sedes.chunk_count
         )
-        return cls(elements, hash_tree, sedes)
+        return cls(elements, hash_tree, sedes, max_length)
 
     @property
     def elements(self) -> PVector[TElement]:
@@ -206,6 +217,10 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     @property
     def chunks(self) -> PVector[Hash32]:
         return self.hash_tree.chunks
+
+    @property
+    def max_length(self) -> Optional[int]:
+        return self._max_length
 
     @property
     def raw_root(self) -> Hash32:
@@ -363,7 +378,16 @@ class ResizableHashableStructureEvolver(
     HashableStructureEvolver, ResizableHashableStructureEvolverAPI[TStructure, TElement]
 ):
     def append(self, element: TElement) -> None:
+        max_length = self._original_structure.max_length
+        if max_length is not None and len(self) + 1 > max_length:
+            raise ValueError("Structure would exceed maximum length {max_length}")
         self._appended_elements.append(element)
 
     def extend(self, elements: Iterable[TElement]) -> None:
-        self._appended_elements.extend(elements)
+        extension = list(elements)
+
+        max_length = self._original_structure.max_length
+        if max_length is not None and len(self) + len(extension) > max_length:
+            raise ValueError("Structure would exceed maximum length {max_length}")
+
+        self._appended_elements.extend(extension)
