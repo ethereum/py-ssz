@@ -89,7 +89,7 @@ def update_elements_in_chunk(
 
 
 def get_num_padding_elements(
-    num_original_chunks: int, num_original_elements: int, element_size: int
+    *, num_original_elements: int, num_original_chunks: int, element_size: int
 ) -> int:
     """Compute the number of elements that would still fit in the empty space of the last chunk."""
     total_size = num_original_chunks * CHUNK_SIZE
@@ -101,9 +101,11 @@ def get_num_padding_elements(
 
 @to_dict
 def get_updated_chunks(
+    *,
     updated_elements: Dict[int, bytes],
     appended_elements: Sequence[bytes],
     original_chunks: Sequence[Hash32],
+    element_size: int,
     num_original_elements: int,
     num_padding_elements: int,
 ) -> Generator[Tuple[int, Hash32], None, None]:
@@ -118,16 +120,6 @@ def get_updated_chunks(
     The return value is a dictionary mapping chunk indices to chunks.
     """
     effective_appended_elements = appended_elements[:num_padding_elements]
-
-    # get some element to infer the element size
-    try:
-        some_element = next(iter(updated_elements.values()))
-    except StopIteration:
-        try:
-            some_element = effective_appended_elements[0]
-        except IndexError:
-            return  # changeset is empty, so no chunks are updated
-    element_size = len(some_element)
     elements_per_chunk = CHUNK_SIZE // element_size
 
     padding_elements_with_indices = dict(
@@ -154,14 +146,12 @@ def get_updated_chunks(
 
 @to_tuple
 def get_appended_chunks(
-    appended_elements: Sequence[bytes], num_padding_elements: int
+    *, appended_elements: Sequence[bytes], element_size: int, num_padding_elements: int
 ) -> Generator[Hash32, None, None]:
     """Get the sequence of appended chunks."""
     if len(appended_elements) <= num_padding_elements:
         return
 
-    some_element = appended_elements[0]
-    element_size = len(some_element)
     elements_per_chunk = CHUNK_SIZE // element_size
 
     chunk_partitioned_elements = partition(
@@ -201,7 +191,11 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
             sedes.serialize_element_for_tree(index, element)
             for index, element in enumerate(elements)
         ]
-        appended_chunks = get_appended_chunks(serialized_elements, 0, 0)
+        appended_chunks = get_appended_chunks(
+            appended_elements=serialized_elements,
+            element_size=sedes.element_size_in_tree,
+            num_padding_elements=0,
+        )
         hash_tree = HashTree.compute(
             appended_chunks or [ZERO_BYTES32], sedes.chunk_count
         )
@@ -320,29 +314,39 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
         if not self.is_dirty():
             return self._original_structure
 
+        sedes = self._original_structure.sedes
+
+        num_original_elements = len(self._original_structure)
+        num_original_chunks = len(self._original_structure.chunks)
+        num_padding_elements = get_num_padding_elements(
+            num_original_elements=num_original_elements,
+            num_original_chunks=num_original_chunks,
+            element_size=sedes.element_size_in_tree,
+        )
+
         updated_elements = {
-            index: self._original_structure.sedes.serialize_element_for_tree(
-                index, element
-            )
+            index: sedes.serialize_element_for_tree(index, element)
             for index, element in self._updated_elements.items()
         }
         appended_elements = [
-            self._original_structure.sedes.serialize_element_for_tree(index, element)
+            sedes.serialize_element_for_tree(index, element)
             for index, element in enumerate(
-                self._appended_elements, start=len(self._original_structure)
+                self._appended_elements, start=num_original_elements
             )
         ]
 
         updated_chunks = get_updated_chunks(
-            updated_elements,
-            appended_elements,
-            self._original_structure.hash_tree.chunks,
-            len(self._original_structure),
+            updated_elements=updated_elements,
+            appended_elements=appended_elements,
+            original_chunks=self._original_structure.chunks,
+            num_original_elements=num_original_elements,
+            num_padding_elements=num_padding_elements,
+            element_size=sedes.element_size_in_tree,
         )
         appended_chunks = get_appended_chunks(
-            appended_elements,
-            len(self._original_structure.hash_tree.chunks),
-            len(self._original_structure),
+            appended_elements=appended_elements,
+            element_size=sedes.element_size_in_tree,
+            num_padding_elements=num_padding_elements,
         )
 
         elements = self._original_structure.elements.mset(

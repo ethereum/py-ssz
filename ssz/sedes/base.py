@@ -72,6 +72,11 @@ class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     def get_element_sedes(self, index: int) -> BaseSedes:
         ...
 
+    @property
+    @abstractmethod
+    def element_size_in_tree(self) -> int:
+        ...
+
     @abstractmethod
     def serialize_element_for_tree(self, index: int, element: TSerializable) -> bytes:
         ...

@@ -40,6 +40,10 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    def element_size_in_tree(self) -> int:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.size:
             raise SerializationError(

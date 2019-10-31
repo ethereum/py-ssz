@@ -9,6 +9,7 @@ from eth_utils.toolz import accumulate, concatv
 
 from ssz import constants
 from ssz.cache.utils import get_key
+from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import DeserializationError
 from ssz.sedes.base import BaseCompositeSedes, BaseSedes, TSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
@@ -33,7 +34,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    def get_hash_tree_root(self, value: TSerializable) -> bytes:
+    def get_hash_tree_root(self, value: TSerializable) -> Hash32:
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
 
@@ -141,6 +142,14 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
             return sedes.serialize(element)
         else:
             return sedes.get_hash_tree_root(element)
+
+    @property
+    def element_size_in_tree(self) -> int:
+        if self.is_packing:
+            # note that only homogenous composites with fixed sized elements are packed
+            return self.get_element_sedes(0).get_fixed_size()
+        else:
+            return CHUNK_SIZE
 
     def deserialize(self, data: bytes) -> TDeserialized:
         stream = io.BytesIO(data)

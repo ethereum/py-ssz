@@ -42,6 +42,10 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    def element_size_in_tree(self) -> int:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()

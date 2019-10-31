@@ -44,6 +44,10 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
         # TODO: find better place to define abstractmethod to avoid having to implement it here
         raise NotImplementedError()
 
+    def element_size_in_tree(self) -> int:
+        # TODO: find better place to define abstractmethod to avoid having to implement it here
+        raise NotImplementedError()
+
     @property
     def chunk_count(self) -> int:
         return (self.max_bit_count + 255) // 256
