@@ -284,6 +284,9 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
         self._appended_elements: List[TElement] = []
 
     def __getitem__(self, index: int) -> TElement:
+        if index < 0:
+            index += len(self)
+
         if index in self._updated_elements:
             return self._updated_elements[index]
         elif 0 <= index < len(self._original_structure):
@@ -291,18 +294,21 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
         elif 0 <= index < len(self):
             return self._appended_elements[index - len(self._original_structure)]
         else:
-            raise IndexError("Index out of bounds: {index}")
+            raise IndexError(f"Index out of bounds: {index}")
 
     def set(self, index: int, element: TElement) -> None:
         self[index] = element
 
     def __setitem__(self, index: int, element: TElement) -> None:
+        if index < 0:
+            index += len(self)
+
         if 0 <= index < len(self._original_structure):
             self._updated_elements[index] = element
         elif 0 <= index < len(self):
             self._appended_elements[index - len(self._original_structure)] = element
         else:
-            raise IndexError("Index out of bounds: {index}")
+            raise IndexError(f"Index out of bounds: {index}")
 
     def __len__(self) -> int:
         return len(self._original_structure) + len(self._appended_elements)
