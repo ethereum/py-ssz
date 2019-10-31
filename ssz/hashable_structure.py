@@ -1,6 +1,7 @@
 import functools
 import itertools
 from typing import (
+    Any,
     Dict,
     Generator,
     Iterable,
@@ -229,6 +230,20 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     @property
     def sedes(self) -> BaseCompositeSedes:
         return self._sedes
+
+    #
+    # Hash and equality
+    #
+    def __hash__(self) -> int:
+        # hashable structures have the same hash if they share both sedes and root
+        return hash((self.sedes, self.root))
+
+    def __eq__(self, other: Any) -> bool:
+        # hashable structures are equal if they use the same sedes and have the same root
+        if isinstance(other, BaseHashableStructure):
+            return self.sedes == other.sedes and self.root == other.root
+        else:
+            return False
 
     #
     # PVector interface
