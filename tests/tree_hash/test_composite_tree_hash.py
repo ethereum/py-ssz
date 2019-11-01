@@ -20,7 +20,6 @@ E_BYTES = b"\xee" * 16
 @pytest.mark.parametrize(
     ("serialized_uints128", "result"),
     (
-        ((), EMPTY_CHUNK),
         ((A_BYTES,), A_BYTES + EMPTY_BYTES),
         ((A_BYTES, B_BYTES), A_BYTES + B_BYTES),
         ((A_BYTES, B_BYTES, C_BYTES), h(A_BYTES + B_BYTES + C_BYTES + EMPTY_BYTES)),
@@ -83,7 +82,6 @@ def test_list_of_basic(serialized_uints128, max_length, result):
 @pytest.mark.parametrize(
     ("bytes16_vector", "result"),
     (
-        ((), EMPTY_CHUNK),
         ((A_BYTES,), A_BYTES + EMPTY_BYTES),
         ((A_BYTES, B_BYTES), h(A_BYTES + EMPTY_BYTES + B_BYTES + EMPTY_BYTES)),
         (

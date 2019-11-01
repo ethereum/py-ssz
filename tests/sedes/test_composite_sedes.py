@@ -35,8 +35,7 @@ def test_invalid_serialized_list():
 
 
 @pytest.mark.parametrize(
-    ("value", "serialized"),
-    (((), "0x"), ((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc")),
+    ("value", "serialized"), (((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc"))
 )
 def test_tuple_of_static_sized_entries(value, serialized):
     sedes = Vector(uint8, len(value))

@@ -14,7 +14,7 @@ def test_byte(value):
     assert ssz.get_hash_tree_root(value, byte) == expected
 
 
-@given(st.binary())
+@given(st.binary(min_size=1))
 def test_byte_vector(value):
     byte_sequence = tuple(bytes([byte_value]) for byte_value in value)
     expected_vector_root = ssz.get_hash_tree_root(

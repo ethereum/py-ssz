@@ -21,7 +21,7 @@ def test_byte_invalid_length(value):
         ssz.decode(value, byte)
 
 
-@pytest.mark.parametrize("value", (b"", b"\x00", b"\x00\x01\x02\x03"))
+@pytest.mark.parametrize("value", (b"\x00", b"\x00\x01\x02\x03"))
 def test_byte_vector(value):
     byte_vector = ByteVector(len(value))
     serialized_value = ssz.encode(value, byte_vector)
