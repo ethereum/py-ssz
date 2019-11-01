@@ -5,7 +5,7 @@ from hypothesis import strategies as st
 from pyrsistent import get_in
 
 import ssz
-from tests.hashable.strategies import (
+from tests.hashable.hashable_strategies import (
     composite_sedes_and_values_st,
     container_sedes_and_values_st,
     list_sedes_and_values_st,
