@@ -2,6 +2,7 @@ import itertools
 
 from hypothesis import assume, given
 from hypothesis import strategies as st
+from pyrsistent import get_in
 
 import ssz
 from tests.hashable.strategies import (
@@ -11,6 +12,7 @@ from tests.hashable.strategies import (
     to_hashable_value,
     to_plain_value,
     to_serializable_value,
+    transform_path_st,
     vector_sedes_and_values_st,
 )
 
@@ -275,3 +277,37 @@ def test_list_extend(data, list_sedes_and_values):
     assert hashable_value_extended == hashable_value_appended
     assert hashable_value_extend_evolved == hashable_value_appended
     assert hashable_value_plussed == hashable_value_appended
+
+
+@given(st.data(), container_sedes_and_values_st())
+def test_transform(data, sedes_and_values):
+    sedes, values = sedes_and_values
+    value = data.draw(values)
+    hashable_value = to_hashable_value(value, sedes)
+    transform_path = data.draw(transform_path_st(hashable_value))
+
+    original_value = get_in(transform_path, hashable_value, no_default=True)
+    if isinstance(original_value, bool):
+
+        def transformation(value):
+            return not value
+
+        new_value = transformation(original_value)
+    elif isinstance(original_value, int):
+
+        def transformation(value):
+            # safe for all integer sizes
+            return 1 if value == 0 else value - 1
+
+        new_value = transformation(original_value)
+    else:
+        # bail out if the path does not lead to a atomic value (e.g. if there's an empty list on
+        # the path)
+        assume(False)
+
+    transform_set = hashable_value.transform(transform_path, new_value)
+    transform_applied = hashable_value.transform(transform_path, transformation)
+
+    assert transform_set == transform_applied
+    assert get_in(transform_path, transform_set, new_value) == new_value
+    assert get_in(transform_path, transform_applied, new_value) == new_value

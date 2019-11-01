@@ -306,3 +306,20 @@ def to_plain_value(serializable_or_hashable_value, sedes):
 
     else:
         assert False
+
+
+@st.composite
+def transform_path_st(draw, hashable_value):
+    if isinstance(hashable_value, HashableContainer):
+        fields = hashable_value._meta.fields
+        field_index = draw(st.integers(min_value=0, max_value=len(fields) - 1))
+        field_name = fields[field_index][0]
+        return (field_name,) + draw(transform_path_st(hashable_value[field_name]))
+    elif isinstance(hashable_value, (HashableList, HashableVector)):
+        if len(hashable_value) == 0:
+            return ()
+        else:
+            index = draw(st.integers(min_value=0, max_value=len(hashable_value) - 1))
+            return (index,) + draw(transform_path_st(hashable_value[index]))
+    elif isinstance(hashable_value, (bool, int)):
+        return ()
