@@ -13,18 +13,9 @@ TStructure = TypeVar("TStructure", bound="HashableContainer")
 TElement = TypeVar("TElement")
 
 
-class Meta(NamedTuple):
-    fields: Tuple[Tuple[str, BaseSedes], ...]
-    field_names_to_element_indices: Dict[str, int]
-    container_sedes: Container
-    evolver_class: Type["HashableContainerEvolver"]
-
-
-#
-# Descriptors to translate from attribute access (`hashable_container.field_name`) to item access
-# (`hashable_container["field_name"]`)
-#
 class FieldDescriptor:
+    """Descriptor translating from __getattr__ to __getitem__ calls for a given attribute."""
+
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -35,96 +26,113 @@ class FieldDescriptor:
 
 
 class SettableFieldDescriptor(FieldDescriptor):
+    """Settable variant of FieldDescriptor for evolver."""
+
     def __set__(self, instance: "HashableContainerEvolver", value: Any) -> None:
         instance[self.name] = value
 
 
-#
-# Metaclass which creates HashableContainers
-#
+class Meta(NamedTuple):
+    fields: Tuple[Tuple[str, BaseSedes], ...]
+    field_names_to_element_indices: Dict[str, int]
+    field_descriptors: Dict[str, FieldDescriptor]
+    container_sedes: Container
+    evolver_class: Type["HashableContainerEvolver"]
+
+    @classmethod
+    def from_fields(
+        cls, fields: Tuple[Tuple[str, BaseSedes], ...], container: Container, name: str
+    ):
+        field_names, _ = zip(*fields)
+        field_names_to_element_indices = {
+            field_name: index for index, field_name in enumerate(field_names)
+        }
+
+        field_descriptors = {
+            field_name: FieldDescriptor(field_name) for field_name in field_names
+        }
+        settable_field_descriptors = {
+            field_name: SettableFieldDescriptor(field_name)
+            for field_name in field_names
+        }
+
+        # create subclass of HashableEvolver that has a settable descriptor for each field
+        evolver_class = type(
+            name + "Evolver", (HashableContainerEvolver,), settable_field_descriptors
+        )
+
+        return cls(
+            fields=fields,
+            field_names_to_element_indices=field_names_to_element_indices,
+            field_descriptors=field_descriptors,
+            container_sedes=container,
+            evolver_class=evolver_class,
+        )
+
+
+def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
+    """Return the meta object defined by one of the given base classes.
+
+    Returns None if no base defines a meta object. Raises a TypeError if more than one do.
+    """
+    container_bases = tuple(
+        base for base in bases if isinstance(base, MetaHashableContainer)
+    )
+    bases_with_meta = tuple(base for base in container_bases if base._meta is not None)
+
+    if len(bases_with_meta) == 0:
+        return None
+    elif len(bases_with_meta) == 1:
+        return bases_with_meta[0]._meta
+    else:
+        raise TypeError(
+            "Fields need to be declared explicitly as class has multiple "
+            "HashableContainer parents with fields themselves"
+        )
+
+
 class MetaHashableContainer(ABCMeta):
+    """Metaclass which creates HashableContainers."""
+
     def __new__(mcls, name: str, bases: Tuple[Type, ...], namespace: Dict[str, Any]):
         container_sedes: Optional[Container]
 
-        declares_fields = FIELDS_META_ATTR in namespace
-
-        if declares_fields:
+        # get fields defined in the class or by one of its bases
+        if FIELDS_META_ATTR in namespace:
             fields = namespace.pop(FIELDS_META_ATTR)
             field_sedes = tuple(sedes for field_name, sedes in fields)
             if not fields:
                 raise TypeError(
-                    "HashableContainer must refrain from defining fields at all or define at least "
-                    "one, but not define zero"
+                    "HashableContainer must either define a non-zero number of fields or not "
+                    "define any, but not an empty set."
                 )
             container_sedes = Container(field_sedes)
-
         else:
-            container_bases = tuple(
-                base for base in bases if isinstance(base, MetaHashableContainer)
-            )
-            bases_with_fields = tuple(
-                base for base in container_bases if base._meta is not None
-            )
-
-            if len(bases_with_fields) == 0:
+            meta = get_meta_from_bases(bases)
+            if meta is not None:
+                fields = meta.fields
+                container_sedes = Container(field_sedes)
+            else:
                 fields = None
                 container_sedes = None
-            elif len(bases_with_fields) == 1:
-                fields = bases_with_fields[0]._meta.fields
-                container_sedes = bases_with_fields[0]._meta.container_sedes
-            else:
-                raise TypeError(
-                    "Fields need to be declared explicitly as class has multiple "
-                    "HashableContainer parents with fields themselves"
-                )
 
-        if fields is None:
-            # create the class without specifying any fields as neither the class itself nor any of
-            # its ancestors have defined fields
-            field_descriptors: Dict[str, FieldDescriptor] = {}
-            meta = None
+        if fields is not None:
+            assert container_sedes is not None
+            meta = Meta.from_fields(fields, container_sedes, name=name)
         else:
-            field_names, _ = zip(*fields)
-            field_names_to_element_indices = {
-                field_name: index for index, field_name in enumerate(field_names)
-            }
-
-            field_descriptors = {
-                field_name: FieldDescriptor(field_name) for field_name in field_names
-            }
-            settable_field_descriptors = {
-                field_name: SettableFieldDescriptor(field_name)
-                for field_name in field_names
-            }
-
-            evolver_class = type(
-                name + "Evolver",
-                (HashableContainerEvolver,),
-                settable_field_descriptors,
-            )
-
-            meta = Meta(
-                fields=fields,
-                field_names_to_element_indices=field_names_to_element_indices,
-                container_sedes=container_sedes,
-                evolver_class=evolver_class,
-            )
-            field_descriptors = {
-                field_name: FieldDescriptor(field_name) for field_name in field_names
-            }
+            meta = None
 
         namespace_with_meta_and_fields = merge(
-            namespace, {"_meta": meta}, field_descriptors
+            namespace, {"_meta": meta}, meta.field_descriptors if meta else {}
         )
         return super().__new__(mcls, name, bases, namespace_with_meta_and_fields)
 
 
-#
-# The base class for hashable containers
-#
 class HashableContainer(
     BaseHashableStructure[TElement], ABC, metaclass=MetaHashableContainer
 ):
+    """Base class for hashable containers."""
+
     _meta: Meta  # set by MetaHashableContainer
 
     def __init__(self, *args, **kwargs):
@@ -179,11 +187,13 @@ class HashableContainer(
         return self._meta.evolver_class(self)
 
 
-#
-# Base class for evolvers for the hashable container (MetaHashableContainer subclasses this
-# dynamically)
-#
 class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
+    """Base class for evolvers for hashable containers.
+
+    Subclasses (created dynamically by MetaHashableContainer when creating the corresponding
+    HashableContainer) should add settable field descriptors for all fields.
+    """
+
     def __setitem__(self, index: Union[str, int], value: TElement) -> None:
         element_index = self._original_structure.normalize_item_index(index)
         super().__setitem__(element_index, value)
