@@ -52,7 +52,9 @@ def test_get_num_padding(num_original_elements, element_size):
     num_original_chunks = (num_original_elements * element_size + 31) // 32
 
     num_padding = get_num_padding_elements(
-        num_original_chunks, num_original_elements, element_size
+        num_original_chunks=num_original_chunks,
+        num_original_elements=num_original_elements,
+        element_size=element_size,
     )
     assert ((num_original_elements + num_padding) * element_size) % 32 == 0
     assert (
@@ -61,9 +63,14 @@ def test_get_num_padding(num_original_elements, element_size):
     assert 0 <= num_padding < 32 // element_size
 
 
-@given(elements_st(), st.integers(min_value=0))
-def test_appended_chunks(appended_elements, num_padding_elements):
-    chunks = get_appended_chunks(appended_elements, num_padding_elements)
+@given(st.data(), element_size_st(), st.integers(min_value=0))
+def test_appended_chunks(data, element_size, num_padding_elements):
+    appended_elements = data.draw(elements_st(size=element_size))
+    chunks = get_appended_chunks(
+        appended_elements=appended_elements,
+        element_size=element_size,
+        num_padding_elements=num_padding_elements,
+    )
 
     effective_appended_elements = appended_elements[num_padding_elements:]
     if not effective_appended_elements:
@@ -80,9 +87,15 @@ def test_appended_chunks(appended_elements, num_padding_elements):
 @given(st.data(), element_size_st())
 def test_updated_chunks(data, element_size):
     original_elements = data.draw(st.lists(element_st(size=element_size), min_size=1))
-    original_chunks = get_appended_chunks(original_elements, 0)
+    original_chunks = get_appended_chunks(
+        appended_elements=original_elements,
+        element_size=element_size,
+        num_padding_elements=0,
+    )
     num_padding_elements = get_num_padding_elements(
-        len(original_chunks), len(original_elements), element_size
+        num_original_elements=len(original_elements),
+        num_original_chunks=len(original_chunks),
+        element_size=element_size,
     )
     num_elements_per_chunk = 32 // element_size
 
@@ -90,11 +103,12 @@ def test_updated_chunks(data, element_size):
     updated_elements = data.draw(chunk_updates_st(len(original_elements), element_size))
 
     updated_chunks = get_updated_chunks(
-        updated_elements,
-        appended_elements,
-        original_chunks,
-        len(original_elements),
-        num_padding_elements,
+        updated_elements=updated_elements,
+        appended_elements=appended_elements,
+        original_chunks=original_chunks,
+        element_size=element_size,
+        num_original_elements=len(original_elements),
+        num_padding_elements=num_padding_elements,
     )
 
     assert 0 <= min(updated_chunks.keys(), default=0)

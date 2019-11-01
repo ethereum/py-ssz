@@ -5,12 +5,13 @@ import pytest
 from ssz.constants import ZERO_HASHES
 from ssz.hash_tree import HashTree
 from ssz.utils import merkleize
-from tests.tree_hash.strategies import chunk_st, chunks_and_chunk_count_st, hash_tree_st
+from tests.hashable.chunk_strategies import (
+    chunk_st,
+    chunks_and_chunk_count_st,
+    hash_tree_st,
+)
 
 
-#
-# Tests
-#
 @given(chunks_and_chunk_count_st())
 def test_compute(chunks_and_chunk_count):
     root = merkleize(*chunks_and_chunk_count)
