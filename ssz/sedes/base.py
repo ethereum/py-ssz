@@ -47,10 +47,6 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
         ...
 
     @abstractmethod
-    def chunk_count(self) -> int:
-        ...
-
-    @abstractmethod
     def get_sedes_id(self) -> str:
         ...
 

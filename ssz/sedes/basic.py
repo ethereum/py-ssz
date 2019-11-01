@@ -44,9 +44,6 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack((serialized_value,)), cache=cache)
 
-    def chunk_count(self) -> int:
-        return 1
-
     def get_key(self, value: Any) -> str:
         return get_key(self, value)
 
