@@ -8,7 +8,6 @@ from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
-from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import SerializationError
 from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
@@ -27,20 +26,10 @@ class Vector(
     ]
 ):
     def __init__(self, element_sedes: TSedes, length: int) -> None:
-        self.element_sedes = element_sedes
+        if length <= 0:
+            raise ValueError(f"Vectors must have a size of 1 or greater, got {length}")
+        super().__init__(element_sedes, max_length=length)
         self.length = length
-
-    @property
-    def is_packing(self) -> bool:
-        return isinstance(self.element_sedes, BasicSedes)
-
-    @property
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            element_size = self.element_sedes.get_fixed_size()
-            return (element_size * self.length + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.length
 
     def get_element_sedes(
         self, index
@@ -52,7 +41,7 @@ class Vector(
     #
     @property
     def is_fixed_sized(self) -> bool:
-        return self.length == 0 or self.element_sedes.is_fixed_sized
+        return self.element_sedes.is_fixed_sized
 
     def get_fixed_size(self) -> int:
         if not self.is_fixed_sized:
@@ -62,10 +51,6 @@ class Vector(
             return 0
         else:
             return self.length * self.element_sedes.get_fixed_size()
-
-    @property
-    def max_length(self) -> int:
-        return self.length
 
     #
     # Serialization

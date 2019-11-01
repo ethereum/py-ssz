@@ -10,7 +10,7 @@ from ssz.cache.utils import (
 )
 from ssz.constants import OFFSET_SIZE
 from ssz.exceptions import DeserializationError
-from ssz.sedes.base import BaseSedes, TSedes
+from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import (
@@ -28,11 +28,6 @@ TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable
 class List(
     HomogeneousProperCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
 ):
-    def __init__(self, element_sedes: TSedes, max_length: int) -> None:
-        # This sedes object corresponds to each element of the iterable
-        self.element_sedes = element_sedes
-        self.max_length = max_length
-
     #
     # Size
     #
@@ -46,18 +41,6 @@ class List(
     #
     def get_element_sedes(self, index) -> BaseSedes[TSerializable, TDeserialized]:
         return self.element_sedes
-
-    @property
-    def is_packing(self) -> bool:
-        return isinstance(self.element_sedes, BasicSedes)
-
-    @property
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            element_size = self.element_sedes.get_fixed_size()
-            return (element_size * self.max_length + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.max_length
 
     @to_tuple
     def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:
