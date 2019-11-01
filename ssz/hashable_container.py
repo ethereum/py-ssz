@@ -1,4 +1,5 @@
-from abc import ABC, ABCMeta
+from abc import ABCMeta
+import sys
 from typing import Any, Dict, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from eth_typing import Hash32
@@ -128,8 +129,21 @@ class MetaHashableContainer(ABCMeta):
         return super().__new__(mcls, name, bases, namespace_with_meta_and_fields)
 
 
+# workaround for https://github.com/python/typing/issues/449 (fixed in python 3.7)
+python_version_info = sys.version_info
+if python_version_info[0] <= 3 and python_version_info[1] <= 6:
+    from typing import GenericMeta
+
+    class GenericMetaHashableContainer(GenericMeta, MetaHashableContainer):
+        pass
+
+
+else:
+    GenericMetaHashableContainer = MetaHashableContainer  # type: ignore
+
+
 class HashableContainer(
-    BaseHashableStructure[TElement], ABC, metaclass=MetaHashableContainer
+    BaseHashableStructure[TElement], metaclass=GenericMetaHashableContainer
 ):
     """Base class for hashable containers."""
 
