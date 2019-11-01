@@ -83,5 +83,5 @@ class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
         ...
 
 
-class BaseByteSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseBitfieldCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     ...

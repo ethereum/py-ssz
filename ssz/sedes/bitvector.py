@@ -4,8 +4,7 @@ from eth_typing import Hash32
 from eth_utils import to_tuple
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import BaseSedes
-from ssz.sedes.basic import BasicBytesSedes
+from ssz.sedes.basic import BitfieldCompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import (
     get_serialized_bytearray,
@@ -17,7 +16,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
+class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, bit_count: int) -> None:
         if bit_count < 0:
             raise TypeError("Bit count cannot be negative")
@@ -34,22 +33,6 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
-    def get_element_sedes(self, index: int) -> BaseSedes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def is_packing(self) -> bool:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def element_size_in_tree(self) -> int:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
     def serialize(self, value: Sequence[bool]) -> bytes:
         if len(value) != self.bit_count:
             raise SerializationError(
@@ -74,14 +57,14 @@ class Bitvector(BasicBytesSedes[BytesOrByteArray, bytes]):
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
-        chunk_count = (self.bit_count + 255) // 256
-        return merkleize(pack_bits(value), limit=chunk_count)
+        return merkleize(pack_bits(value), limit=self.chunk_count)
 
     def get_hash_tree_root_and_leaves(
         self, value: Sequence[bool], cache: CacheObj
     ) -> Tuple[Hash32, CacheObj]:
-        chunk_count = (self.bit_count + 255) // 256
-        return merkleize_with_cache(pack_bits(value), cache=cache, limit=chunk_count)
+        return merkleize_with_cache(
+            pack_bits(value), cache=cache, limit=self.chunk_count
+        )
 
     @property
     def chunk_count(self) -> int:

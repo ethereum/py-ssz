@@ -11,7 +11,12 @@ from ssz import constants
 from ssz.cache.utils import get_key
 from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import DeserializationError
-from ssz.sedes.base import BaseProperCompositeSedes, BaseSedes, TSedes
+from ssz.sedes.base import (
+    BaseBitfieldCompositeSedes,
+    BaseProperCompositeSedes,
+    BaseSedes,
+    TSedes,
+)
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import encode_offset, merkleize, merkleize_with_cache, pack
 
@@ -55,7 +60,7 @@ def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
     )
 
 
-class BasicBytesSedes(BaseSedes[TSerializable, TDeserialized]):
+class BitfieldCompositeSedes(BaseBitfieldCompositeSedes[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> str:
         return get_key(self, value)
 

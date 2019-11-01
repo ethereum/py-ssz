@@ -5,7 +5,7 @@ from eth_utils import to_tuple
 
 from ssz.exceptions import DeserializationError, SerializationError
 from ssz.sedes.base import BaseSedes
-from ssz.sedes.basic import BasicBytesSedes
+from ssz.sedes.basic import BitfieldCompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import (
     get_serialized_bytearray,
@@ -18,7 +18,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
+class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, max_bit_count: int) -> None:
         if max_bit_count < 0:
             raise TypeError("Max bit count cannot be negative")
