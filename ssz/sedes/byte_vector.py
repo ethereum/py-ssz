@@ -25,6 +25,14 @@ class ByteVector(Vector[BytesOrByteArray, bytes]):
 
         return value
 
+    def serialize_element_for_tree(self, index: int, byte_value: int) -> bytes:
+        if not 0 <= byte_value < 256:
+            raise SerializationError(
+                f"Cannot serialize byte as its value {byte_value} is invalid"
+            )
+
+        return bytes((byte_value,))
+
     def deserialize(self, data: bytes) -> bytes:
         if len(data) != self.length:
             raise DeserializationError(
