@@ -234,3 +234,44 @@ def test_container_manipulation(data, size):
     assert hashable_value_evolved == hashable_value_set_index
     assert hashable_value_mset_index == hashable_value_set_index
     assert hashable_value_mset_name == hashable_value_set_index
+
+
+@given(st.data(), list_sedes_and_values_st())
+def test_list_extend(data, list_sedes_and_values):
+    sedes, values = list_sedes_and_values
+
+    value = data.draw(values)
+    extension = data.draw(values)[: len(value) - sedes.max_length]
+    hashable_value = to_hashable_value(value, sedes)
+    hashable_extension = to_hashable_value(extension, sedes)
+
+    # expected result
+    extended_value = value + extension
+
+    # extend with appends
+    hashable_value_appended = hashable_value
+    append_evolver = hashable_value.evolver()
+    for num_appended, element in enumerate(hashable_extension, start=1):
+        hashable_value_appended = hashable_value_appended.append(element)
+        append_evolver.append(element)
+        for intermediate in (hashable_value_appended, append_evolver):
+            assert len(intermediate) == len(value) + num_appended
+            assert intermediate[len(intermediate) - 1] == element
+            assert intermediate[-1] == element
+    hashable_value_append_evolved = append_evolver.persistent()
+
+    # extend with extend
+    hashable_value_extended = hashable_value.extend(hashable_extension)
+    extend_evolver = hashable_value.evolver()
+    extend_evolver.extend(hashable_extension)
+    hashable_value_extend_evolved = extend_evolver.persistent()
+
+    # extend with +
+    hashable_value_plussed = hashable_value + hashable_extension
+
+    # compare results
+    assert to_plain_value(hashable_value_appended, sedes) == extended_value
+    assert hashable_value_append_evolved == hashable_value_appended
+    assert hashable_value_extended == hashable_value_appended
+    assert hashable_value_extend_evolved == hashable_value_appended
+    assert hashable_value_plussed == hashable_value_appended
