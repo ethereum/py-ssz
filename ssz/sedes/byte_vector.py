@@ -3,68 +3,35 @@ from typing import Tuple, Union
 from eth_typing import Hash32
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import BaseSedes
-from ssz.sedes.basic import BasicBytesSedes
+from ssz.sedes.byte import byte
+from ssz.sedes.vector import Vector
 from ssz.typing import CacheObj
 from ssz.utils import merkleize, merkleize_with_cache, pack_bytes
 
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
+class ByteVector(Vector[BytesOrByteArray, bytes]):
+    """Equivalent to `Vector(byte, size)` but more efficient."""
+
     def __init__(self, size: int) -> None:
-        if size < 0:
-            raise TypeError("Size cannot be negative")
-        self.size = size
-
-    #
-    # Size
-    #
-    is_fixed_sized = True
-
-    def get_fixed_size(self):
-        return self.size
-
-    #
-    # Serialization
-    #
-    def get_element_sedes(self, index: int) -> BaseSedes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def is_packing(self) -> bool:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def element_size_in_tree(self) -> int:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
+        super().__init__(element_sedes=byte, length=size)
 
     def serialize(self, value: BytesOrByteArray) -> bytes:
-        if len(value) != self.size:
+        if len(value) != self.length:
             raise SerializationError(
-                f"Cannot serialize length {len(value)} byte-string as bytes{self.size}"
+                f"Cannot serialize length {len(value)} byte-string as bytes{self.length}"
             )
 
         return value
 
-    #
-    # Deserialization
-    #
     def deserialize(self, data: bytes) -> bytes:
-        if len(data) != self.size:
+        if len(data) != self.length:
             raise DeserializationError(
-                f"Cannot deserialize length {len(data)} data as bytes{self.size}"
+                f"Cannot deserialize length {len(data)} data as bytes{self.length}"
             )
         return data
 
-    #
-    # Tree hashing
-    #
     def get_hash_tree_root(self, value: bytes) -> bytes:
         serialized_value = self.serialize(value)
         return merkleize(pack_bytes(serialized_value))
@@ -75,12 +42,8 @@ class ByteVector(BasicBytesSedes[BytesOrByteArray, bytes]):
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack_bytes(serialized_value), cache=cache)
 
-    @property
-    def chunk_count(self) -> int:
-        return self.length * self.size
-
     def get_sedes_id(self) -> str:
-        return f"{self.__class__.__name__}{self.size}"
+        return f"{self.__class__.__name__}{self.length}"
 
 
 bytes1 = ByteVector(1)

@@ -45,7 +45,7 @@ class Vector(
 
     def get_fixed_size(self) -> int:
         if not self.is_fixed_sized:
-            raise ValueError("Tuple is not fixed size.")
+            raise ValueError("Vector is not fixed size.")
 
         if self.length == 0:
             return 0

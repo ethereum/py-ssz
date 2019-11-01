@@ -4,7 +4,6 @@ from eth_typing import Hash32
 from eth_utils import to_tuple
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BitfieldCompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import (
@@ -35,26 +34,9 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
-    def get_element_sedes(self, index: int) -> BaseSedes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    @property
-    def is_packing(self) -> bool:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
-    def element_size_in_tree(self) -> int:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
-
     @property
     def chunk_count(self) -> int:
         return (self.max_bit_count + 255) // 256
-
-    def serialize_element_for_tree(self, index: int, element: bytes) -> bytes:
-        # TODO: find better place to define abstractmethod to avoid having to implement it here
-        raise NotImplementedError()
 
     def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
