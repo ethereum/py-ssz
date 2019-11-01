@@ -29,7 +29,7 @@ from ssz.abc import (
 )
 from ssz.constants import CHUNK_SIZE, ZERO_BYTES32
 from ssz.hash_tree import HashTree
-from ssz.sedes.base import BaseCompositeSedes
+from ssz.sedes.base import BaseProperCompositeSedes
 
 TStructure = TypeVar("TStructure", bound="BaseHashableStructure")
 TResizableStructure = TypeVar(
@@ -168,7 +168,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         self,
         elements: PVector[TElement],
         hash_tree: HashTree,
-        sedes: BaseCompositeSedes,
+        sedes: BaseProperCompositeSedes,
         max_length: Optional[int] = None,
     ) -> None:
         self._elements = elements
@@ -180,7 +180,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     def from_iterable_and_sedes(
         cls,
         iterable: Iterable[TElement],
-        sedes: BaseCompositeSedes,
+        sedes: BaseProperCompositeSedes,
         max_length: Optional[int] = None,
     ):
         elements = pvector(iterable)
@@ -222,7 +222,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return self.hash_tree.root
 
     @property
-    def sedes(self) -> BaseCompositeSedes:
+    def sedes(self) -> BaseProperCompositeSedes:
         return self._sedes
 
     #

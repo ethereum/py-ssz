@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 
 from .base import BaseSedes  # noqa: F401
-from .basic import BasicSedes, CompositeSedes  # noqa: F401
+from .basic import BasicSedes, ProperCompositeSedes  # noqa: F401
 from .bitlist import Bitlist  # noqa: F401
 from .bitvector import Bitvector  # noqa: F401
 from .boolean import Boolean, boolean  # noqa: F401

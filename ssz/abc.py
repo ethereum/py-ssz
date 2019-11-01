@@ -5,7 +5,7 @@ from eth_typing import Hash32
 from pyrsistent.typing import PVector
 
 from ssz.hash_tree import HashTree
-from ssz.sedes.base import BaseCompositeSedes
+from ssz.sedes.base import BaseProperCompositeSedes
 
 TStructure = TypeVar("TStructure")
 TElement = TypeVar("TElement")
@@ -17,7 +17,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
     def from_iterable_and_sedes(
         cls,
         iterable: Iterable[TElement],
-        sedes: BaseCompositeSedes,
+        sedes: BaseProperCompositeSedes,
         max_length: Optional[int],
     ):
         ...

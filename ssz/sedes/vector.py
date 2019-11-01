@@ -11,7 +11,7 @@ from ssz.cache.utils import (
 from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import SerializationError
 from ssz.sedes.base import BaseSedes, TSedes
-from ssz.sedes.basic import BasicSedes, HomogeneousCompositeSedes
+from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserializedElement, TSerializableElement
 from ssz.utils import merkleize, merkleize_with_cache, pack, read_exact, s_decode_offset
 
@@ -22,7 +22,7 @@ TSedesPairs = Tuple[
 
 
 class Vector(
-    HomogeneousCompositeSedes[
+    HomogeneousProperCompositeSedes[
         Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]
     ]
 ):

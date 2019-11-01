@@ -58,7 +58,7 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 TSedes = BaseSedes[Any, Any]
 
 
-class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     @property
     @abstractmethod
     def is_packing(self) -> bool:

@@ -8,10 +8,10 @@ from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
-from ssz.constants import CHUNK_SIZE, OFFSET_SIZE
+from ssz.constants import OFFSET_SIZE
 from ssz.exceptions import DeserializationError
 from ssz.sedes.base import BaseSedes, TSedes
-from ssz.sedes.basic import BasicSedes, HomogeneousCompositeSedes
+from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import (
     merkleize,
@@ -26,7 +26,7 @@ TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable
 
 
 class List(
-    HomogeneousCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
+    HomogeneousProperCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
 ):
     def __init__(self, element_sedes: TSedes, max_length: int) -> None:
         # This sedes object corresponds to each element of the iterable
