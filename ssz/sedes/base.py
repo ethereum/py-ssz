@@ -54,6 +54,17 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> str:
         ...
 
+    #
+    # Equality and hashing
+    #
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...
+
 
 TSedes = BaseSedes[Any, Any]
 

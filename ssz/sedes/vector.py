@@ -124,3 +124,16 @@ class Vector(
                 )
 
         return merkleize_with_cache(merkle_leaves, cache=cache, limit=self.chunk_count)
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Vector), hash(self.element_sedes), self.length))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, Vector)
+            and other.element_sedes == self.element_sedes
+            and other.length == self.length
+        )

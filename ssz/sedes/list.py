@@ -1,4 +1,4 @@
-from typing import IO, Iterable, Sequence, Tuple
+from typing import IO, Any, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
 from eth_utils import to_tuple
@@ -137,3 +137,16 @@ class List(
             merkle_leaves, cache=cache, limit=self.chunk_count
         )
         return mix_in_length(merkleize_result, len(value)), cache
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(List), hash(self.element_sedes), self.max_length))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, List)
+            and other.element_sedes == self.element_sedes
+            and other.max_length == self.max_length
+        )

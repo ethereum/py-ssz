@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import Any, Sequence, Tuple, Union
 
 from eth_typing import Hash32
 from eth_utils import to_tuple
@@ -72,3 +72,12 @@ class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
 
     def get_sedes_id(self) -> str:
         return f"{self.__class__.__name__}{self.bit_count}"
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Bitvector), hash(self.bit_count)))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Bitvector) and other.bit_count == self.bit_count

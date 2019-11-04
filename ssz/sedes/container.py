@@ -178,3 +178,12 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
 
     def get_sedes_id(self) -> str:
         return ",".join(field.get_sedes_id() for field in self.field_sedes)
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Container), hash(self.field_sedes)))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Container) and other.field_sedes == self.field_sedes

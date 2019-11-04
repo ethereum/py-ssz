@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import Any, Sequence, Tuple, Union
 
 from eth_typing import Hash32
 from eth_utils import to_tuple
@@ -85,6 +85,15 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
 
     def get_sedes_id(self) -> str:
         return f"{self.__class__.__name__}{self.max_bit_count}"
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Bitlist), hash(self.max_bit_count)))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Bitlist) and other.max_bit_count == self.max_bit_count
 
 
 def get_bitlist_len(x: int) -> int:

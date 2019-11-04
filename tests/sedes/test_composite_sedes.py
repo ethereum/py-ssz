@@ -5,7 +5,7 @@ import pytest
 
 import ssz
 from ssz.exceptions import DeserializationError
-from ssz.sedes import Container, List, Vector, bytes32, uint8
+from ssz.sedes import Container, List, UInt, Vector, bytes32, uint8, uint256
 
 
 @pytest.mark.parametrize(
@@ -116,3 +116,35 @@ def test_container_of_dynamic_sized_fields(fields, value, serialized):
 )
 def test_get_sedes_id(sedes, id):
     assert sedes.get_sedes_id() == id
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (List(uint8, 2), List(uint8, 2)),
+        (Vector(uint8, 2), Vector(uint8, 2)),
+        (Container((uint8, List(uint8, 2))), Container((UInt(8), List(UInt(8), 2)))),
+        (Container([uint8, uint8]), Container((uint8, uint8))),
+    ),
+)
+def test_eq(sedes1, sedes2):
+    assert sedes1 == sedes1
+    assert sedes2 == sedes2
+    assert sedes1 == sedes2
+    assert hash(sedes1) == hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (List(uint8, 2), List(uint8, 3)),
+        (List(uint8, 2), List(uint256, 2)),
+        (Vector(uint8, 2), Vector(uint8, 3)),
+        (Vector(uint8, 2), Vector(uint256, 3)),
+        (List(uint8, 2), Vector(uint8, 2)),
+        (Container((uint8, List(uint8, 2))), Container((uint8, List(uint8, 3)))),
+    ),
+)
+def test_neq(sedes1, sedes2):
+    assert sedes1 != sedes2
+    assert hash(sedes1) != hash(sedes2)

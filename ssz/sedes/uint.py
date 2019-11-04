@@ -1,3 +1,5 @@
+from typing import Any
+
 from ssz.exceptions import DeserializationError, SerializationError
 from ssz.sedes.basic import BasicSedes
 
@@ -31,6 +33,12 @@ class UInt(BasicSedes[int, int]):
 
     def get_sedes_id(self) -> str:
         return f"{self.__class__.__name__}{self.num_bits}"
+
+    def __hash__(self) -> int:
+        return hash((hash(UInt), self.num_bits))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, UInt) and other.num_bits == self.num_bits
 
 
 uint8 = UInt(8)
