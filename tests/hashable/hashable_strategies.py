@@ -87,19 +87,29 @@ def uint_sedes_and_values_st(draw):
 
 @st.composite
 def bitlist_sedes_and_values_st(draw):
-    max_size = draw(st.integers(1, 1000))
+    max_size = draw(
+        st.one_of(
+            st.integers(1, 10),
+            st.just(300),  # choose at least one sample exceeding one chunk
+        )
+    )
     return Bitlist(max_size), bitlist_value_st(max_size)
 
 
 @st.composite
 def bitvector_sedes_and_values_st(draw):
-    size = draw(st.integers(1, 1000))
+    size = draw(
+        st.one_of(
+            st.integers(1, 10),
+            st.just(300),  # choose at least one sample exceeding one chunk
+        )
+    )
     return Bitvector(size), bitvector_value_st(size)
 
 
 @st.composite
 def bytevector_sedes_and_values_st(draw):
-    size = draw(st.integers(1, 100))
+    size = draw(st.integers(1, 65))
     return ByteVector(size), bytevector_value_st(size)
 
 
