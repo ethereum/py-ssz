@@ -1,10 +1,12 @@
-from typing import Iterable, TypeVar
+from typing import TYPE_CHECKING, Iterable, TypeVar
 
 from eth_typing import Hash32
 from pyrsistent import pvector
 
 from ssz.hashable_structure import BaseHashableStructure
-from ssz.sedes import Vector
+
+if TYPE_CHECKING:
+    from ssz.sedes import Vector
 
 TElement = TypeVar("TElement")
 
@@ -12,7 +14,7 @@ TElement = TypeVar("TElement")
 class HashableVector(BaseHashableStructure[TElement]):
     @classmethod
     def from_iterable(
-        cls, iterable: Iterable[TElement], sedes: Vector[TElement, TElement]
+        cls, iterable: Iterable[TElement], sedes: "Vector[TElement, TElement]"
     ):
         elements = pvector(iterable)
         if len(elements) != sedes.length:

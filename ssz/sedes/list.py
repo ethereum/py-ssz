@@ -10,6 +10,7 @@ from ssz.cache.utils import (
 )
 from ssz.constants import OFFSET_SIZE
 from ssz.exceptions import DeserializationError
+from ssz.hashable_list import HashableList
 from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
@@ -95,8 +96,9 @@ class List(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
-        if hasattr(value, "root"):
+        if isinstance(value, HashableList):
             return value.root
+
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element) for element in value

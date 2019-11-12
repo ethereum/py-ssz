@@ -144,6 +144,12 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
+        # avoid circular import
+        from ssz.hashable_container import HashableContainer
+
+        if isinstance(value, HashableContainer):
+            return value.root
+
         merkle_leaves = tuple(
             sedes.get_hash_tree_root(element)
             for element, sedes in zip(value, self.field_sedes)
