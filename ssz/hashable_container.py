@@ -5,7 +5,7 @@ from typing import Any, Dict, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 from eth_typing import Hash32
 from eth_utils.toolz import merge
 
-from ssz.constants import FIELDS_META_ATTR
+from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME
 from ssz.hashable_structure import BaseHashableStructure, HashableStructureEvolver
 from ssz.sedes.base import BaseSedes
 from ssz.sedes.container import Container
@@ -43,7 +43,7 @@ class Meta(NamedTuple):
     @classmethod
     def from_fields(
         cls, fields: Tuple[Tuple[str, BaseSedes], ...], container: Container, name: str
-    ):
+    ) -> "Meta":
         field_names, _ = zip(*fields)
         field_names_to_element_indices = {
             field_name: index for index, field_name in enumerate(field_names)
@@ -68,6 +68,26 @@ class Meta(NamedTuple):
             field_descriptors=field_descriptors,
             container_sedes=container,
             evolver_class=evolver_class,
+        )
+
+
+class MetaSigned(NamedTuple):
+    fields: Tuple[Tuple[str, BaseSedes], ...]
+    field_names_to_element_indices: Dict[str, int]
+    field_descriptors: Dict[str, FieldDescriptor]
+    container_sedes: Container
+    signing_container_sedes: Container
+    evolver_class: Type["HashableContainerEvolver"]
+
+    @classmethod
+    def from_meta(cls, meta: Meta, signing_container: Container) -> "MetaSigned":
+        return cls(
+            fields=meta.fields,
+            field_names_to_element_indices=meta.field_names_to_element_indices,
+            field_descriptors=meta.field_descriptors,
+            container_sedes=meta.container_sedes,
+            signing_container_sedes=signing_container,
+            evolver_class=meta.evolver_class,
         )
 
 
@@ -129,6 +149,27 @@ class MetaHashableContainer(ABCMeta):
         return super().__new__(mcls, name, bases, namespace_with_meta_and_fields)
 
 
+class MetaSignedHashableContainer(MetaHashableContainer):
+    def __new__(mcls, name, bases, namespace):
+        cls = super().__new__(mcls, name, bases, namespace)
+
+        # check that the signature conventions are abided by
+        if cls._meta is not None:
+            if len(cls._meta.field_names) < 2:
+                raise TypeError(f"Signed containers need to have at least two fields")
+            if cls._meta.field_names[-1] != SIGNATURE_FIELD_NAME:
+                raise TypeError(
+                    f"Last field of signed container must be {SIGNATURE_FIELD_NAME}, but is "
+                    f"{cls._meta.field_names[-1]}"
+                )
+
+            signing_field_sedes = tuple(sedes for field_name, sedes in cls._meta.fields)
+            signing_container = Container(signing_field_sedes)
+            cls._meta = MetaSigned.from_meta(cls._meta, signing_container)
+
+        return cls
+
+
 # workaround for https://github.com/python/typing/issues/449 (fixed in python 3.7)
 python_version_info = sys.version_info
 if python_version_info[0] <= 3 and python_version_info[1] <= 6:
@@ -137,9 +178,13 @@ if python_version_info[0] <= 3 and python_version_info[1] <= 6:
     class GenericMetaHashableContainer(GenericMeta, MetaHashableContainer):
         pass
 
+    class GenericMetaSignedHashableContainer(GenericMeta, MetaSignedHashableContainer):
+        pass
+
 
 else:
     GenericMetaHashableContainer = MetaHashableContainer  # type: ignore
+    GenericMetaSignedHashableContainer = MetaSignedHashableContainer  # type: ignore
 
 
 class HashableContainer(
@@ -215,3 +260,13 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
     def __getitem__(self, index: Union[str, int]) -> TElement:
         element_index = self._original_structure.normalize_item_index(index)
         return super().__getitem__(element_index)
+
+
+class SignedHashableContainer(
+    HashableContainer[TElement], metaclass=GenericMetaSignedHashableContainer
+):
+    _meta: MetaSigned
+
+    @property
+    def signing_root(self) -> Hash32:
+        return self._meta.signing_container_sedes.get_hash_tree_root(self)
