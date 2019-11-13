@@ -9,7 +9,7 @@ from ssz.cache.utils import (
     get_merkle_leaves_without_cache,
 )
 from ssz.exceptions import SerializationError
-from ssz.hashable_vector import HashableVector
+from ssz.hashable_structure import BaseHashableStructure
 from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserializedElement, TSerializableElement
@@ -89,7 +89,7 @@ class Vector(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Sequence[Any]) -> bytes:
-        if isinstance(value, HashableVector):
+        if isinstance(value, BaseHashableStructure) and value.sedes == self:
             return value.root
 
         if isinstance(self.element_sedes, BasicSedes):

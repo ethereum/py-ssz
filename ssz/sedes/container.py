@@ -5,6 +5,7 @@ from eth_utils import ValidationError, to_tuple
 from eth_utils.toolz import sliding_window
 
 from ssz.exceptions import DeserializationError, SerializationError
+from ssz.hashable_structure import BaseHashableStructure
 from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import ProperCompositeSedes
 from ssz.typing import CacheObj
@@ -144,10 +145,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
-        # avoid circular import
-        from ssz.hashable_container import HashableContainer
-
-        if isinstance(value, HashableContainer):
+        if isinstance(value, BaseHashableStructure) and value.sedes == self:
             return value.root
 
         merkle_leaves = tuple(
