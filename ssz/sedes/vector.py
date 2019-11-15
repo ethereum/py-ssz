@@ -30,7 +30,10 @@ class Vector(
         if length <= 0:
             raise ValueError(f"Vectors must have a size of 1 or greater, got {length}")
         super().__init__(element_sedes, max_length=length)
-        self.length = length
+
+    @property
+    def length(self) -> int:
+        return self.max_length
 
     def get_element_sedes(
         self, index
