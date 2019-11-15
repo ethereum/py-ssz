@@ -214,15 +214,15 @@ class MetaSignedHashableContainer(MetaHashableContainer):
 
         # check that the signature conventions are abided by
         if cls._meta is not None:
-            if len(cls._meta.field_names) < 2:
+            if len(cls._meta.fields) < 2:
                 raise TypeError(f"Signed containers need to have at least two fields")
-            if cls._meta.field_names[-1] != SIGNATURE_FIELD_NAME:
+            if cls._meta.fields[-1][0] != SIGNATURE_FIELD_NAME:
                 raise TypeError(
                     f"Last field of signed container must be {SIGNATURE_FIELD_NAME}, but is "
-                    f"{cls._meta.field_names[-1]}"
+                    f"{cls._meta.fields[-1][0]}"
                 )
 
-            signing_field_sedes = tuple(sedes for field_name, sedes in cls._meta.fields)
+            signing_field_sedes = get_field_sedes_from_fields(cls._meta.fields)
             signing_container = Container(signing_field_sedes)
             cls._meta = MetaSigned.from_meta(cls._meta, signing_container)
 
