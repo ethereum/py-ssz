@@ -179,6 +179,34 @@ class MetaHashableContainer(ABCMeta):
         )
         return super().__new__(mcls, name, bases, namespace_with_meta_and_fields)
 
+    #
+    # Sedes interface
+    #
+    @property
+    def is_fixed_sized(cls):
+        return cls._meta.container_sedes.is_fixed_sized
+
+    def get_fixed_size(cls):
+        return cls._meta.container_sedes.get_fixed_size()
+
+    def serialize(cls, value):
+        return cls._meta.container_sedes.serialize(value)
+
+    def deserialize(cls, data):
+        return cls._meta.container_sedes.deserialize(data)
+
+    def get_hash_tree_root(cls, value):
+        return cls._meta.container_sedes.get_hash_tree_root(value)
+
+    def get_hash_tree_root_and_leaves(cls, value, cache):
+        return cls._meta.container_sedes.get_hash_tree_root_and_leaves(value, cache)
+
+    def get_sedes_id(cls):
+        return cls._meta.container_sedes.get_sedes_id()
+
+    def get_key(cls, value):
+        return cls._meta.container_sedes.get_key(value)
+
 
 class MetaSignedHashableContainer(MetaHashableContainer):
     def __new__(mcls, name, bases, namespace):
@@ -199,6 +227,10 @@ class MetaSignedHashableContainer(MetaHashableContainer):
             cls._meta = MetaSigned.from_meta(cls._meta, signing_container)
 
         return cls
+
+
+BaseSedes.register(MetaHashableContainer)
+BaseSedes.register(MetaSignedHashableContainer)
 
 
 # workaround for https://github.com/python/typing/issues/449 (fixed in python 3.7)
