@@ -1,5 +1,7 @@
 from collections.abc import Iterable
 
+from ssz.abc import HashableStructureAPI
+
 from .base import BaseSedes  # noqa: F401
 from .basic import BasicSedes, ProperCompositeSedes  # noqa: F401
 from .bitlist import Bitlist  # noqa: F401
@@ -42,7 +44,9 @@ def infer_sedes(value):
     Try to find a sedes objects suitable for a given Python object.
     """
     if isinstance(value.__class__, BaseSedes):
-        return value.__class__  # Mainly used for `Serializable` classes
+        return value.__class__
+    elif isinstance(value, HashableStructureAPI):
+        return value.sedes
     elif isinstance(value, bool):
         return boolean
     elif isinstance(value, int):
