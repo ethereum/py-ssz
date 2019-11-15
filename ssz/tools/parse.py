@@ -4,6 +4,8 @@ from typing import Sequence
 from eth_utils import to_tuple
 
 from ssz.hashable_container import MetaHashableContainer
+from ssz.hashable_list import HashableList
+from ssz.hashable_vector import HashableVector
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -68,7 +70,8 @@ def parse_bytes(value, sedes, codec):
 def parse_list(value, sedes, codec):
     if not isinstance(value, Sequence):
         raise ValueError(f"Expected Sequence, got {type(value)}")
-    return tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    elements = tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    return HashableList.from_iterable(elements, sedes=sedes)
 
 
 def parse_vector(value, sedes, codec):
@@ -76,7 +79,8 @@ def parse_vector(value, sedes, codec):
         raise ValueError(f"Expected Sequence, got {type(value)}")
     if not len(value) == sedes.length:
         raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
-    return tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    elements = tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    return HashableVector.from_iterable(elements, sedes=sedes)
 
 
 def parse_bits(value, sedes, codec):
