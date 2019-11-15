@@ -1,8 +1,20 @@
 from abc import ABCMeta
 import sys
-from typing import Any, Dict, NamedTuple, Optional, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from eth_typing import Hash32
+from eth_utils import to_tuple
 from eth_utils.toolz import merge
 
 from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME
@@ -33,8 +45,11 @@ class SettableFieldDescriptor(FieldDescriptor):
         instance[self.name] = value
 
 
+Field = Tuple[str, Union[BaseSedes, "HashableContainer"]]
+
+
 class Meta(NamedTuple):
-    fields: Tuple[Tuple[str, BaseSedes], ...]
+    fields: Tuple[Field, ...]
     field_names_to_element_indices: Dict[str, int]
     field_descriptors: Dict[str, FieldDescriptor]
     container_sedes: Container
@@ -72,7 +87,7 @@ class Meta(NamedTuple):
 
 
 class MetaSigned(NamedTuple):
-    fields: Tuple[Tuple[str, BaseSedes], ...]
+    fields: Tuple[Field, ...]
     field_names_to_element_indices: Dict[str, int]
     field_descriptors: Dict[str, FieldDescriptor]
     container_sedes: Container
@@ -112,6 +127,21 @@ def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
         )
 
 
+@to_tuple
+def get_field_sedes_from_fields(
+    fields: Sequence[Field]
+) -> Generator[BaseSedes, None, None]:
+    for _, field in fields:
+        if isinstance(field, BaseSedes):
+            yield field
+        elif issubclass(field, HashableContainer):
+            yield field._meta.container_sedes
+        else:
+            raise TypeError(
+                f"Field must either be a sedes object or a hashable container, got {field}"
+            )
+
+
 class MetaHashableContainer(ABCMeta):
     """Metaclass which creates HashableContainers."""
 
@@ -121,7 +151,7 @@ class MetaHashableContainer(ABCMeta):
         # get fields defined in the class or by one of its bases
         if FIELDS_META_ATTR in namespace:
             fields = namespace.pop(FIELDS_META_ATTR)
-            field_sedes = tuple(sedes for field_name, sedes in fields)
+            field_sedes = get_field_sedes_from_fields(fields)
             if not fields:
                 raise TypeError(
                     "HashableContainer must either define a non-zero number of fields or not "
@@ -132,6 +162,7 @@ class MetaHashableContainer(ABCMeta):
             meta = get_meta_from_bases(bases)
             if meta is not None:
                 fields = meta.fields
+                field_sedes = get_field_sedes_from_fields(fields)
                 container_sedes = Container(field_sedes)
             else:
                 fields = None
