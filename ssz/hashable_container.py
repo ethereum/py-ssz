@@ -193,7 +193,12 @@ class MetaHashableContainer(ABCMeta):
         return cls._meta.container_sedes.serialize(value)
 
     def deserialize(cls, data):
-        return cls._meta.container_sedes.deserialize(data)
+        field_values = cls._meta.container_sedes.deserialize(data)
+        kwargs = {
+            field_name: field_value
+            for (field_name, _), field_value in zip(cls._meta.fields, field_values)
+        }
+        return cls.create(**kwargs)
 
     def get_hash_tree_root(cls, value):
         return cls._meta.container_sedes.get_hash_tree_root(value)

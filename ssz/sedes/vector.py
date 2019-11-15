@@ -10,6 +10,7 @@ from ssz.cache.utils import (
 )
 from ssz.exceptions import SerializationError
 from ssz.hashable_structure import BaseHashableStructure
+from ssz.hashable_vector import HashableVector
 from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserializedElement, TSerializableElement
@@ -69,8 +70,14 @@ class Vector(
     #
     # Deserialization
     #
-    @to_tuple
     def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserializedElement]:
+        elements = self._deserialize_stream_to_tuple(stream)
+        return HashableVector.from_iterable(elements, sedes=self)
+
+    @to_tuple
+    def _deserialize_stream_to_tuple(
+        self, stream: IO[bytes]
+    ) -> Iterable[TDeserializedElement]:
         if self.element_sedes.is_fixed_sized:
             element_size = self.element_sedes.get_fixed_size()
             for _ in range(self.length):

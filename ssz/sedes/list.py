@@ -10,6 +10,7 @@ from ssz.cache.utils import (
 )
 from ssz.constants import OFFSET_SIZE
 from ssz.exceptions import DeserializationError
+from ssz.hashable_list import HashableList
 from ssz.hashable_structure import BaseHashableStructure
 from ssz.sedes.base import BaseSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
@@ -43,8 +44,14 @@ class List(
     def get_element_sedes(self, index) -> BaseSedes[TSerializable, TDeserialized]:
         return self.element_sedes
 
+    def _deserialize_stream(self, stream: IO[bytes]) -> HashableList[TDeserialized]:
+        elements = self._deserialize_stream_to_tuple(stream)
+        return HashableList.from_iterable(elements, sedes=self)
+
     @to_tuple
-    def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:
+    def _deserialize_stream_to_tuple(
+        self, stream: IO[bytes]
+    ) -> Iterable[TDeserialized]:
         if self.element_sedes.is_fixed_sized:
             element_size = self.element_sedes.get_fixed_size()
             data = stream.read()
