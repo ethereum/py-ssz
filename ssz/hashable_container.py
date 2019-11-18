@@ -337,4 +337,5 @@ class SignedHashableContainer(
 
     @property
     def signing_root(self) -> Hash32:
+        # TODO: optimize this by taking the original hash tree and recomputing the rightmost branch
         return self._meta.signing_container_sedes.get_hash_tree_root(self)
