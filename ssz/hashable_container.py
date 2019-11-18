@@ -295,7 +295,7 @@ class HashableContainer(
         )
 
     @property
-    def root(self) -> Hash32:
+    def hash_tree_root(self) -> Hash32:
         return self.raw_root
 
     def normalize_item_index(self, index: Union[str, int]) -> int:

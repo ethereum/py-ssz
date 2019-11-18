@@ -104,7 +104,7 @@ class List(
     #
     def get_hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
         if isinstance(value, BaseHashableStructure) and value.sedes == self:
-            return value.root
+            return value.hash_tree_root
 
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(

@@ -21,5 +21,5 @@ class HashableList(BaseResizableHashableStructure[TElement]):
         )
 
     @property
-    def root(self) -> Hash32:
+    def hash_tree_root(self) -> Hash32:
         return mix_in_length(self.raw_root, len(self))

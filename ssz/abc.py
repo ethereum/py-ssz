@@ -47,7 +47,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
 
     @property
     @abstractmethod
-    def root(self) -> Hash32:
+    def hash_tree_root(self) -> Hash32:
         ...
 
     #

@@ -146,7 +146,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
         if isinstance(value, BaseHashableStructure) and value.sedes == self:
-            return value.root
+            return value.hash_tree_root
 
         merkle_leaves = tuple(
             sedes.get_hash_tree_root(element)

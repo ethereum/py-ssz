@@ -24,5 +24,5 @@ class HashableVector(BaseHashableStructure[TElement]):
         return super().from_iterable_and_sedes(elements, sedes, max_length=None)
 
     @property
-    def root(self) -> Hash32:
+    def hash_tree_root(self) -> Hash32:
         return self.raw_root
