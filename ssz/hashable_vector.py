@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, TypeVar
+from typing import TYPE_CHECKING, Iterable, Sequence, TypeVar
 
 from eth_typing import Hash32
 from pyrsistent import pvector
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 TElement = TypeVar("TElement")
 
 
-class HashableVector(BaseHashableStructure[TElement]):
+class HashableVector(BaseHashableStructure[TElement], Sequence[TElement]):
     @classmethod
     def from_iterable(
         cls, iterable: Iterable[TElement], sedes: "Vector[TElement, TElement]"

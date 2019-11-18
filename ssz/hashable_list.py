@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, TypeVar
+from typing import TYPE_CHECKING, Iterable, Sequence, TypeVar
 
 from eth_typing import Hash32
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ssz.sedes import List
 
 
-class HashableList(BaseResizableHashableStructure[TElement]):
+class HashableList(BaseResizableHashableStructure[TElement], Sequence[TElement]):
     @classmethod
     def from_iterable(
         cls, iterable: Iterable[TElement], sedes: "List[TElement, TElement]"
