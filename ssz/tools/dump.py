@@ -2,6 +2,8 @@ from typing import Sequence
 
 from eth_utils import to_tuple
 
+from ssz.hashable_container import MetaHashableContainer
+from ssz.hashable_structure import BaseHashableStructure
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -26,9 +28,11 @@ def to_formatted_dict(value, sedes=None, codec=DefaultCodec):
 def dump(value, sedes=None, codec=DefaultCodec):
     if sedes is None:
         if isinstance(value, Serializable):
-            return dump_serializable(value, codec)
+            sedes = value
+        elif isinstance(value, BaseHashableStructure):
+            sedes = value.sedes
         else:
-            raise ValueError("must provide sedes for non-Serializable")
+            raise ValueError("must provide sedes for non-Serializable or hashable")
 
     if isinstance(sedes, Boolean):
         return dump_boolean(value, sedes, codec)
@@ -46,6 +50,8 @@ def dump(value, sedes=None, codec=DefaultCodec):
         return dump_container(value, sedes, codec)
     elif isinstance(sedes, MetaSerializable):
         return dump_serializable(value, codec)
+    elif isinstance(sedes, MetaHashableContainer):
+        return dump_hashable(value, codec)
     elif isinstance(sedes, BaseSedes):
         raise Exception(
             f"Unreachable: All sedes types have been checked, {sedes} was not found"
@@ -102,3 +108,11 @@ def dump_container(value, sedes, codec):
 def dump_serializable(value, codec):
     dumped_values = dump(tuple(value), value._meta.container_sedes)
     return dict(zip(value._meta.field_names, dumped_values))
+
+
+def dump_hashable(value, codec):
+    dumped_values = dump(tuple(value), value._meta.container_sedes)
+    return {
+        field_name: dumped_value
+        for (field_name, _), dumped_value in zip(value._meta.fields, dumped_values)
+    }
