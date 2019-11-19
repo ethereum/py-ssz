@@ -50,8 +50,8 @@ Field = Tuple[str, Union[BaseSedes, "HashableContainer"]]
 
 class Meta(NamedTuple):
     fields: Tuple[Field, ...]
+    field_names: Tuple[str]
     field_names_to_element_indices: Dict[str, int]
-    field_descriptors: Dict[str, FieldDescriptor]
     container_sedes: Container
     evolver_class: Type["HashableContainerEvolver"]
 
@@ -59,50 +59,29 @@ class Meta(NamedTuple):
     def from_fields(
         cls, fields: Tuple[Tuple[str, BaseSedes], ...], container: Container, name: str
     ) -> "Meta":
+        if not fields:
+            raise TypeError("Containers must define at least one field")
+
         field_names, _ = zip(*fields)
         field_names_to_element_indices = {
             field_name: index for index, field_name in enumerate(field_names)
         }
 
-        field_descriptors = {
-            field_name: FieldDescriptor(field_name) for field_name in field_names
-        }
+        # create subclass of HashableEvolver that has a settable descriptor for each field
         settable_field_descriptors = {
             field_name: SettableFieldDescriptor(field_name)
             for field_name in field_names
         }
-
-        # create subclass of HashableEvolver that has a settable descriptor for each field
         evolver_class = type(
             name + "Evolver", (HashableContainerEvolver,), settable_field_descriptors
         )
 
         return cls(
             fields=fields,
+            field_names=field_names,
             field_names_to_element_indices=field_names_to_element_indices,
-            field_descriptors=field_descriptors,
             container_sedes=container,
             evolver_class=evolver_class,
-        )
-
-
-class MetaSigned(NamedTuple):
-    fields: Tuple[Field, ...]
-    field_names_to_element_indices: Dict[str, int]
-    field_descriptors: Dict[str, FieldDescriptor]
-    container_sedes: Container
-    signing_container_sedes: Container
-    evolver_class: Type["HashableContainerEvolver"]
-
-    @classmethod
-    def from_meta(cls, meta: Meta, signing_container: Container) -> "MetaSigned":
-        return cls(
-            fields=meta.fields,
-            field_names_to_element_indices=meta.field_names_to_element_indices,
-            field_descriptors=meta.field_descriptors,
-            container_sedes=meta.container_sedes,
-            signing_container_sedes=signing_container,
-            evolver_class=meta.evolver_class,
         )
 
 
@@ -134,8 +113,6 @@ def get_field_sedes_from_fields(
     for _, field in fields:
         if isinstance(field, BaseSedes):
             yield field
-        elif issubclass(field, HashableContainer):
-            yield field._meta.container_sedes
         else:
             raise TypeError(
                 f"Field must either be a sedes object or a hashable container, got {field}"
@@ -171,11 +148,16 @@ class MetaHashableContainer(ABCMeta):
         if fields is not None:
             assert container_sedes is not None
             meta = Meta.from_fields(fields, container_sedes, name=name)
+            field_descriptors = {
+                field_name: FieldDescriptor(field_name)
+                for field_name in meta.field_names
+            }
         else:
             meta = None
+            field_descriptors = {}
 
         namespace_with_meta_and_fields = merge(
-            namespace, {"_meta": meta}, meta.field_descriptors if meta else {}
+            namespace, {"_meta": meta}, field_descriptors
         )
         return super().__new__(mcls, name, bases, namespace_with_meta_and_fields)
 
@@ -226,10 +208,6 @@ class MetaSignedHashableContainer(MetaHashableContainer):
                     f"Last field of signed container must be {SIGNATURE_FIELD_NAME}, but is "
                     f"{cls._meta.fields[-1][0]}"
                 )
-
-            signing_field_sedes = get_field_sedes_from_fields(cls._meta.fields)
-            signing_container = Container(signing_field_sedes)
-            cls._meta = MetaSigned.from_meta(cls._meta, signing_container)
 
         return cls
 
@@ -333,7 +311,7 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
 class SignedHashableContainer(
     HashableContainer[TElement], metaclass=GenericMetaSignedHashableContainer
 ):
-    _meta: MetaSigned
+    _meta: Meta
 
     @property
     def signing_root(self) -> Hash32:
