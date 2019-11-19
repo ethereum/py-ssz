@@ -1,4 +1,5 @@
 from abc import ABCMeta
+import math
 import sys
 from typing import (
     Any,
@@ -17,7 +18,7 @@ from eth_typing import Hash32
 from eth_utils import to_tuple
 from eth_utils.toolz import merge
 
-from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME
+from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME, ZERO_HASHES
 from ssz.hashable_structure import BaseHashableStructure, HashableStructureEvolver
 from ssz.sedes.base import BaseSedes
 from ssz.sedes.container import Container
@@ -315,5 +316,12 @@ class SignedHashableContainer(
 
     @property
     def signing_root(self) -> Hash32:
-        # TODO: optimize this by taking the original hash tree and recomputing the rightmost branch
-        return self._meta.signing_container_sedes.get_hash_tree_root(self)
+        signature_chunk_index = len(self) - 1
+        hash_tree_with_blank_signature = self._hash_tree.set(
+            signature_chunk_index, ZERO_HASHES[0]
+        )
+        if math.log2(len(self) - 1).is_integer():
+            root_layer_index = -2
+        else:
+            root_layer_index = -1
+        return hash_tree_with_blank_signature.raw_hash_tree[root_layer_index][0]

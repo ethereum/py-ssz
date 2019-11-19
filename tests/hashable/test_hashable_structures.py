@@ -5,6 +5,8 @@ from hypothesis import strategies as st
 from pyrsistent import get_in
 
 import ssz
+from ssz.hashable_container import SignedHashableContainer
+from ssz.sedes import bytes96
 from tests.hashable.hashable_strategies import (
     composite_sedes_and_values_st,
     container_sedes_and_values_st,
@@ -311,3 +313,23 @@ def test_transform(data, sedes_and_values):
     assert transform_set == transform_applied
     assert get_in(transform_path, transform_set, new_value) == new_value
     assert get_in(transform_path, transform_applied, new_value) == new_value
+
+
+@given(st.data(), container_sedes_and_values_st())
+def test_signing_root(data, sedes_and_values):
+    unsigned_sedes, unsigned_values = sedes_and_values
+    unsigned_value = data.draw(unsigned_values)
+    unsigned_hashable_value = to_hashable_value(unsigned_value, unsigned_sedes)
+
+    class SignedValueClass(SignedHashableContainer):
+        fields = unsigned_hashable_value._meta.fields + (("signature", bytes96),)
+
+    signature = data.draw(st.binary(min_size=96, max_size=96))
+    kwargs = {
+        field_name: unsigned_hashable_value[field_name]
+        for field_name in SignedValueClass._meta.field_names
+        if field_name != "signature"
+    }
+    hashable_value = SignedValueClass.create(**kwargs, signature=signature)
+
+    assert hashable_value.signing_root == unsigned_hashable_value.hash_tree_root
