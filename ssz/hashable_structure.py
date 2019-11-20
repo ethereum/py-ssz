@@ -185,7 +185,9 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     ):
         elements = pvector(iterable)
         if max_length and len(elements) > max_length:
-            raise ValueError("Number of elements exceeds maximum length {max_length}")
+            raise ValueError(
+                f"Number of elements {len(elements)} exceeds maximum length {max_length}"
+            )
 
         serialized_elements = [
             sedes.serialize_element_for_tree(index, element)
