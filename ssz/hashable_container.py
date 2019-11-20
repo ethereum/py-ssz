@@ -15,11 +15,14 @@ from typing import (
 )
 
 from eth_typing import Hash32
-from eth_utils import to_tuple
+from eth_utils import to_dict, to_tuple
 from eth_utils.toolz import merge
 
 from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME, ZERO_HASHES
+from ssz.hashable_list import HashableList
 from ssz.hashable_structure import BaseHashableStructure, HashableStructureEvolver
+from ssz.hashable_vector import HashableVector
+from ssz.sedes import ByteVector, List, Vector
 from ssz.sedes.base import BaseSedes
 from ssz.sedes.container import Container
 
@@ -234,6 +237,28 @@ else:
     GenericMetaSignedHashableContainer = MetaSignedHashableContainer  # type: ignore
 
 
+def hashablify_value(value: Any, sedes: BaseSedes) -> Any:
+    if isinstance(sedes, List):
+        return HashableList.from_iterable(value, sedes)
+    elif isinstance(sedes, Vector):
+        if isinstance(sedes, ByteVector):
+            return value
+        else:
+            return HashableVector.from_iterable(value, sedes)
+    else:
+        return value
+
+
+@to_dict
+def hashablify_field_kwargs(
+    field_kwargs: Dict[str, Any], fields: Sequence[Field]
+) -> Generator[Tuple[str, Any], None, None]:
+    for field_name, field_sedes in fields:
+        field_value = field_kwargs[field_name]
+        hashablified_field_value = hashablify_value(field_value, field_sedes)
+        yield field_name, hashablified_field_value
+
+
 class HashableContainer(
     BaseHashableStructure[TElement], metaclass=GenericMetaHashableContainer
 ):
@@ -248,11 +273,11 @@ class HashableContainer(
             super().__init__(*args, **kwargs)
 
     @classmethod
-    def create(cls, **fields: Dict[str, Any]):
+    def create(cls, **field_kwargs: Dict[str, Any]):
         if cls._meta is None:
             raise TypeError("HashableContainer does not define any fields")
 
-        given_keys = set(fields.keys())
+        given_keys = set(field_kwargs.keys())
         expected_keys = set(cls._meta.field_names_to_element_indices.keys())
         missing_keys = expected_keys - given_keys
         unexpected_keys = given_keys - expected_keys
@@ -267,10 +292,16 @@ class HashableContainer(
                 f"{', '.join(sorted(unexpected_keys))}"
             )
 
+        hashablified_field_kwargs = hashablify_field_kwargs(
+            field_kwargs, cls._meta.fields
+        )
+        field_values = (
+            hashablified_field_kwargs[field_name]
+            for field_name in cls._meta.field_names
+        )
+
         return cls.from_iterable_and_sedes(
-            (fields[field_name] for field_name, _ in cls._meta.fields),
-            sedes=cls._meta.container_sedes,
-            max_length=None,
+            field_values, sedes=cls._meta.container_sedes, max_length=None
         )
 
     @property
@@ -302,7 +333,14 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
 
     def __setitem__(self, index: Union[str, int], value: TElement) -> None:
         element_index = self._original_structure.normalize_item_index(index)
-        super().__setitem__(element_index, value)
+
+        # provides some safety by preventing overwriting a hashable list/vector with another kind
+        # of sequence
+        container_sedes = self._original_structure._meta.container_sedes
+        field_sedes = container_sedes.field_sedes[element_index]
+        hashablified_value = hashablify_value(value, field_sedes)
+
+        super().__setitem__(element_index, hashablified_value)
 
     def __getitem__(self, index: Union[str, int]) -> TElement:
         element_index = self._original_structure.normalize_item_index(index)
