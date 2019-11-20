@@ -46,12 +46,12 @@ class SettableFieldDescriptor(FieldDescriptor):
         instance[self.name] = value
 
 
-Field = Tuple[str, Union[BaseSedes, "HashableContainer"]]
+Field = Tuple[str, BaseSedes]
 
 
 class Meta(NamedTuple):
     fields: Tuple[Field, ...]
-    field_names: Tuple[str]
+    field_names: Tuple[str, ...]
     field_names_to_element_indices: Dict[str, int]
     container_sedes: Container
     evolver_class: Type["HashableContainerEvolver"]
