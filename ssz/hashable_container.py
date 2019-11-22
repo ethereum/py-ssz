@@ -228,7 +228,9 @@ if python_version_info[0] <= 3 and python_version_info[1] <= 6:
     class GenericMetaHashableContainer(GenericMeta, MetaHashableContainer):
         pass
 
-    class GenericMetaSignedHashableContainer(GenericMeta, MetaSignedHashableContainer):
+    class GenericMetaSignedHashableContainer(
+        GenericMetaHashableContainer, MetaSignedHashableContainer
+    ):
         pass
 
 
