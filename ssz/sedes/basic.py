@@ -32,7 +32,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     # Tree hashing
     #
-    def get_hash_tree_root(self, value: TSerializable) -> bytes:
+    def get_hash_tree_root(self, value: TSerializable) -> Hash32:
         serialized_value = self.serialize(value)
         return merkleize(pack((serialized_value,)))
 
