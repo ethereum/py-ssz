@@ -9,10 +9,12 @@ from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
-from ssz.constants import CHUNK_SIZE, OFFSET_SIZE
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import BaseCompositeSedes, BaseSedes, TSedes
-from ssz.sedes.basic import BasicSedes, HomogeneousCompositeSedes
+from ssz.constants import OFFSET_SIZE
+from ssz.exceptions import DeserializationError
+from ssz.hashable_list import HashableList
+from ssz.hashable_structure import BaseHashableStructure
+from ssz.sedes.base import BaseSedes
+from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import (
     merkleize,
@@ -22,59 +24,6 @@ from ssz.utils import (
     read_exact,
     s_decode_offset,
 )
-
-EMPTY_LIST_HASH_TREE_ROOT = mix_in_length(merkleize(pack(())), 0)
-
-
-class EmptyList(BaseCompositeSedes[Sequence[TSerializable], Tuple[TSerializable, ...]]):
-    is_fixed_sized = False
-    max_length = 0
-
-    def get_fixed_size(self):
-        raise NotImplementedError("Empty list does not implement `get_fixed_size`")
-
-    def serialize(self, value: Sequence[TSerializable]):
-        if len(value):
-            raise SerializationError(
-                "Cannot serialize non-empty sequence using `EmptyList` sedes"
-            )
-        return b""
-
-    def deserialize(self, data: bytes) -> Tuple[TDeserialized, ...]:
-        if data:
-            raise DeserializationError(
-                "Cannot deserialize non-empty bytes using `EmptyList` sedes"
-            )
-        return tuple()
-
-    def get_hash_tree_root(self, value: Sequence[TSerializable]) -> bytes:
-        if len(value):
-            raise ValueError(
-                "Cannot compute tree hash for non-empty value using `EmptyList` sedes"
-            )
-        return EMPTY_LIST_HASH_TREE_ROOT
-
-    def get_hash_tree_root_and_leaves(
-        self, value: TSerializable, cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
-        if len(value):
-            raise ValueError(
-                "Cannot compute tree hash for non-empty value using `EmptyList` sedes"
-            )
-        return EMPTY_LIST_HASH_TREE_ROOT
-
-    def chunk_count(self) -> int:
-        return 0
-
-    def get_sedes_id(self) -> str:
-        raise NotImplementedError("Empty list does not implement `get_sedes_id`")
-
-    def get_key(self, value: Any) -> str:
-        raise NotImplementedError("Empty list does not implement `get_key`")
-
-
-empty_list = EmptyList()
-
 
 TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable], ...]
 

@@ -26,7 +26,6 @@ from .sedes import (  # noqa: F401
     bytes32,
     bytes48,
     bytes96,
-    empty_list,
     uint8,
     uint16,
     uint32,
