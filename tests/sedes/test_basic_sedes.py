@@ -2,7 +2,7 @@ from eth_utils import decode_hex, encode_hex
 import pytest
 
 import ssz
-from ssz.sedes import UInt, boolean
+from ssz.sedes import Boolean, Byte, UInt, Vector, boolean, uint8
 
 
 @pytest.mark.parametrize(("value", "serialized"), ((True, "0x01"), (False, "0x00")))
@@ -35,3 +35,46 @@ def test_uint(bit_length, value, serialized):
 @pytest.mark.parametrize(("sedes", "id"), ((UInt(64), "UInt64"), (boolean, "Boolean")))
 def test_get_sedes_id(sedes, id):
     assert sedes.get_sedes_id() == id
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"), ((uint8, uint8), (UInt(8), UInt(8)), (UInt(256), UInt(256)))
+)
+def test_uint_eq(sedes1, sedes2):
+    assert sedes1 == sedes1
+    assert sedes2 == sedes2
+    assert sedes1 == sedes2
+    assert hash(sedes1) == hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (UInt(8), UInt(256)),
+        (UInt(8), Byte()),
+        (UInt(8), boolean),
+        (UInt(8), Vector(UInt(8), 1)),
+    ),
+)
+def test_uint_neq(sedes1, sedes2):
+    assert sedes1 != sedes2
+    assert hash(sedes1) != hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"), ((boolean, boolean), (Boolean(), Boolean()))
+)
+def test_bool_eq(sedes1, sedes2):
+    assert sedes1 == sedes1
+    assert sedes2 == sedes2
+    assert sedes1 == sedes2
+    assert hash(sedes1) == hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    ((boolean, uint8), (boolean, Byte()), (boolean, Vector(boolean, 1))),
+)
+def test_bool_neq(sedes1, sedes2):
+    assert sedes1 != sedes2
+    assert hash(sedes1) != hash(sedes2)

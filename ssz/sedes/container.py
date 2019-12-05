@@ -5,8 +5,9 @@ from eth_utils import ValidationError, to_tuple
 from eth_utils.toolz import sliding_window
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.base import TSedes
-from ssz.sedes.basic import CompositeSedes
+from ssz.hashable_structure import BaseHashableStructure
+from ssz.sedes.base import BaseSedes, TSedes
+from ssz.sedes.basic import ProperCompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import merkleize, read_exact, s_decode_offset
 
@@ -22,7 +23,7 @@ def _deserialize_fixed_size_items_and_offsets(stream, field_sedes):
             yield (s_decode_offset(stream), sedes)
 
 
-class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
+class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def __init__(self, field_sedes: Sequence[TSedes]) -> None:
         if len(field_sedes) == 0:
             raise ValidationError("Cannot define container without any fields")
@@ -44,12 +45,18 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Serialization
     #
-    def _get_item_sedes_pairs(
-        self, value: Sequence[Any]
-    ) -> Tuple[Tuple[Any, TSedes], ...]:
-        return tuple(zip(value, self.field_sedes))
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        return self.field_sedes[index]
 
-    def _validate_serializable(self, value: Sequence[Any]) -> bytes:
+    @property
+    def is_packing(self) -> bool:
+        return False
+
+    @property
+    def chunk_count(self) -> int:
+        return len(self.field_sedes)
+
+    def _validate_serializable(self, value: Sequence[Any]) -> None:
         if len(value) != len(self.field_sedes):
             raise SerializationError(
                 f"Incorrect element count: Expected: {len(self.field_sedes)} / Got: {len(value)}"
@@ -138,6 +145,9 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
+        if isinstance(value, BaseHashableStructure) and value.sedes == self:
+            return value.hash_tree_root
+
         merkle_leaves = tuple(
             sedes.get_hash_tree_root(element)
             for element, sedes in zip(value, self.field_sedes)
@@ -161,9 +171,6 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
 
         return merkleize(merkle_leaves), cache
 
-    def chunk_count(self) -> int:
-        return len(self.field_sedes)
-
     def serialize(self, value) -> bytes:
         if hasattr(value, "_serialize_cache") and value._serialize_cache is not None:
             return value._serialize_cache
@@ -175,3 +182,12 @@ class Container(CompositeSedes[Sequence[Any], Tuple[Any, ...]]):
 
     def get_sedes_id(self) -> str:
         return ",".join(field.get_sedes_id() for field in self.field_sedes)
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Container), hash(self.field_sedes)))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Container) and other.field_sedes == self.field_sedes

@@ -1,7 +1,7 @@
 import pytest
 
 from ssz import decode, encode
-from ssz.sedes import Bitvector
+from ssz.sedes import Bitlist, Bitvector, Vector, boolean
 
 
 @pytest.mark.parametrize(
@@ -43,3 +43,24 @@ def test_bitvector_round_trip_no_sedes(size, value):
     @pytest.mark.parametrize(("sedes", "id"), ((Bitvector(64), "Bitvector64"),))
     def test_get_sedes_id(sedes, id):
         assert sedes.get_sedes_id() == id
+
+
+@pytest.mark.parametrize(("sedes1", "sedes2"), ((Bitvector(2), Bitvector(2)),))
+def test_eq(sedes1, sedes2):
+    assert sedes1 == sedes1
+    assert sedes2 == sedes2
+    assert sedes1 == sedes2
+    assert hash(sedes1) == hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (Bitvector(2), Bitvector(3)),
+        (Bitvector(2), Bitlist(2)),
+        (Bitvector(2), Vector(boolean, 2)),
+    ),
+)
+def test_neq(sedes1, sedes2):
+    assert sedes1 != sedes2
+    assert hash(sedes1) != hash(sedes2)

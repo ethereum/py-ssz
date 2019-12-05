@@ -5,7 +5,9 @@ import pytest
 
 import ssz
 from ssz.exceptions import DeserializationError
-from ssz.sedes import Container, List, Vector, bytes32, uint8
+from ssz.hashable_list import HashableList
+from ssz.hashable_vector import HashableVector
+from ssz.sedes import Container, List, UInt, Vector, bytes32, uint8, uint256
 
 
 @pytest.mark.parametrize(
@@ -21,7 +23,10 @@ from ssz.sedes import Container, List, Vector, bytes32, uint8
 def test_list(value, serialized):
     sedes = List(uint8, 2 ** 32)
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableList)
+    assert tuple(decoded) == value
+    assert decoded.sedes == sedes
 
 
 def test_invalid_serialized_list():
@@ -35,13 +40,15 @@ def test_invalid_serialized_list():
 
 
 @pytest.mark.parametrize(
-    ("value", "serialized"),
-    (((), "0x"), ((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc")),
+    ("value", "serialized"), (((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc"))
 )
 def test_tuple_of_static_sized_entries(value, serialized):
     sedes = Vector(uint8, len(value))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableVector)
+    assert tuple(decoded) == value
+    assert decoded.sedes == sedes
 
 
 @pytest.mark.parametrize(
@@ -60,7 +67,10 @@ def test_tuple_of_static_sized_entries(value, serialized):
 def test_list_of_dynamic_sized_entries(value, serialized):
     sedes = Vector(List(uint8, 2 ** 32), len(value))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableVector)
+    assert tuple(tuple(element) for element in decoded) == value
+    assert decoded.sedes == sedes
 
 
 @pytest.mark.parametrize(
@@ -99,7 +109,12 @@ def test_container_of_dynamic_sized_fields(fields, value, serialized):
     sedes = Container(fields)
 
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    pure_decoded = tuple(
+        tuple(element) if isinstance(element, HashableList) else element
+        for element in decoded
+    )
+    assert pure_decoded == value
 
 
 @pytest.mark.parametrize(
@@ -117,3 +132,35 @@ def test_container_of_dynamic_sized_fields(fields, value, serialized):
 )
 def test_get_sedes_id(sedes, id):
     assert sedes.get_sedes_id() == id
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (List(uint8, 2), List(uint8, 2)),
+        (Vector(uint8, 2), Vector(uint8, 2)),
+        (Container((uint8, List(uint8, 2))), Container((UInt(8), List(UInt(8), 2)))),
+        (Container([uint8, uint8]), Container((uint8, uint8))),
+    ),
+)
+def test_eq(sedes1, sedes2):
+    assert sedes1 == sedes1
+    assert sedes2 == sedes2
+    assert sedes1 == sedes2
+    assert hash(sedes1) == hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes1", "sedes2"),
+    (
+        (List(uint8, 2), List(uint8, 3)),
+        (List(uint8, 2), List(uint256, 2)),
+        (Vector(uint8, 2), Vector(uint8, 3)),
+        (Vector(uint8, 2), Vector(uint256, 3)),
+        (List(uint8, 2), Vector(uint8, 2)),
+        (Container((uint8, List(uint8, 2))), Container((uint8, List(uint8, 3)))),
+    ),
+)
+def test_neq(sedes1, sedes2):
+    assert sedes1 != sedes2
+    assert hash(sedes1) != hash(sedes2)

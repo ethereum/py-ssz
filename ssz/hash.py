@@ -11,4 +11,4 @@ def hash_eth2(data: bytes) -> Hash32:
     Note: it's a placeholder and we aim to migrate to a S[T/N]ARK-friendly hash function in
     a future Ethereum 2.0 deployment phase.
     """
-    return hashlib.sha256(data).digest()
+    return Hash32(hashlib.sha256(data).digest())
