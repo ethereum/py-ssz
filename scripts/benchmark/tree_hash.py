@@ -6,6 +6,9 @@ import time
 
 import ssz
 from ssz.cache.cache import SSZCache
+from ssz.hashable_container import HashableContainer
+from ssz.hashable_list import HashableList
+from ssz.hashable_vector import HashableVector
 from ssz.sedes import (
     List,
     Serializable,
@@ -98,6 +101,64 @@ class State(Serializable):
     ]
 
 
+class HashableState(HashableContainer):
+    fields = [
+        ("validators", List(Validator, VALIDATOR_REGISTRY_LIMIT)),
+        ("balances", List(uint64, VALIDATOR_REGISTRY_LIMIT)),
+        ("randao_mixes", Vector(bytes32, EPOCHS_PER_HISTORICAL_VECTOR)),
+        ("latest_block_header", BeaconBlockHeader),
+        ("eth1_data", Eth1Data),
+    ]
+
+
+class HashableValidator(HashableContainer):
+    fields = [
+        ("pubkey", bytes48),
+        ("withdrawal_credentials", bytes32),
+        ("effective_balance", uint64),
+        ("slashed", boolean),
+        # Epoch when validator became eligible for activation
+        ("activation_eligibility_epoch", uint64),
+        # Epoch when validator activated
+        ("activation_epoch", uint64),
+        # Epoch when validator exited
+        ("exit_epoch", uint64),
+        # Epoch when validator withdrew
+        ("withdrawable_epoch", uint64),
+    ]
+
+    @classmethod
+    def create(cls, pubkey, withdrawal_credentials):
+        return super().create(
+            pubkey=pubkey,
+            withdrawal_credentials=withdrawal_credentials,
+            effective_balance=0,
+            slashed=False,
+            activation_eligibility_epoch=FAR_FUTURE_EPOCH,
+            activation_epoch=FAR_FUTURE_EPOCH,
+            exit_epoch=FAR_FUTURE_EPOCH,
+            withdrawable_epoch=FAR_FUTURE_EPOCH,
+        )
+
+
+class HashableBeaconBlockHeader(HashableContainer):
+    fields = [
+        ("slot", uint64),
+        ("parent_root", bytes32),
+        ("state_root", bytes32),
+        ("body_root", bytes32),
+        ("signature", bytes96),
+    ]
+
+
+class HashableEth1Data(HashableContainer):
+    fields = [
+        ("deposit_root", bytes32),
+        ("deposit_count", uint64),
+        ("block_hash", bytes32),
+    ]
+
+
 def update_tuple_item_with_fn(tuple_data, index, fn, *args):
     """
     Update the ``index``th item of ``tuple_data`` to the result of calling ``fn`` on the existing
@@ -153,8 +214,45 @@ def make_state(num_validators):
     return state
 
 
+def make_state_hashable(num_validators):
+    state = HashableState.create(
+        validators=HashableList.from_iterable(
+            (
+                HashableValidator.create(
+                    pubkey=i.to_bytes(48, "little"),
+                    withdrawal_credentials=i.to_bytes(32, "little"),
+                )
+                for i in range(num_validators)
+            ),
+            element_sedes=HashableState.fields[0][1].element_sedes,
+            max_length=HashableState.fields[0][1].max_length,
+        ),
+        balances=HashableList.from_iterable(
+            (i + 1000 for i in range(num_validators)),
+            element_sedes=HashableState.fields[1][1].element_sedes,
+            max_length=HashableState.fields[1][1].max_length,
+        ),
+        randao_mixes=HashableVector.from_iterable(
+            (i.to_bytes(32, "little") for i in range(EPOCHS_PER_HISTORICAL_VECTOR)),
+            element_sedes=HashableState.fields[2][1].element_sedes,
+        ),
+        latest_block_header=HashableBeaconBlockHeader.create(
+            slot=1,
+            parent_root=b"\x22" * 32,
+            state_root=b"\x22" * 32,
+            body_root=b"\x22" * 32,
+            signature=b"\x55" * 96,
+        ),
+        eth1_data=HashableEth1Data.create(
+            deposit_root=b"\x12" * 32, deposit_count=1, block_hash=b"\x12" * 32
+        ),
+    )
+
+    return state
+
+
 def prepare_state_benchmark():
-    num_validators = 2 ** 13
+    num_validators = 2 ** 17
     state = make_state(num_validators)
     print("state.hash_tree_root\t", state.hash_tree_root.hex())
     index = 100
@@ -192,8 +290,42 @@ def prepare_state_benchmark():
     return benchmark
 
 
+def prepare_state_benchmark_hashable():
+    num_validators = 2 ** 17
+    state = make_state_hashable(num_validators)
+    print("state.hash_tree_root\t", state.root.hex())
+    index = 100
+    block_header = HashableBeaconBlockHeader.create(
+        slot=1,
+        parent_root=b"\x22" * 32,
+        state_root=b"\x22" * 32,
+        body_root=b"\x22" * 32,
+        signature=b"\x66" * 96,
+    )
+
+    def benchmark():
+        print("----- start -----")
+        oh_state = (
+            state.transform((1, index), lambda balance: balance + 10)
+            .transform((0, index, 0), (666).to_bytes(48, "little"))
+            .transform((0, index, 1), (666).to_bytes(32, "little"))
+            .transform((2, index), b"\x56" * 32)
+            .transform((3,), block_header)
+            .transform((4, 0), b"\x22" * 32)
+            .transform((4, 1), 1)
+            .transform((4, 2), b"\x22" * 32)
+        )
+        print("updated\t", oh_state.root.hex())
+        print("----- end -----")
+
+    return benchmark
+
+
 if __name__ == "__main__":
-    benchmarks = {"state": prepare_state_benchmark()}
+    benchmarks = {
+        "state": prepare_state_benchmark(),
+        "state_hashable": prepare_state_benchmark_hashable(),
+    }
     results = {}
 
     for name, benchmark in benchmarks.items():
