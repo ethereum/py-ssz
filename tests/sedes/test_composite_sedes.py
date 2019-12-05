@@ -23,7 +23,10 @@ from ssz.sedes import Container, List, UInt, Vector, bytes32, uint8, uint256
 def test_list(value, serialized):
     sedes = List(uint8, 2 ** 32)
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableList)
+    assert tuple(decoded) == value
+    assert decoded.sedes == sedes
 
 
 def test_invalid_serialized_list():
@@ -37,13 +40,15 @@ def test_invalid_serialized_list():
 
 
 @pytest.mark.parametrize(
-    ("value", "serialized"),
-    (((), "0x"), ((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc")),
+    ("value", "serialized"), (((0xAA,), "0xaa"), ((0xAA, 0xBB, 0xCC), "0xaabbcc"))
 )
 def test_tuple_of_static_sized_entries(value, serialized):
     sedes = Vector(uint8, len(value))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableVector)
+    assert tuple(decoded) == value
+    assert decoded.sedes == sedes
 
 
 @pytest.mark.parametrize(
@@ -62,7 +67,10 @@ def test_tuple_of_static_sized_entries(value, serialized):
 def test_list_of_dynamic_sized_entries(value, serialized):
     sedes = Vector(List(uint8, 2 ** 32), len(value))
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    assert isinstance(decoded, HashableVector)
+    assert tuple(tuple(element) for element in decoded) == value
+    assert decoded.sedes == sedes
 
 
 @pytest.mark.parametrize(
@@ -101,7 +109,12 @@ def test_container_of_dynamic_sized_fields(fields, value, serialized):
     sedes = Container(fields)
 
     assert encode_hex(ssz.encode(value, sedes)) == serialized
-    assert ssz.decode(decode_hex(serialized), sedes) == value
+    decoded = ssz.decode(decode_hex(serialized), sedes)
+    pure_decoded = tuple(
+        tuple(element) if isinstance(element, HashableList) else element
+        for element in decoded
+    )
+    assert pure_decoded == value
 
 
 @pytest.mark.parametrize(
