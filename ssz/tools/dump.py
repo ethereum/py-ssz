@@ -2,6 +2,9 @@ from typing import Sequence
 
 from eth_utils import to_tuple
 
+from ssz.hashable_container import HashableContainer
+from ssz.hashable_list import HashableList
+from ssz.hashable_vector import HashableVector
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -14,7 +17,6 @@ from ssz.sedes import (
     UInt,
     Vector,
 )
-from ssz.sedes.serializable import MetaSerializable
 
 from .codec import DefaultCodec
 
@@ -24,11 +26,14 @@ def to_formatted_dict(value, sedes=None, codec=DefaultCodec):
 
 
 def dump(value, sedes=None, codec=DefaultCodec):
-    if sedes is None:
-        if isinstance(value, Serializable):
-            return dump_serializable(value, codec)
-        else:
-            raise ValueError("must provide sedes for non-Serializable")
+    if isinstance(value, Serializable):
+        return dump_serializable(value, codec)
+    elif isinstance(value, HashableContainer):
+        return dump_hashable_container(value, codec)
+    elif isinstance(value, (HashableList, HashableVector)):
+        return dump_hashable_sequence(value, codec)
+    elif sedes is None:
+        raise ValueError("Sedes may only be omitted for serializables or hashables")
 
     if isinstance(sedes, Boolean):
         return dump_boolean(value, sedes, codec)
@@ -44,8 +49,6 @@ def dump(value, sedes=None, codec=DefaultCodec):
         return dump_bits(value, sedes, codec)
     elif isinstance(sedes, Container):
         return dump_container(value, sedes, codec)
-    elif isinstance(sedes, MetaSerializable):
-        return dump_serializable(value, codec)
     elif isinstance(sedes, BaseSedes):
         raise Exception(
             f"Unreachable: All sedes types have been checked, {sedes} was not found"
@@ -102,3 +105,15 @@ def dump_container(value, sedes, codec):
 def dump_serializable(value, codec):
     dumped_values = dump(tuple(value), value._meta.container_sedes)
     return dict(zip(value._meta.field_names, dumped_values))
+
+
+def dump_hashable_container(value, codec):
+    dumped_values = dump(tuple(value), value._meta.container_sedes)
+    return {
+        field_name: dumped_value
+        for (field_name, _), dumped_value in zip(value._meta.fields, dumped_values)
+    }
+
+
+def dump_hashable_sequence(value, codec):
+    return tuple(dump(element, value.sedes.element_sedes, codec) for element in value)

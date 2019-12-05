@@ -3,6 +3,9 @@ from typing import Sequence
 
 from eth_utils import to_tuple
 
+from ssz.hashable_container import MetaHashableContainer
+from ssz.hashable_list import HashableList
+from ssz.hashable_vector import HashableVector
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -40,6 +43,8 @@ def parse(value, sedes, codec=DefaultCodec):
         return parse_bits(value, sedes, codec)
     elif isinstance(sedes, MetaSerializable):
         return parse_serializable(value, sedes, codec)
+    elif isinstance(sedes, MetaHashableContainer):
+        return parse_hashable(value, sedes, codec)
     elif isinstance(sedes, BaseSedes):
         raise Exception(
             f"Unreachable: All sedes types have been checked, {sedes} was not found"
@@ -65,7 +70,8 @@ def parse_bytes(value, sedes, codec):
 def parse_list(value, sedes, codec):
     if not isinstance(value, Sequence):
         raise ValueError(f"Expected Sequence, got {type(value)}")
-    return tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    elements = tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    return HashableList.from_iterable(elements, sedes=sedes)
 
 
 def parse_vector(value, sedes, codec):
@@ -73,7 +79,8 @@ def parse_vector(value, sedes, codec):
         raise ValueError(f"Expected Sequence, got {type(value)}")
     if not len(value) == sedes.length:
         raise ValueError(f"Expected {sedes.length} elements, got {len(value)}")
-    return tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    elements = tuple(parse(element, sedes.element_sedes, codec) for element in value)
+    return HashableVector.from_iterable(elements, sedes=sedes)
 
 
 def parse_bits(value, sedes, codec):
@@ -107,3 +114,13 @@ def parse_serializable(value, serializable_cls, codec):
     input_args = parse(parse_args, serializable_cls._meta.container_sedes)
     input_kwargs = dict(zip(serializable_cls._meta.field_names, input_args))
     return serializable_cls(**input_kwargs)
+
+
+def parse_hashable(value, hashable_cls, codec):
+    if not isinstance(value, Mapping):
+        raise ValueError(f"Expected Mapping, got {type(value)}")
+    input_kwargs = {
+        field_name: parse(value[field_name], field_type, codec)
+        for field_name, field_type in hashable_cls._meta.fields
+    }
+    return hashable_cls.create(**input_kwargs)
