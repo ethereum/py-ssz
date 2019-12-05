@@ -1,3 +1,5 @@
+from typing import Any
+
 from eth_utils import encode_hex
 
 from ssz.exceptions import DeserializationError
@@ -29,6 +31,12 @@ class Boolean(BasicSedes[bool, bool]):
 
     def get_sedes_id(self) -> str:
         return self.__class__.__name__
+
+    def __hash__(self) -> int:
+        return hash((hash(Boolean),))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Boolean)
 
 
 class Bit(Boolean):

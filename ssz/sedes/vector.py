@@ -1,4 +1,3 @@
-import itertools
 from typing import IO, Any, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
@@ -9,10 +8,11 @@ from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
-from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import SerializationError
+from ssz.hashable_structure import BaseHashableStructure
+from ssz.hashable_vector import HashableVector
 from ssz.sedes.base import BaseSedes, TSedes
-from ssz.sedes.basic import BasicSedes, HomogeneousCompositeSedes
+from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserializedElement, TSerializableElement
 from ssz.utils import merkleize, merkleize_with_cache, pack, read_exact, s_decode_offset
 
@@ -23,38 +23,39 @@ TSedesPairs = Tuple[
 
 
 class Vector(
-    HomogeneousCompositeSedes[
+    HomogeneousProperCompositeSedes[
         Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]
     ]
 ):
     def __init__(self, element_sedes: TSedes, length: int) -> None:
-        self.element_sedes = element_sedes
-        self.length = length
+        if length <= 0:
+            raise ValueError(f"Vectors must have a size of 1 or greater, got {length}")
+        super().__init__(element_sedes, max_length=length)
 
-    def _get_item_sedes_pairs(
-        self, value: Sequence[TSerializableElement]
-    ) -> TSedesPairs:
-        return tuple(zip(value, itertools.repeat(self.element_sedes)))
+    @property
+    def length(self) -> int:
+        return self.max_length
+
+    def get_element_sedes(
+        self, index
+    ) -> BaseSedes[TSerializableElement, TDeserializedElement]:
+        return self.element_sedes
 
     #
     # Size
     #
     @property
     def is_fixed_sized(self) -> bool:
-        return self.length == 0 or self.element_sedes.is_fixed_sized
+        return self.element_sedes.is_fixed_sized
 
     def get_fixed_size(self) -> int:
         if not self.is_fixed_sized:
-            raise ValueError("Tuple is not fixed size.")
+            raise ValueError("Vector is not fixed size.")
 
         if self.length == 0:
             return 0
         else:
             return self.length * self.element_sedes.get_fixed_size()
-
-    @property
-    def max_length(self) -> int:
-        return self.length
 
     #
     # Serialization
@@ -69,8 +70,14 @@ class Vector(
     #
     # Deserialization
     #
-    @to_tuple
     def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserializedElement]:
+        elements = self._deserialize_stream_to_tuple(stream)
+        return HashableVector.from_iterable(elements, sedes=self)
+
+    @to_tuple
+    def _deserialize_stream_to_tuple(
+        self, stream: IO[bytes]
+    ) -> Iterable[TDeserializedElement]:
         if self.element_sedes.is_fixed_sized:
             element_size = self.element_sedes.get_fixed_size()
             for _ in range(self.length):
@@ -92,6 +99,9 @@ class Vector(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Sequence[Any]) -> bytes:
+        if isinstance(value, BaseHashableStructure) and value.sedes == self:
+            return value.hash_tree_root
+
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(
                 self.element_sedes.serialize(element) for element in value
@@ -125,13 +135,17 @@ class Vector(
                     value, self.element_sedes
                 )
 
-        return merkleize_with_cache(
-            merkle_leaves, cache=cache, limit=self.chunk_count()
-        )
+        return merkleize_with_cache(merkle_leaves, cache=cache, limit=self.chunk_count)
 
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            base_size = self.length * self.element_sedes.get_fixed_size()
-            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.length
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Vector), hash(self.element_sedes), self.length))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, Vector)
+            and other.element_sedes == self.element_sedes
+            and other.length == self.length
+        )

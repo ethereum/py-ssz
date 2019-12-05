@@ -1,3 +1,5 @@
+from typing import Any
+
 from ssz.exceptions import DeserializationError, SerializationError
 from ssz.sedes.basic import BasicSedes
 
@@ -24,6 +26,12 @@ class Byte(BasicSedes[bytes, bytes]):
 
     def get_sedes_id(self) -> str:
         return self.__class__.__name__
+
+    def __hash__(self) -> int:
+        return hash((Byte,))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Byte)
 
 
 byte = Byte()

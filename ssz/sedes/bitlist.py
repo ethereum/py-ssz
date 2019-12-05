@@ -1,10 +1,10 @@
-from typing import Sequence, Tuple, Union
+from typing import Any, Sequence, Tuple, Union
 
 from eth_typing import Hash32
 from eth_utils import to_tuple
 
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.basic import BasicBytesSedes
+from ssz.sedes.basic import BitfieldCompositeSedes
 from ssz.typing import CacheObj
 from ssz.utils import (
     get_serialized_bytearray,
@@ -17,7 +17,7 @@ from ssz.utils import (
 BytesOrByteArray = Union[bytes, bytearray]
 
 
-class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
+class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, max_bit_count: int) -> None:
         if max_bit_count < 0:
             raise TypeError("Max bit count cannot be negative")
@@ -34,6 +34,10 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     # Serialization
     #
+    @property
+    def chunk_count(self) -> int:
+        return (self.max_bit_count + 255) // 256
+
     def serialize(self, value: Sequence[bool]) -> bytes:
         len_value = len(value)
         if len_value > self.max_bit_count:
@@ -68,22 +72,28 @@ class Bitlist(BasicBytesSedes[BytesOrByteArray, bytes]):
     #
     def get_hash_tree_root(self, value: Sequence[bool]) -> bytes:
         return mix_in_length(
-            merkleize(pack_bits(value), limit=self.chunk_count()), len(value)
+            merkleize(pack_bits(value), limit=self.chunk_count), len(value)
         )
 
     def get_hash_tree_root_and_leaves(
         self, value: Sequence[bool], cache: CacheObj
     ) -> Tuple[Hash32, CacheObj]:
         root, cache = merkleize_with_cache(
-            pack_bits(value), cache=cache, limit=self.chunk_count()
+            pack_bits(value), cache=cache, limit=self.chunk_count
         )
         return mix_in_length(root, len(value)), cache
 
-    def chunk_count(self) -> int:
-        return (self.max_bit_count + 255) // 256
-
     def get_sedes_id(self) -> str:
         return f"{self.__class__.__name__}{self.max_bit_count}"
+
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(Bitlist), hash(self.max_bit_count)))
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Bitlist) and other.max_bit_count == self.max_bit_count
 
 
 def get_bitlist_len(x: int) -> int:

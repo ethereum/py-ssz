@@ -1,15 +1,22 @@
 from abc import abstractmethod
 import io
 import operator
-from typing import IO, Any, Iterable, Sequence, Tuple
+from typing import IO, Any, Generator, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
+from eth_utils import to_tuple
 from eth_utils.toolz import accumulate, concatv
 
 from ssz import constants
 from ssz.cache.utils import get_key
+from ssz.constants import CHUNK_SIZE
 from ssz.exceptions import DeserializationError
-from ssz.sedes.base import BaseCompositeSedes, BaseSedes, TSedes
+from ssz.sedes.base import (
+    BaseBitfieldCompositeSedes,
+    BaseProperCompositeSedes,
+    BaseSedes,
+    TSedes,
+)
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import encode_offset, merkleize, merkleize_with_cache, pack
 
@@ -42,9 +49,6 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack((serialized_value,)), cache=cache)
 
-    def chunk_count(self) -> int:
-        return 1
-
     def get_key(self, value: Any) -> str:
         return get_key(self, value)
 
@@ -56,17 +60,18 @@ def _compute_fixed_size_section_length(element_sedes: Iterable[TSedes]) -> int:
     )
 
 
-class BasicBytesSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
+class BitfieldCompositeSedes(BaseBitfieldCompositeSedes[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> str:
         return get_key(self, value)
 
 
-class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
-    @abstractmethod
+class ProperCompositeSedes(BaseProperCompositeSedes[TSerializable, TDeserialized]):
+    @to_tuple
     def _get_item_sedes_pairs(
         self, value: Sequence[TSerializable]
-    ) -> Tuple[Tuple[TSerializable, TSedes], ...]:
-        ...
+    ) -> Generator[Tuple[TSerializable, TSedes], None, None]:
+        for index, element in enumerate(value):
+            yield element, self.get_element_sedes(index)
 
     def _validate_serializable(self, value: Any) -> None:
         ...
@@ -133,6 +138,21 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
 
         return b"".join(concatv(fixed_size_section_parts, variable_size_section_parts))
 
+    def serialize_element_for_tree(self, index: int, element: TSerializable) -> bytes:
+        sedes = self.get_element_sedes(index)
+        if self.is_packing:
+            return sedes.serialize(element)
+        else:
+            return sedes.get_hash_tree_root(element)
+
+    @property
+    def element_size_in_tree(self) -> int:
+        if self.is_packing:
+            # note that only homogenous composites with fixed sized elements are packed
+            return self.get_element_sedes(0).get_fixed_size()
+        else:
+            return CHUNK_SIZE
+
     def deserialize(self, data: bytes) -> TDeserialized:
         stream = io.BytesIO(data)
         value = self._deserialize_stream(stream)
@@ -149,7 +169,29 @@ class CompositeSedes(BaseCompositeSedes[TSerializable, TDeserialized]):
         return get_key(self, value)
 
 
-class HomogeneousCompositeSedes(CompositeSedes[TSerializable, TDeserialized]):
+class HomogeneousProperCompositeSedes(
+    ProperCompositeSedes[TSerializable, TDeserialized]
+):
+    def __init__(self, element_sedes: TSedes, max_length: int) -> None:
+        self.element_sedes = element_sedes
+        if max_length < 1:
+            raise ValueError(
+                f"(Maximum) length of homogenous composites must be at least 1, got {max_length}"
+            )
+        self.max_length = max_length
+
     def get_sedes_id(self) -> str:
         sedes_name = self.__class__.__name__
         return f"{sedes_name}({self.element_sedes.get_sedes_id()},{self.max_length})"
+
+    @property
+    def is_packing(self) -> bool:
+        return isinstance(self.element_sedes, BasicSedes)
+
+    @property
+    def chunk_count(self) -> int:
+        if self.is_packing:
+            element_size = self.element_sedes.get_fixed_size()
+            return (element_size * self.max_length + CHUNK_SIZE - 1) // CHUNK_SIZE
+        else:
+            return self.max_length

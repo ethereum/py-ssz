@@ -1,4 +1,3 @@
-import itertools
 from typing import IO, Any, Iterable, Sequence, Tuple
 
 from eth_typing import Hash32
@@ -29,13 +28,8 @@ TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable
 
 
 class List(
-    HomogeneousCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
+    HomogeneousProperCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
 ):
-    def __init__(self, element_sedes: TSedes, max_length: int) -> None:
-        # This sedes object corresponds to each element of the iterable
-        self.element_sedes = element_sedes
-        self.max_length = max_length
-
     #
     # Size
     #
@@ -47,11 +41,17 @@ class List(
     #
     # Deserialization
     #
-    def _get_item_sedes_pairs(self, value: Sequence[TSerializable]) -> TSedesPairs:
-        return tuple(zip(value, itertools.repeat(self.element_sedes)))
+    def get_element_sedes(self, index) -> BaseSedes[TSerializable, TDeserialized]:
+        return self.element_sedes
+
+    def _deserialize_stream(self, stream: IO[bytes]) -> HashableList[TDeserialized]:
+        elements = self._deserialize_stream_to_tuple(stream)
+        return HashableList.from_iterable(elements, sedes=self)
 
     @to_tuple
-    def _deserialize_stream(self, stream: IO[bytes]) -> Iterable[TDeserialized]:
+    def _deserialize_stream_to_tuple(
+        self, stream: IO[bytes]
+    ) -> Iterable[TDeserialized]:
         if self.element_sedes.is_fixed_sized:
             element_size = self.element_sedes.get_fixed_size()
             data = stream.read()
@@ -103,6 +103,9 @@ class List(
     # Tree hashing
     #
     def get_hash_tree_root(self, value: Iterable[TSerializable]) -> bytes:
+        if isinstance(value, BaseHashableStructure) and value.sedes == self:
+            return value.hash_tree_root
+
         if isinstance(self.element_sedes, BasicSedes):
             serialized_items = tuple(
                 self.element_sedes.serialize(element) for element in value
@@ -114,7 +117,7 @@ class List(
             )
 
         return mix_in_length(
-            merkleize(merkle_leaves, limit=self.chunk_count()), len(value)
+            merkleize(merkle_leaves, limit=self.chunk_count), len(value)
         )
 
     def get_hash_tree_root_and_leaves(
@@ -140,13 +143,19 @@ class List(
                 )
 
         merkleize_result, cache = merkleize_with_cache(
-            merkle_leaves, cache=cache, limit=self.chunk_count()
+            merkle_leaves, cache=cache, limit=self.chunk_count
         )
         return mix_in_length(merkleize_result, len(value)), cache
 
-    def chunk_count(self) -> int:
-        if isinstance(self.element_sedes, BasicSedes):
-            base_size = self.max_length * self.element_sedes.get_fixed_size()
-            return (base_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-        else:
-            return self.max_length
+    #
+    # Equality and hashing
+    #
+    def __hash__(self) -> int:
+        return hash((hash(List), hash(self.element_sedes), self.max_length))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, List)
+            and other.element_sedes == self.element_sedes
+            and other.max_length == self.max_length
+        )

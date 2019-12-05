@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Tuple
+from typing import Any, Generic, Optional, Tuple
 
 from eth_typing import Hash32
 
@@ -47,10 +47,6 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
         ...
 
     @abstractmethod
-    def chunk_count(self) -> int:
-        ...
-
-    @abstractmethod
     def get_sedes_id(self) -> str:
         ...
 
@@ -58,13 +54,45 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     def get_key(self, value: Any) -> str:
         ...
 
+    #
+    # Equality and hashing
+    #
+    @abstractmethod
+    def __hash__(self) -> int:
+        ...
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        ...
+
 
 TSedes = BaseSedes[Any, Any]
 
 
-class BaseCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
-    ...
+class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+    @property
+    @abstractmethod
+    def is_packing(self) -> bool:
+        ...
+
+    @abstractmethod
+    def get_element_sedes(self, index: int) -> BaseSedes:
+        ...
+
+    @property
+    @abstractmethod
+    def element_size_in_tree(self) -> int:
+        ...
+
+    @abstractmethod
+    def serialize_element_for_tree(self, index: int, element: TSerializable) -> bytes:
+        ...
+
+    @property
+    @abstractmethod
+    def chunk_count(self) -> Optional[int]:
+        ...
 
 
-class BaseByteSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseBitfieldCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
     ...
