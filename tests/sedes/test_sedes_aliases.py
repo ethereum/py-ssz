@@ -21,7 +21,7 @@ def test_byte_invalid_length(value):
         ssz.decode(value, byte)
 
 
-@pytest.mark.parametrize("value", (b"", b"\x00", b"\x00\x01\x02\x03"))
+@pytest.mark.parametrize("value", (b"\x00", b"\x00\x01\x02\x03"))
 def test_byte_vector(value):
     byte_vector = ByteVector(len(value))
     serialized_value = ssz.encode(value, byte_vector)
@@ -33,20 +33,14 @@ def test_byte_vector(value):
 
 @pytest.mark.parametrize(
     ("value", "expected_length"),
-    (
-        (b"", 1),
-        (b"\x00", 0),
-        (b"\x00", 2),
-        (b"\x00\x01\x02\x03", 32),
-        (b"\xff" * 64, 32),
-    ),
+    ((b"", 1), (b"\x00", 2), (b"\x00\x01\x02\x03", 32), (b"\xff" * 64, 32)),
 )
 def test_byte_vector_invalid_length(value, expected_length):
     byte_vector = ByteVector(expected_length)
     with pytest.raises(SerializationError):
         ssz.encode(value, byte_vector)
 
-    properly_serialized_value = ssz.encode(value, ByteVector(len(value)))
+    properly_serialized_value = value
     with pytest.raises(DeserializationError):
         ssz.decode(properly_serialized_value, byte_vector)
 

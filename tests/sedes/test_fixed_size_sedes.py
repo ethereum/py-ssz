@@ -1,7 +1,6 @@
 import pytest
 
 from ssz.sedes import (
-    ByteVector,
     Container,
     List,
     Vector,
@@ -21,13 +20,11 @@ from ssz.sedes import (
         (boolean, 1),
         (uint8, 1),
         (uint256, 32),
-        (Vector(uint8, 0), 0),
+        (Vector(uint8, 1), 1),
         (Vector(uint8, 2), 2),
         (Container((uint8, Vector(uint8, 4))), 5),
-        (Vector(List(uint8, 2 ** 32), 0), 0),
         (Vector(Container((uint8, Vector(uint8, 4))), 4), 20),
         (byte, 1),
-        (ByteVector(0), 0),
         (bytes32, 32),
         (bytes48, 48),
         (bytes96, 96),
