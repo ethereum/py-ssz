@@ -240,6 +240,9 @@ else:
 
 
 def hashablify_value(value: Any, sedes: BaseSedes) -> Any:
+    if isinstance(value, (HashableContainer, HashableList, HashableVector)):
+        return value
+
     if isinstance(sedes, List):
         return HashableList.from_iterable(value, sedes)
     elif isinstance(sedes, Vector):
