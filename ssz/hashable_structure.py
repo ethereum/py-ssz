@@ -397,7 +397,7 @@ class BaseResizableHashableStructure(
 
     def __mul__(self: TResizableStructure, times: int) -> TResizableStructure:
         if times <= 0:
-            raise ValueError("Multiplication factor must be positive: {times}")
+            raise ValueError(f"Multiplication factor must be positive: {times}")
         elif times == 1:
             return self
         else:
@@ -415,7 +415,7 @@ class ResizableHashableStructureEvolver(
     def append(self, element: TElement) -> None:
         max_length = self._original_structure.max_length
         if max_length is not None and len(self) + 1 > max_length:
-            raise ValueError("Structure would exceed maximum length {max_length}")
+            raise ValueError(f"Structure would exceed maximum length {max_length}")
         self._appended_elements.append(element)
 
     def extend(self, elements: Iterable[TElement]) -> None:
@@ -423,6 +423,6 @@ class ResizableHashableStructureEvolver(
 
         max_length = self._original_structure.max_length
         if max_length is not None and len(self) + len(extension) > max_length:
-            raise ValueError("Structure would exceed maximum length {max_length}")
+            raise ValueError(f"Structure would exceed maximum length {max_length}")
 
         self._appended_elements.extend(extension)

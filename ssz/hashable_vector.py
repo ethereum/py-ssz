@@ -19,7 +19,7 @@ class HashableVector(BaseHashableStructure[TElement], Sequence[TElement]):
         elements = pvector(iterable)
         if len(elements) != sedes.length:
             raise ValueError(
-                "Vector has length {sedes.length}, but {len(elements)} elements are given"
+                f"Vector has length {sedes.length}, but {len(elements)} elements are given"
             )
         return super().from_iterable_and_sedes(elements, sedes, max_length=None)
 

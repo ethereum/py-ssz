@@ -223,7 +223,7 @@ class HashTreeEvolver:
     def _check_chunk_count(self) -> None:
         chunk_count = self.original_hash_tree.chunk_count
         if chunk_count is not None and len(self) > chunk_count:
-            raise ValueError("Hash tree exceeds size chunk count {chunk_count}")
+            raise ValueError(f"Hash tree exceeds size chunk count {chunk_count}")
 
     #
     # Not implemented
