@@ -8,7 +8,7 @@ extras_require = {
         "pytest-xdist==1.28.0",
         "pytest-watch>=4.1.0,<5",
         "tox>=2.9.1,<3",
-        "hypothesis==3.69.5",
+        "hypothesis==4.54.0",
         "ruamel.yaml==0.15.87",
         "mypy-extensions>=0.4.1,<1.0.0",
     ],
