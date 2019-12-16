@@ -134,7 +134,7 @@ def general_list_sedes_and_values_st(draw, element_sedes_and_elements, size=None
 
     if size is None:
         size = draw(st.integers(min_value=1, max_value=10))
-    max_size = draw(st.integers(min_value=size))
+    max_size = draw(st.integers(min_value=size, max_value=1024))
 
     sedes = List(element_sedes, max_length=max_size)
     values = st.lists(elements, min_size=size, max_size=size)
