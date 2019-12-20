@@ -1,5 +1,5 @@
 import abc
-import collections
+import collections.abc
 import copy
 import operator
 import re
@@ -67,7 +67,7 @@ def merge_args_to_kwargs(args, kwargs, arg_names):
         yield name, value
 
 
-class BaseSerializable(collections.Sequence):
+class BaseSerializable(collections.abc.Sequence):
     cache = None
 
     def __init__(self, *args, cache=None, **kwargs):
