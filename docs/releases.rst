@@ -77,3 +77,11 @@ Released 2018-05-05
 
 - Less strict class relationship requirement for equality of serializables -
   `#71 <https://github.com/ethereum/py-ssz/pull/71>`_
+
+
+v0.2.4
+--------------
+
+Released 2020-03-24
+
+- Update `pyrsistent` dependency.
