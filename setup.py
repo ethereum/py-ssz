@@ -39,7 +39,7 @@ setup(
         "lru-dict>=1.1.6",
         # When updating to a newer version of pyrsistent, please check that the interface
         # `transform` expects has not changed (see https://github.com/tobgu/pyrsistent/issues/180)
-        "pyrsistent>=0.15.6,<0.16",
+        "pyrsistent>=0.16.0,<0.17",
     ],
     setup_requires=["setuptools-markdown"],
     python_requires=">=3.6, <4",
