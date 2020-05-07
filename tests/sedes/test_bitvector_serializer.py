@@ -7,7 +7,6 @@ from ssz.sedes import Bitlist, Bitvector, Vector, boolean
 @pytest.mark.parametrize(
     "size, value, expected",
     (
-        (0, (), b""),
         (16, (True,) + (False,) * 15, b"\x01\x00"),
         (16, (False,) + (True,) + (False,) * 14, b"\x02\x00"),
         (16, (False,) * 15 + (True,), b"\x00\x80"),
@@ -23,7 +22,6 @@ def test_bitvector_serialize_values(size, value, expected):
 @pytest.mark.parametrize(
     "size, value,expected",
     (
-        (0, b"", ()),
         (16, b"\x01\x00", (True,) + (False,) * 15),
         (16, b"\x02\x00", (False,) + (True,) + (False,) * 14),
         (16, b"\x00\x80", (False,) * 15 + (True,)),

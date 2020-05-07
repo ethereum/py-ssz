@@ -18,8 +18,8 @@ BytesOrByteArray = Union[bytes, bytearray]
 
 class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, bit_count: int) -> None:
-        if bit_count < 0:
-            raise TypeError("Bit count cannot be negative")
+        if bit_count <= 0:
+            raise TypeError("Bit count cannot be zero or negative")
         self.bit_count = bit_count
 
     #
