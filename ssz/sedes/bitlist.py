@@ -62,7 +62,8 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
         # Last byte in bytes should be >= 1, if not data is not a serialised bitlist.
         if data[len(data) - 1] == 0:
             raise DeserializationError(
-                f"Cannot deserialize bytes data as Bitlist[{self.max_bit_count}] as last byte is null [{data[len(data) - 1]}]"
+                f"Cannot deserialize bytes data as Bitlist[{self.max_bit_count}] "\
+                f"as last byte is null [{data[len(data) - 1]}]"
             )
 
         if len_value > self.max_bit_count:
