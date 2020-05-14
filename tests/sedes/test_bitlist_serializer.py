@@ -31,6 +31,7 @@ def test_bitlist_deserialize_values(size, value, expected):
     foo = Bitlist(size)
     assert foo.deserialize(value) == expected
 
+
 # Sequences ending with 0x00 are not serialised bitlists
 # and should not be deserialised into bitlists.
 @pytest.mark.parametrize(
@@ -63,6 +64,7 @@ def test_bitlist_round_trip_no_sedes(size, value):
 @pytest.mark.parametrize(("sedes", "id"), ((Bitlist(64), "Bitlist64"),))
 def test_get_sedes_id(sedes, id):
     assert sedes.get_sedes_id() == id
+
 
 @pytest.mark.parametrize(("sedes1", "sedes2"), ((Bitlist(2), Bitlist(2)),))
 def test_eq(sedes1, sedes2):
