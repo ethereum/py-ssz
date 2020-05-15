@@ -60,7 +60,7 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
         # Length of data should be larger than 1
         if len(data) < 1:
             raise DeserializationError(
-                f"Cannot deserialize emoty bytes data as Bitlist[{self.max_bit_count}] "
+                f"Cannot deserialize empty bytes string as Bitlist[{self.max_bit_count}] "
             )
 
         #   Last byte in bytes should be >= 1, if not data is not a serialised bitlist.
