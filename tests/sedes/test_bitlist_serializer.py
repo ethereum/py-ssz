@@ -50,7 +50,7 @@ def test_bitlist_deserialize_illegal_values(size, illegal_value):
 
 
 @pytest.mark.parametrize(
-    "size, value", ((16, (True, False)), (16, (True,) + (False,) * 15),),
+    "size, value", ((16, (True, False)), (16, (True,) + (False,) * 15))
 )
 def test_bitlist_round_trip_no_sedes(size, value):
     foo = Bitlist(size)
