@@ -1,6 +1,7 @@
 import pytest
 
 from ssz import decode, encode
+from ssz.exceptions import DeserializationError
 from ssz.sedes import Bitlist, Bitvector, List, boolean
 
 
@@ -31,13 +32,25 @@ def test_bitlist_deserialize_values(size, value, expected):
     assert foo.deserialize(value) == expected
 
 
+# Sequences ending with 0x00 are not serialised bitlists
+# and should not be deserialised into bitlists.
 @pytest.mark.parametrize(
-    "size, value",
+    "size, illegal_value",
     (
-        # (16, tuple()),
-        (16, (True, False)),
-        (16, (True,) + (False,) * 15),
+        (16, b""),  # should not be accepted as length(input) should be >= 1
+        (16, b"\x00"),  # should not be accepted as last byte should be >= 1
+        (8, b"\xff\x00"),  # should not be accepted for the same reason
     ),
+)
+#   Test that exception is raised when trying to deserialise illegal seq of bytes into bitlists.
+def test_bitlist_deserialize_illegal_values(size, illegal_value):
+    foo = Bitlist(size)
+    with pytest.raises(DeserializationError):
+        foo.deserialize(illegal_value)
+
+
+@pytest.mark.parametrize(
+    "size, value", ((16, (True, False)), (16, (True,) + (False,) * 15))
 )
 def test_bitlist_round_trip_no_sedes(size, value):
     foo = Bitlist(size)

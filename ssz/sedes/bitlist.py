@@ -56,6 +56,21 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     #
     @to_tuple
     def deserialize(self, data: bytes) -> Tuple[bool, ...]:
+
+        # Length of data should be larger than 1
+        if len(data) < 1:
+            raise DeserializationError(
+                f"Cannot deserialize empty bytes string as Bitlist[{self.max_bit_count}] "
+            )
+
+        #   Last byte in bytes should be >= 1, if not data is not a serialised bitlist.
+        #   len(data) >= 1 and data has a last element that can be compared to 0x00
+        if data[-1] == 0:
+            raise DeserializationError(
+                f"Cannot deserialize bytes data as Bitlist[{self.max_bit_count}] "
+                f"as last byte is null [{data[len(data) - 1]}]"
+            )
+
         as_integer = int.from_bytes(data, "little")
         len_value = get_bitlist_len(as_integer)
 
