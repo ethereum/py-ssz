@@ -7,7 +7,17 @@ import ssz
 from ssz.exceptions import DeserializationError
 from ssz.hashable_list import HashableList
 from ssz.hashable_vector import HashableVector
-from ssz.sedes import Bitlist, Bitvector, Container, List, UInt, Vector, bytes32, uint8, uint256
+from ssz.sedes import (
+    Bitlist,
+    Bitvector,
+    Container,
+    List,
+    UInt,
+    Vector,
+    bytes32,
+    uint8,
+    uint256,
+)
 
 
 @pytest.mark.parametrize(
@@ -175,7 +185,9 @@ def test_neq(sedes1, sedes2):
         (Vector, uint8, 0, False),
     ),
 )
-def test_homogeneous_sequence_length_boundary(sedes_type, element_type, length, is_valid):
+def test_homogeneous_sequence_length_boundary(
+    sedes_type, element_type, length, is_valid
+):
     if is_valid:
         sedes_type(element_type, length)
     else:

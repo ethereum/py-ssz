@@ -32,7 +32,9 @@ class List(
 ):
     def __init__(self, element_sedes: TSedes, max_length: int) -> None:
         if max_length < 0:
-            raise ValueError(f"Lists must have a maximum length of 0 or greater, got {max_length}")
+            raise ValueError(
+                f"Lists must have a maximum length of 0 or greater, got {max_length}"
+            )
         self.element_sedes = element_sedes
         self.max_length = max_length
 
