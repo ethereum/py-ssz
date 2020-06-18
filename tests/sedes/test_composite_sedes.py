@@ -7,7 +7,7 @@ import ssz
 from ssz.exceptions import DeserializationError
 from ssz.hashable_list import HashableList
 from ssz.hashable_vector import HashableVector
-from ssz.sedes import Container, List, UInt, Vector, bytes32, uint8, uint256
+from ssz.sedes import Bitlist, Bitvector, Container, List, UInt, Vector, bytes32, uint8, uint256
 
 
 @pytest.mark.parametrize(
@@ -164,3 +164,37 @@ def test_eq(sedes1, sedes2):
 def test_neq(sedes1, sedes2):
     assert sedes1 != sedes2
     assert hash(sedes1) != hash(sedes2)
+
+
+@pytest.mark.parametrize(
+    ("sedes_type", "element_type", "length", "is_valid"),
+    (
+        (List, uint8, 0, True),
+        (List, uint8, -1, False),
+        (Vector, uint8, 1, True),
+        (Vector, uint8, 0, False),
+    ),
+)
+def test_homogeneous_sequence_length_boundary(sedes_type, element_type, length, is_valid):
+    if is_valid:
+        sedes_type(element_type, length)
+    else:
+        with pytest.raises(ValueError):
+            sedes_type(element_type, length)
+
+
+@pytest.mark.parametrize(
+    ("sedes_type", "length", "is_valid"),
+    (
+        (Bitlist, 0, True),
+        (Bitlist, -1, False),
+        (Bitvector, 1, True),
+        (Bitvector, 0, False),
+    ),
+)
+def test_bitfield_length_boundary(sedes_type, length, is_valid):
+    if is_valid:
+        sedes_type(length)
+    else:
+        with pytest.raises(ValueError):
+            sedes_type(length)

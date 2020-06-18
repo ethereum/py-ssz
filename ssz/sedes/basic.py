@@ -172,14 +172,6 @@ class ProperCompositeSedes(BaseProperCompositeSedes[TSerializable, TDeserialized
 class HomogeneousProperCompositeSedes(
     ProperCompositeSedes[TSerializable, TDeserialized]
 ):
-    def __init__(self, element_sedes: TSedes, max_length: int) -> None:
-        self.element_sedes = element_sedes
-        if max_length < 1:
-            raise ValueError(
-                f"(Maximum) length of homogenous composites must be at least 1, got {max_length}"
-            )
-        self.max_length = max_length
-
     def get_sedes_id(self) -> str:
         sedes_name = self.__class__.__name__
         return f"{sedes_name}({self.element_sedes.get_sedes_id()},{self.max_length})"

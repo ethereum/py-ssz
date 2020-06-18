@@ -20,7 +20,7 @@ BytesOrByteArray = Union[bytes, bytearray]
 class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def __init__(self, max_bit_count: int) -> None:
         if max_bit_count < 0:
-            raise TypeError("Max bit count cannot be negative")
+            raise ValueError(f"Max bit count cannot be negative, got {max_bit_count}")
         self.max_bit_count = max_bit_count
 
     #

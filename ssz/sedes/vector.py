@@ -28,9 +28,10 @@ class Vector(
     ]
 ):
     def __init__(self, element_sedes: TSedes, length: int) -> None:
-        if length <= 0:
+        if length < 1:
             raise ValueError(f"Vectors must have a size of 1 or greater, got {length}")
-        super().__init__(element_sedes, max_length=length)
+        self.element_sedes = element_sedes
+        self.max_length = length
 
     @property
     def length(self) -> int:
