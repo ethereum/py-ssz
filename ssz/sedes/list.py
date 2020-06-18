@@ -12,7 +12,7 @@ from ssz.constants import OFFSET_SIZE
 from ssz.exceptions import DeserializationError
 from ssz.hashable_list import HashableList
 from ssz.hashable_structure import BaseHashableStructure
-from ssz.sedes.base import BaseSedes
+from ssz.sedes.base import BaseSedes, TSedes
 from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
 from ssz.typing import CacheObj, TDeserialized, TSerializable
 from ssz.utils import (
@@ -30,6 +30,14 @@ TSedesPairs = Tuple[Tuple[BaseSedes[TSerializable, TDeserialized], TSerializable
 class List(
     HomogeneousProperCompositeSedes[Sequence[TSerializable], Tuple[TDeserialized, ...]]
 ):
+    def __init__(self, element_sedes: TSedes, max_length: int) -> None:
+        if max_length < 0:
+            raise ValueError(
+                f"Lists must have a maximum length of 0 or greater, got {max_length}"
+            )
+        self.element_sedes = element_sedes
+        self.max_length = max_length
+
     #
     # Size
     #
