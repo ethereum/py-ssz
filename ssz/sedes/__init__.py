@@ -8,6 +8,7 @@ from .bitlist import Bitlist  # noqa: F401
 from .bitvector import Bitvector  # noqa: F401
 from .boolean import Boolean, boolean  # noqa: F401
 from .byte import Byte, byte  # noqa: F401
+from .byte_list import ByteList  # noqa: F401
 from .byte_vector import (  # noqa: F401
     ByteVector,
     bytes1,

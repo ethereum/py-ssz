@@ -1,8 +1,10 @@
+from hypothesis import given
+from hypothesis import strategies as st
 import pytest
 
 import ssz
 from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes import ByteVector, Vector, byte
+from ssz.sedes import ByteList, ByteVector, List, Vector, byte
 
 
 @pytest.mark.parametrize(
@@ -19,6 +21,25 @@ def test_byte_invalid_length(value):
         ssz.encode(value, byte)
     with pytest.raises(DeserializationError):
         ssz.decode(value, byte)
+
+
+@given(st.binary(), st.booleans())
+def test_byte_list(value, same_size):
+    """Test that encoding and decoding work the same in ByteList and List[Byte]"""
+
+    byte_sequence = tuple(bytes([byte_value]) for byte_value in value)
+
+    if same_size:
+        max_length = len(value)
+    else:
+        max_length = len(value) + 1
+
+    byte_list = ByteList(max_length)
+
+    serialized_value = ssz.encode(value, byte_list)
+    expected_serialized = ssz.encode(byte_sequence, List(byte, max_length))
+    assert serialized_value == expected_serialized
+    assert ssz.decode(serialized_value, byte_list) == value
 
 
 @pytest.mark.parametrize("value", (b"\x00", b"\x00\x01\x02\x03"))
