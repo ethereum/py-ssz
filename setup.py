@@ -13,7 +13,12 @@ extras_require = {
         "mypy-extensions>=0.4.1,<1.0.0",
     ],
     "lint": ["flake8==3.7.8", "isort==4.3.21", "black==19.3b"],
-    "doc": ["Sphinx>=1.6.5,<2", "sphinx_rtd_theme>=0.1.9"],
+    "doc": [
+        "Sphinx>=1.6.5,<2",
+        "sphinx_rtd_theme>=0.1.9",
+        "Jinja2<3",
+        "MarkupSafe<2",
+    ],
     "dev": ["bumpversion>=0.5.3,<1", "wheel", "twine", "ipython", "pre-commit==1.18.3"],
 }
 
