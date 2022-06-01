@@ -31,8 +31,8 @@ lint:
 	tox -elint
 
 lint-roll:
-	black ssz tests scripts setup.py
-	isort --recursive ssz tests
+	isort scripts ssz tests
+	black scripts ssz tests setup.py
 	$(MAKE) lint
 
 test:

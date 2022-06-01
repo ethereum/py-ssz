@@ -16,7 +16,7 @@ extras_require = {
     "lint": [
         "black>=22.6.0,<23",
         "flake8==3.7.9",
-        "isort>=4.3.21,<5",
+        "isort>=5.10.1,<6",
         "pydocstyle>=5.0.0,<6",
     ],
     "doc": [
