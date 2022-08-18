@@ -8,8 +8,10 @@ extras_require = {
         "pytest-xdist>=2.4.0,<3",
         "tox==3.14.6",
         "hypothesis==4.54.0",
-        "ruamel.yaml==0.15.87",
         "mypy-extensions>=0.4.1,<1.0.0",
+    ],
+    "yaml": [
+        "ruamel.yaml==0.15.87",
     ],
     "lint": [
         "black>=22.6.0,<23",
@@ -39,6 +41,7 @@ extras_require["dev"] = (
     + extras_require["test"]
     + extras_require["lint"]
     + extras_require["doc"]
+    + extras_require["yaml"]
 )
 
 with open("./README.md") as readme:
