@@ -1,0 +1,1 @@
+Dropping official support for Python 3.6 (although it still worked as of the last test run).
