@@ -67,7 +67,7 @@ Released 2018-05-02
 - Fix equality of serializable objects - `#64 <https://github.com/ethereum/py-ssz/pull/64>`_
 - Add helpers to convert objects to and from a human readable representation -
   `#66 <https://github.com/ethereum/py-ssz/pull/66>`_
-- Cache hash tree root of serializable objects - `#68 https://github.com/ethereum/py-ssz/pull/68`_
+- Cache hash tree root of serializable objects - `#68 <https://github.com/ethereum/py-ssz/pull/68>`_
 
 
 v0.1.0-alpha.8

@@ -12,6 +12,7 @@ from .sedes import (  # noqa: F401
     Bitvector,
     Boolean,
     Byte,
+    ByteList,
     ByteVector,
     Container,
     List,

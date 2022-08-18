@@ -47,9 +47,10 @@ def update_element_in_chunk(
     replaces the element given by its index in the chunk with the given data.
 
     If the length of the element is zero or not a divisor of the chunk size, a `ValueError` is
-    raised. If the index is out of range, an `IndexError is raised.
+    raised. If the index is out of range, an `IndexError` is raised.
 
     Example:
+        >>> from ssz.hashable_structure import update_element_in_chunk
         >>> update_element_in_chunk(b"aabbcc", 1, b"xx")
         b'aaxxcc'
     """

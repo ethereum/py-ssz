@@ -13,7 +13,12 @@ extras_require = {
         "mypy-extensions>=0.4.1,<1.0.0",
     ],
     "lint": ["flake8==3.7.8", "isort==4.3.21", "black==19.3b"],
-    "doc": ["Sphinx>=1.6.5,<2", "sphinx_rtd_theme>=0.1.9"],
+    "doc": [
+        "Sphinx>=1.6.5,<2",
+        "sphinx_rtd_theme>=0.1.9",
+        "Jinja2<3",
+        "MarkupSafe<2",
+    ],
     "dev": ["bumpversion>=0.5.3,<1", "wheel", "twine", "ipython", "pre-commit==1.18.3"],
 }
 
@@ -24,12 +29,16 @@ extras_require["dev"] = (
     + extras_require["doc"]
 )
 
+with open('./README.md') as readme:
+    long_description = readme.read()
+
 setup(
     name="ssz",
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
     version="0.2.4",
     description="""ssz: Python implementation of the Simple Serialization encoding and decoding""",
-    long_description_markdown_filename="README.md",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     author="Jason Carver",
     author_email="ethcalibur+pip@gmail.com",
     url="https://github.com/ethereum/py-ssz",
@@ -41,7 +50,7 @@ setup(
         # `transform` expects has not changed (see https://github.com/tobgu/pyrsistent/issues/180)
         "pyrsistent>=0.16.0,<0.17",
     ],
-    setup_requires=["setuptools-markdown"],
+    setup_requires=[],
     python_requires=">=3.6, <4",
     extras_require=extras_require,
     py_modules=["ssz"],

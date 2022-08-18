@@ -39,31 +39,31 @@ jobs:
   doctest:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
         environment:
           TOXENV: doctest
   lint:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
         environment:
           TOXENV: lint
   py36:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
         environment:
           TOXENV: py36-core
   yaml:
     <<: *common
     docker:
-    - image: circleci/python:3.6
+    - image: cimg/python:3.6
       environment:
         TOXENV: yaml
   benchmark:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
         environment:
           TOXENV: benchmark
 workflows:
