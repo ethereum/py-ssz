@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 else:
     MM = MutableMapping
 
-DEFAULT_CACHE_SIZE = 2 ** 10
+DEFAULT_CACHE_SIZE = 2**10
 
 
 class SSZCache(MM):

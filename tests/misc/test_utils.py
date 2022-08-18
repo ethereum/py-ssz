@@ -65,7 +65,7 @@ def test_merkleize(chunks, root):
 
 @pytest.mark.parametrize(
     ("limit", "success"),
-    ((2 ** MAX_ZERO_HASHES_LAYER, True), (2 ** MAX_ZERO_HASHES_LAYER + 1, False)),
+    ((2**MAX_ZERO_HASHES_LAYER, True), (2**MAX_ZERO_HASHES_LAYER + 1, False)),
 )
 def test_merkleize_edge_case(limit, success):
     chunks = (A_CHUNK,)
@@ -81,7 +81,7 @@ def test_merkleize_edge_case(limit, success):
     (
         (A_CHUNK, 0, hash_eth2(A_CHUNK + b"\x00" * 32)),
         (B_CHUNK, 1, hash_eth2(B_CHUNK + b"\x01" + b"\x00" * 31)),
-        (C_CHUNK, 2 ** 256 - 1, hash_eth2(C_CHUNK + b"\xff" * 32)),
+        (C_CHUNK, 2**256 - 1, hash_eth2(C_CHUNK + b"\xff" * 32)),
     ),
 )
 def test_mix_in_length(root, length, result):

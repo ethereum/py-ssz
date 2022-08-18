@@ -112,7 +112,7 @@ def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
 
 @to_tuple
 def get_field_sedes_from_fields(
-    fields: Sequence[Field]
+    fields: Sequence[Field],
 ) -> Generator[BaseSedes, None, None]:
     for _, field in fields:
         if isinstance(field, BaseSedes):
@@ -232,7 +232,6 @@ if python_version_info[0] <= 3 and python_version_info[1] <= 6:
         GenericMetaHashableContainer, MetaSignedHashableContainer
     ):
         pass
-
 
 else:
     GenericMetaHashableContainer = MetaHashableContainer  # type: ignore

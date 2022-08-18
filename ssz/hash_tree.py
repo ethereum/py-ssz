@@ -274,7 +274,7 @@ def hash_layer(child_layer: RawHashTreeLayer, layer_index: int) -> RawHashTreeLa
 
 
 def generate_hash_tree_layers(
-    chunks: RawHashTreeLayer
+    chunks: RawHashTreeLayer,
 ) -> Generator[RawHashTreeLayer, None, None]:
     yield chunks
     previous_layer = chunks

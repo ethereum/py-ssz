@@ -20,10 +20,10 @@ def test_boolean(value, serialized):
         (16, 0, "0x0000"),
         (16, 256, "0x0001"),
         (16, 65536 - 1, "0xffff"),
-        (32, sum((i + 1) * 256 ** i for i in range(4)), "0x01020304"),
+        (32, sum((i + 1) * 256**i for i in range(4)), "0x01020304"),
         (256, 0, "0x" + "00" * 32),
-        (256, 0xAA * sum(256 ** i for i in range(32)), "0x" + "aa" * 32),
-        (256, 2 ** 256 - 1, "0x" + "ff" * 32),
+        (256, 0xAA * sum(256**i for i in range(32)), "0x" + "aa" * 32),
+        (256, 2**256 - 1, "0x" + "ff" * 32),
     ),
 )
 def test_uint(bit_length, value, serialized):

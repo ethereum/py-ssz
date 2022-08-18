@@ -58,7 +58,7 @@ def pad_zeros(value: bytes) -> bytes:
     return value.ljust(CHUNK_SIZE, b"\x00")
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
@@ -75,7 +75,7 @@ def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
         return full_chunks + (last_chunk,)
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
@@ -84,7 +84,7 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
     return to_chunks(data)
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
@@ -92,7 +92,7 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
     return to_chunks(byte_string)
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
     as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)

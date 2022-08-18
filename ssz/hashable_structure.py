@@ -274,7 +274,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return self.mset(index, value)
 
     def evolver(
-        self: TStructure
+        self: TStructure,
     ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
         return HashableStructureEvolver(self)
 
@@ -366,9 +366,7 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
             )
         ).extend(self._appended_elements)
         hash_tree = self._original_structure.hash_tree.mset(
-            *itertools.chain.from_iterable(  # type: ignore
-                updated_chunks.items()
-            )
+            *itertools.chain.from_iterable(updated_chunks.items())  # type: ignore
         ).extend(appended_chunks)
 
         return self._original_structure.__class__(

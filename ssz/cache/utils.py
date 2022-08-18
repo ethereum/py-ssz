@@ -15,7 +15,7 @@ def get_key(sedes, value: Any) -> str:
     return f"{sedes.get_sedes_id()}{key}"
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def get_base_key(sedes: TSedes, value: Any) -> bytes:
     return sedes.serialize(value)
 

@@ -12,7 +12,7 @@ extras_require = {
         "mypy-extensions>=0.4.1,<1.0.0",
     ],
     "lint": [
-        "black==19.3b",
+        "black>=22.6.0,<23",
         "flake8==3.7.9",
         "isort>=4.3.21,<5",
         "pydocstyle>=5.0.0,<6",
@@ -41,7 +41,7 @@ extras_require["dev"] = (
     + extras_require["doc"]
 )
 
-with open('./README.md') as readme:
+with open("./README.md") as readme:
     long_description = readme.read()
 
 
@@ -51,9 +51,9 @@ setup(
     version="0.2.4",
     description="""ssz: Python implementation of the Simple Serialization encoding and decoding""",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='The Ethereum Foundation',
-    author_email='snakecharmers@ethereum.org',
+    long_description_content_type="text/markdown",
+    author="The Ethereum Foundation",
+    author_email="snakecharmers@ethereum.org",
     url="https://github.com/ethereum/py-ssz",
     include_package_data=True,
     install_requires=[
@@ -71,7 +71,7 @@ setup(
     zip_safe=False,
     keywords="ethereum",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    package_data={'ssz': ['py.typed']},
+    package_data={"ssz": ["py.typed"]},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
