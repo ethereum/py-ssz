@@ -7,13 +7,9 @@
 [![Docs build](https://readthedocs.org/projects/ssz/badge/?version=latest)](http://ssz.readthedocs.io/en/latest/?badge=latest)
 
 
-<<<<<<< HEAD
 Python implementation of the Simple Serialization encoding and decoding
 
-Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [View the change log](https://ssz.readthedocs.io/en/latest/releases.html).
-=======
 Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [View the change log](https://ssz.readthedocs.io/en/latest/release_notes.html).
->>>>>>> template
 
 ## Quickstart
 
