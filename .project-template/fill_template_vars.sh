@@ -29,7 +29,8 @@ echo "What is a one-liner describing the project?"
 read SHORT_DESCRIPTION
 
 _replace() {
-  local find_cmd=(find "$PROJECT_ROOT" ! -perm -u=x ! -path '*/.git/*' -type f)
+  echo "Replacing values: $1"
+  local find_cmd=(find "$PROJECT_ROOT" ! -perm -u=x ! -path '*/.git/*' ! -path '*/venv*/*' -type f)
 
   if [[ $(uname) == Darwin ]]; then
     "${find_cmd[@]}" -exec sed -i '' "$1" {} +
@@ -46,3 +47,4 @@ _replace "s/<SHORT_DESCRIPTION>/$SHORT_DESCRIPTION/g"
 
 mkdir -p "$PROJECT_ROOT/$MODULE_NAME"
 touch "$PROJECT_ROOT/$MODULE_NAME/__init__.py"
+touch "$PROJECT_ROOT/$MODULE_NAME/py.typed"

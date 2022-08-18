@@ -41,7 +41,8 @@ TElement = TypeVar("TElement")
 def update_element_in_chunk(
     original_chunk: Hash32, index: int, element: bytes
 ) -> Hash32:
-    """Replace part of a chunk with a given element.
+    """
+    Replace part of a chunk with a given element.
 
     The chunk is interpreted as a concatenated sequence of equally sized elements. This function
     replaces the element given by its index in the chunk with the given data.
@@ -49,7 +50,8 @@ def update_element_in_chunk(
     If the length of the element is zero or not a divisor of the chunk size, a `ValueError` is
     raised. If the index is out of range, an `IndexError` is raised.
 
-    Example:
+    .. doctest::
+
         >>> from ssz.hashable_structure import update_element_in_chunk
         >>> update_element_in_chunk(b"aabbcc", 1, b"xx")
         b'aaxxcc'
@@ -75,7 +77,8 @@ def update_element_in_chunk(
 def update_elements_in_chunk(
     original_chunk: Hash32, updated_elements: Dict[int, bytes]
 ) -> Hash32:
-    """Update multiple elements in a chunk.
+    """
+    Update multiple elements in a chunk.
 
     The set of updates is given by a dictionary mapping indices to elements. The items of the
     dictionary will be passed one by one to `update_element_in_chunk`.
@@ -110,7 +113,8 @@ def get_updated_chunks(
     num_original_elements: int,
     num_padding_elements: int,
 ) -> Generator[Tuple[int, Hash32], None, None]:
-    """For an element changeset, compute the updates that have to be applied to the existing chunks.
+    """
+    For an element changeset, compute the updates that have to be applied to the existing chunks.
 
     The changeset is given as a dictionary of element indices to updated elements and a sequence of
     appended elements. Note that appended elements that do not affect existing chunks are ignored.
@@ -274,7 +278,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return self.mset(index, value)
 
     def evolver(
-        self: TStructure
+        self: TStructure,
     ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
         return HashableStructureEvolver(self)
 
@@ -366,9 +370,7 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
             )
         ).extend(self._appended_elements)
         hash_tree = self._original_structure.hash_tree.mset(
-            *itertools.chain.from_iterable(  # type: ignore
-                updated_chunks.items()
-            )
+            *itertools.chain.from_iterable(updated_chunks.items())  # type: ignore
         ).extend(appended_chunks)
 
         return self._original_structure.__class__(

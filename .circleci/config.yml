@@ -36,40 +36,76 @@ common: &common
         key: cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
 
 jobs:
-  doctest:
-    <<: *common
-    docker:
-      - image: cimg/python:3.6
-        environment:
-          TOXENV: doctest
-  lint:
-    <<: *common
-    docker:
-      - image: cimg/python:3.6
-        environment:
-          TOXENV: lint
-  py36:
-    <<: *common
-    docker:
-      - image: cimg/python:3.6
-        environment:
-          TOXENV: py36-core
   yaml:
     <<: *common
     docker:
-    - image: cimg/python:3.6
-      environment:
-        TOXENV: yaml
+      - image: cimg/python:3.6
+        environment:
+          TOXENV: yaml
   benchmark:
     <<: *common
     docker:
       - image: cimg/python:3.6
         environment:
           TOXENV: benchmark
+  docs:
+    <<: *common
+    docker:
+      - image: cimg/python:3.6
+        environment:
+          TOXENV: docs
+  lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.6
+        environment:
+          TOXENV: lint
+  py36-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.6
+        environment:
+          TOXENV: py36-core
+  py37-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.7
+        environment:
+          TOXENV: py37-core
+  py38-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.8
+        environment:
+          TOXENV: py38-core
+  py39-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-core
+  py310-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-core
+  pypy3-core:
+    <<: *common
+    docker:
+      - image: pypy
+        environment:
+          TOXENV: pypy3-core
+
 workflows:
   version: 2
   test:
     jobs:
-      - doctest
+      - docs
       - lint
-      - py36
+      - py36-core
+      - py37-core
+      - py38-core
+      - py39-core
+      - py310-core
+      - pypy3-core

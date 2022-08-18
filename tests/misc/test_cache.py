@@ -10,7 +10,7 @@ class Foo(Serializable):
 
 @pytest.fixture
 def foo_with_db():
-    return Foo(field1=10, field2=b"\x12" * 32, cache=SSZCache(cache_size=2 ** 10))
+    return Foo(field1=10, field2=b"\x12" * 32, cache=SSZCache(cache_size=2**10))
 
 
 @pytest.fixture

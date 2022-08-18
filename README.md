@@ -7,9 +7,13 @@
 [![Docs build](https://readthedocs.org/projects/ssz/badge/?version=latest)](http://ssz.readthedocs.io/en/latest/?badge=latest)
 
 
+<<<<<<< HEAD
 Python implementation of the Simple Serialization encoding and decoding
 
 Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [View the change log](https://ssz.readthedocs.io/en/latest/releases.html).
+=======
+Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [View the change log](https://ssz.readthedocs.io/en/latest/release_notes.html).
+>>>>>>> template
 
 ## Quickstart
 
@@ -19,8 +23,8 @@ pip install ssz
 
 ## Developer Setup
 
-If you would like to hack on py-ssz, please check out the
-[Ethereum Development Tactical Manual](https://github.com/pipermerriam/ethereum-dev-tactical-manual)
+If you would like to hack on py-ssz, please check out the [Snake Charmers
+Tactical Manual](https://github.com/ethereum/snake-charmers-tactical-manual)
 for information on how we do:
 
 - Testing
@@ -88,9 +92,7 @@ The version format for this repo is `{major}.{minor}.{patch}` for stable, and
 To issue the next version in line, specify which part to bump,
 like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
 master branch, except when releasing a beta (in which case the beta is released from master,
-and the previous stable branch is released from said branch). To include changes made with each
-release, update "docs/releases.rst" with the changes, and apply commit directly to master
-before release.
+and the previous stable branch is released from said branch).
 
 If you are in a beta version, `make release bump=stage` will switch to a stable.
 

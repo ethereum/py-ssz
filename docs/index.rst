@@ -10,7 +10,7 @@ Contents
     :maxdepth: 3
 
     ssz
-    releases
+    release_notes
 
 
 Indices and tables

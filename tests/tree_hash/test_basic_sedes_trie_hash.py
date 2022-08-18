@@ -12,7 +12,7 @@ from ssz.utils import pad_zeros
 def uint_and_value_strategy(draw):
     num_bits = 8 * 2 ** draw(st.integers(min_value=0, max_value=5))
     uint = UInt(num_bits)
-    value = draw(st.integers(min_value=0, max_value=2 ** num_bits - 1))
+    value = draw(st.integers(min_value=0, max_value=2**num_bits - 1))
     return uint, value
 
 

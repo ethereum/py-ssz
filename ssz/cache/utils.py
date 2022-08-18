@@ -15,7 +15,7 @@ def get_key(sedes, value: Any) -> str:
     return f"{sedes.get_sedes_id()}{key}"
 
 
-@functools.lru_cache(maxsize=2 ** 12)
+@functools.lru_cache(maxsize=2**12)
 def get_base_key(sedes: TSedes, value: Any) -> bytes:
     return sedes.serialize(value)
 
@@ -33,7 +33,9 @@ def get_merkle_leaves_with_cache(
     value: Any, element_sedes: TSedes, cache: CacheObj
 ) -> Iterable[Hash32]:
     """
-    NOTE: cache is mutable
+    Generate the merkle leaves for every element in `value`, from the cache.
+
+    NOTE: cache will be mutated when any new merkle leaves are generated.
     """
     for element in value:
         key = element_sedes.get_key(element)

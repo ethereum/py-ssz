@@ -87,7 +87,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
 
     @abstractmethod
     def evolver(
-        self: TStructure
+        self: TStructure,
     ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
         ...
 
@@ -111,7 +111,7 @@ class ResizableHashableStructureAPI(HashableStructureAPI[TElement]):
 
     @abstractmethod
     def evolver(
-        self: TStructure
+        self: TStructure,
     ) -> "ResizableHashableStructureEvolverAPI[TStructure, TElement]":
         ...
 

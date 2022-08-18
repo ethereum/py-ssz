@@ -26,8 +26,8 @@ do_profiling = True
 
 TOLERABLE_PERFORMANCE = 15  # Seconds
 
-VALIDATOR_REGISTRY_LIMIT = 2 ** 40  # (= 1,099,511,627,776)
-EPOCHS_PER_HISTORICAL_VECTOR = 2 ** 16  # (= 65,536)
+VALIDATOR_REGISTRY_LIMIT = 2**40  # (= 1,099,511,627,776)
+EPOCHS_PER_HISTORICAL_VECTOR = 2**16  # (= 65,536)
 
 FAR_FUTURE_EPOCH = 0
 
@@ -252,7 +252,7 @@ def make_state_hashable(num_validators):
 
 
 def prepare_state_benchmark():
-    num_validators = 2 ** 17
+    num_validators = 2**17
     state = make_state(num_validators)
     print("state.hash_tree_root\t", state.hash_tree_root.hex())
     index = 100
@@ -291,7 +291,7 @@ def prepare_state_benchmark():
 
 
 def prepare_state_benchmark_hashable():
-    num_validators = 2 ** 17
+    num_validators = 2**17
     state = make_state_hashable(num_validators)
     print("state.hash_tree_root\t", state.root.hex())
     index = 100

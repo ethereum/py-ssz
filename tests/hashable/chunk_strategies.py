@@ -5,7 +5,7 @@ from ssz.hash_tree import HashTree
 
 
 def chunk_count_st():
-    return st.one_of(st.none(), st.integers(min_value=1, max_value=2 ** 5))
+    return st.one_of(st.none(), st.integers(min_value=1, max_value=2**5))
 
 
 def chunk_st():
@@ -13,7 +13,7 @@ def chunk_st():
 
 
 def element_size_st():
-    return st.builds(lambda power: 2 ** power, st.integers(min_value=0, max_value=5))
+    return st.builds(lambda power: 2**power, st.integers(min_value=0, max_value=5))
 
 
 @st.composite

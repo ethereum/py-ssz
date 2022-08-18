@@ -51,7 +51,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "py-ssz"
-copyright = "2018, Jason Carver, Piper Merriam"
+copyright = "2020, The Ethereum Foundation"
 
 __version__ = setup_version
 # The version info for the project you're documenting, acts as replacement for
@@ -201,7 +201,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ("index", "ssz.tex", "py-ssz Documentation", "Jason Carver", "manual")
+    ("index", "ssz.tex", "py-ssz Documentation", "The Ethereum Foundation", "manual")
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -229,7 +229,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "ssz", "py-ssz Documentation", ["Jason Carver"], 1)]
+man_pages = [("index", "ssz", "py-ssz Documentation", ["The Ethereum Foundation"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -245,7 +245,7 @@ texinfo_documents = [
         "index",
         "py-ssz",
         "py-ssz Documentation",
-        "Jason Carver",
+        "The Ethereum Foundation",
         "py-ssz",
         "Python implementation of the Simple Serialization encoding and decoding",
         "Miscellaneous",
