@@ -10,6 +10,8 @@ from ssz.hashable_vector import HashableVector
 from ssz.sedes import (
     Bitlist,
     Bitvector,
+    ByteList,
+    ByteVector,
     Container,
     List,
     UInt,
@@ -193,6 +195,23 @@ def test_homogeneous_sequence_length_boundary(
     else:
         with pytest.raises(ValueError):
             sedes_type(element_type, length)
+
+
+@pytest.mark.parametrize(
+    ("sedes_type", "length", "is_valid"),
+    (
+        (ByteList, 0, True),
+        (ByteList, -1, False),
+        (ByteVector, 1, True),
+        (ByteVector, 0, False),
+    ),
+)
+def test_byte_sequence_length_boundary(sedes_type, length, is_valid):
+    if is_valid:
+        sedes_type(length)
+    else:
+        with pytest.raises(ValueError):
+            sedes_type(length)
 
 
 @pytest.mark.parametrize(
