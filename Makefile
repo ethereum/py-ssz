@@ -31,6 +31,7 @@ lint:
 	tox -elint
 
 lint-roll:
+	black ssz tests scripts setup.py
 	isort --recursive ssz tests
 	$(MAKE) lint
 
@@ -41,7 +42,7 @@ test-all:
 	tox
 
 build-docs:
-	sphinx-apidoc -o docs/ . setup.py "*conftest*"
+	sphinx-apidoc -o docs/ . setup.py "*conftest*" "tests/"
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(MAKE) -C docs doctest

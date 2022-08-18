@@ -1,0 +1,1 @@
+Upgrade black to a stable version, and pass newest style checks

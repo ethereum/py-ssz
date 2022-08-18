@@ -1,0 +1,1 @@
+Reject empty bytes at the end of a bitlist as invalid
