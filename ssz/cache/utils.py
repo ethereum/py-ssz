@@ -33,7 +33,9 @@ def get_merkle_leaves_with_cache(
     value: Any, element_sedes: TSedes, cache: CacheObj
 ) -> Iterable[Hash32]:
     """
-    NOTE: cache is mutable
+    Generate the merkle leaves for every element in `value`, from the cache.
+
+    NOTE: cache will be mutated when any new merkle leaves are generated.
     """
     for element in value:
         key = element_sedes.get_key(element)

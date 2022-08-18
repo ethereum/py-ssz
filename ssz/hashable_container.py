@@ -90,7 +90,8 @@ class Meta(NamedTuple):
 
 
 def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
-    """Return the meta object defined by one of the given base classes.
+    """
+    Return the meta object defined by one of the given base classes.
 
     Returns None if no base defines a meta object. Raises a TypeError if more than one do.
     """
@@ -329,7 +330,8 @@ class HashableContainer(
 
 
 class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
-    """Base class for evolvers for hashable containers.
+    """
+    Base class for evolvers for hashable containers.
 
     Subclasses (created dynamically by MetaHashableContainer when creating the corresponding
     HashableContainer) should add settable field descriptors for all fields.
