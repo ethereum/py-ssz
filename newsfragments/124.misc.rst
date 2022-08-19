@@ -1,3 +1,0 @@
-Run black autoformat, as part of ``make lint-roll``. Added some tests to check length validation of
-:class:`~ssz.sedes.byte_list.ByteList` and :class:`~ssz.sedes.byte_vector.ByteVector`. When
-generating website docs from docstrings, skip tests.

@@ -1,1 +1,0 @@
-Enforce that vector types must have a maximum length of 1 or more, and lists may have a 0 max length
