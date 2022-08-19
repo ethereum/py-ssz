@@ -16,7 +16,7 @@ extras_require = {
     "lint": [
         "black>=22.6.0,<23",
         "flake8==3.7.9",
-        "isort>=4.3.21,<5",
+        "isort>=5.10.1,<6",
         "pydocstyle>=5.0.0,<6",
     ],
     "doc": [
@@ -67,7 +67,7 @@ setup(
         "pyrsistent>=0.16.0,<0.17",
     ],
     setup_requires=[],
-    python_requires=">=3.6, <4",
+    python_requires=">=3.7, <4",
     extras_require=extras_require,
     py_modules=["ssz"],
     license="MIT",
@@ -83,7 +83,6 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
