@@ -13,8 +13,8 @@ class ByteList(List[BytesOrByteArray, bytes]):
     Equivalent to `List(byte, size)` but more convenient & efficient.
 
     When encoding a series of bytes, List(byte, ...) requires an awkward input
-    shaped like: ``(b'A', b'B', b'C')``. `ByteList` accepts a simple `bytes`
-    object like ``b'ABC'`` for encoding.
+    shaped like: ``(b'A', b'B', b'C')``. `ByteList` accepts a simple
+    :class:`bytes` object like ``b'ABC'`` for encoding.
     """
 
     def __init__(self, max_length: int) -> None:

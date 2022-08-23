@@ -1,3 +1,0 @@
-Add a :class:`~ssz.sedes.byte_list.ByteList` sedes that is more convenient and more performant. With
-ByteList, the caller can decode a :class:`bytes` object, rather than passing in a list of
-single-byte elements.

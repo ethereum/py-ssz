@@ -1,1 +1,0 @@
-Reject vectors and bitvectors of length 0 as invalid, as defined in the spec.
