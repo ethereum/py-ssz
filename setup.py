@@ -51,7 +51,7 @@ with open("./README.md") as readme:
 setup(
     name="ssz",
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version="0.2.4",
+    version="0.3.0",
     description="""ssz: Python implementation of the Simple Serialization encoding and decoding""",
     long_description=long_description,
     long_description_content_type="text/markdown",
