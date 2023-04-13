@@ -1,6 +1,6 @@
 [tool.towncrier]
-# Read https://github.com/ethereum/<REPO_NAME>/blob/master/newsfragments/README.md for instructions
-package = "<MODULE_NAME>"
+# Read https://github.com/ethereum/py-ssz/blob/master/newsfragments/README.md for instructions
+package = "ssz"
 filename = "docs/release_notes.rst"
 directory = "newsfragments"
 underlines = ["-", "~", "^"]
