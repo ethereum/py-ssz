@@ -56,7 +56,6 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     #
     @to_tuple
     def deserialize(self, data: bytes) -> Tuple[bool, ...]:
-
         # Length of data should be larger than 1
         if len(data) < 1:
             raise DeserializationError(

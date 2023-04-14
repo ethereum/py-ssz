@@ -13,7 +13,7 @@ extras_require = {
         "flake8==3.7.9",
         "isort>=5.10.1,<6",
         "pydocstyle>=6.0.0",
-        "black>=22",
+        "black>=23",
     ],
     "doc": [
         "sphinx>=5.0.0",
@@ -30,7 +30,7 @@ extras_require = {
         "ipython",
     ],
     "yaml": [
-        "ruamel.yaml>=17.0.0",
+        "ruamel.yaml>=0.17.0",
     ],
 }
 
