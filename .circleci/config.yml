@@ -102,6 +102,18 @@ jobs:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-core
+  py311-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-lint
+  py311-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-core
 
 workflows:
   version: 2
@@ -112,7 +124,9 @@ workflows:
       - py38-lint
       - py39-lint
       - py310-lint
+      - py311-lint
       - py37-core
       - py38-core
       - py39-core
       - py310-core
+      - py311-core
