@@ -19,7 +19,7 @@ common: &common
         when: on_fail
     - restore_cache:
         keys:
-          - cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
+          - cache-v1-{{ arch  }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
     - run:
         name: install dependencies
         command: pip install --user tox
@@ -33,7 +33,7 @@ common: &common
           - ~/.cache/pip
           - ~/.local
           - ./eggs
-        key: cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
+        key: cache-v1-{{ arch  }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
 
 jobs:
   yaml:
@@ -45,7 +45,7 @@ jobs:
   benchmark:
     <<: *common
     docker:
-      - image: cimg/python:3.7
+      - image: cimg/python:3.8
         environment:
           TOXENV: benchmark
   docs:
@@ -54,51 +54,65 @@ jobs:
       - image: cimg/python:3.8
         environment:
           TOXENV: docs
-  lint:
+  py37-lint:
     <<: *common
     docker:
       - image: cimg/python:3.7
         environment:
-          TOXENV: lint
+          TOXENV: py37-lint
   py37-core:
     <<: *common
     docker:
       - image: cimg/python:3.7
         environment:
           TOXENV: py37-core
+  py38-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.8
+        environment:
+          TOXENV: py38-lint
   py38-core:
     <<: *common
     docker:
       - image: cimg/python:3.8
         environment:
           TOXENV: py38-core
+  py39-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-lint
   py39-core:
     <<: *common
     docker:
       - image: cimg/python:3.9
         environment:
           TOXENV: py39-core
+  py310-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-lint
   py310-core:
     <<: *common
     docker:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-core
-  pypy3-core:
-    <<: *common
-    docker:
-      - image: pypy
-        environment:
-          TOXENV: pypy3-core
 
 workflows:
   version: 2
   test:
     jobs:
       - docs
-      - lint
+      - py37-lint
+      - py38-lint
+      - py39-lint
+      - py310-lint
       - py37-core
       - py38-core
       - py39-core
       - py310-core
-      - pypy3-core
