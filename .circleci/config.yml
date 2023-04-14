@@ -19,13 +19,13 @@ common: &common
         when: on_fail
     - restore_cache:
         keys:
-          - cache-v1-{{ arch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
+          - cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
     - run:
         name: install dependencies
         command: pip install --user tox
     - run:
         name: run tox
-        command: python -m tox -r
+        command: ~/.local/bin/tox -r
     - save_cache:
         paths:
           - .hypothesis
@@ -33,13 +33,13 @@ common: &common
           - ~/.cache/pip
           - ~/.local
           - ./eggs
-        key: cache-v1-{{ arch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
+        key: cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
 
 jobs:
   yaml:
     <<: *common
     docker:
-      - image: cimg/python:3.7
+      - image: cimg/python:3.8
         environment:
           TOXENV: yaml
   benchmark:
@@ -54,79 +54,51 @@ jobs:
       - image: cimg/python:3.8
         environment:
           TOXENV: docs
-  py37-lint:
+  lint:
     <<: *common
     docker:
       - image: cimg/python:3.7
         environment:
-          TOXENV: py37-lint
+          TOXENV: lint
   py37-core:
     <<: *common
     docker:
       - image: cimg/python:3.7
         environment:
           TOXENV: py37-core
-  py38-lint:
-    <<: *common
-    docker:
-      - image: cimg/python:3.8
-        environment:
-          TOXENV: py38-lint
   py38-core:
     <<: *common
     docker:
       - image: cimg/python:3.8
         environment:
           TOXENV: py38-core
-  py39-lint:
-    <<: *common
-    docker:
-      - image: cimg/python:3.9
-        environment:
-          TOXENV: py39-lint
   py39-core:
     <<: *common
     docker:
       - image: cimg/python:3.9
         environment:
           TOXENV: py39-core
-  py310-lint:
-    <<: *common
-    docker:
-      - image: cimg/python:3.10
-        environment:
-          TOXENV: py310-lint
   py310-core:
     <<: *common
     docker:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-core
-  py311-lint:
+  pypy3-core:
     <<: *common
     docker:
-      - image: cimg/python:3.11
+      - image: pypy
         environment:
-          TOXENV: py311-lint
-  py311-core:
-    <<: *common
-    docker:
-      - image: cimg/python:3.11
-        environment:
-          TOXENV: py311-core
+          TOXENV: pypy3-core
 
 workflows:
   version: 2
   test:
     jobs:
       - docs
-      - py37-lint
-      - py38-lint
-      - py39-lint
-      - py310-lint
-      - py311-lint
+      - lint
       - py37-core
       - py38-core
       - py39-core
       - py310-core
-      - py311-core
+      - pypy3-core

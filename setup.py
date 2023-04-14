@@ -7,16 +7,11 @@ extras_require = {
         "pytest>=7.0.0",
         "pytest-xdist>=2.4.0",
         "hypothesis==4.54.0",
-        "mypy-extensions>=0.4.1,<1.0.0",
-    ],
-    "yaml": [
-        "ruamel.yaml==0.15.87",
+        "mypy-extensions>=0.4.1",
     ],
     "lint": [
-        "flake8==6.0.0",  # flake8 claims semver but adds new warnings at minor releases, leave it pinned.
-        "flake8-bugbear==23.3.23",  # flake8-bugbear does not follow semver, leave it pinned.
-        "isort>=5.10.1",
-        "mypy==0.971",  # mypy does not follow semver, leave it pinned.
+        "flake8==3.7.9",
+        "isort>=5.10.1,<6",
         "pydocstyle>=6.0.0",
         "black>=22",
     ],
@@ -33,8 +28,9 @@ extras_require = {
         "wheel",
         "twine",
         "ipython",
-        "pre-commit==1.18.3",
-        "pytest-watch>=4.1.0,<5",
+    ],
+    "yaml": [
+        "ruamel.yaml>=17.0.0",
     ],
 }
 
@@ -69,7 +65,7 @@ setup(
         "pyrsistent>=0.16.0,<0.17",
     ],
     setup_requires=[],
-    python_requires=">=3.7.2, <4",
+    python_requires=">=3.7, <4",
     extras_require=extras_require,
     py_modules=["ssz"],
     license="MIT",
@@ -82,11 +78,13 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: Implementation :: PyPy",
     ],
 )
