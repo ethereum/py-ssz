@@ -65,7 +65,7 @@ setup(
         "pyrsistent>=0.16.0,<0.17",
     ],
     setup_requires=[],
-    python_requires=">=3.7.2, <4",
+    python_requires=">=3.7, <4",
     extras_require=extras_require,
     py_modules=["ssz"],
     license="MIT",
