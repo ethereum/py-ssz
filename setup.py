@@ -58,7 +58,7 @@ setup(
     url="https://github.com/ethereum/py-ssz",
     include_package_data=True,
     install_requires=[
-        "eth-utils>=1,<2",
+        "eth-utils>=2",
         "lru-dict>=1.1.6",
         # When updating to a newer version of pyrsistent, please check that the interface
         # `transform` expects has not changed (see https://github.com/tobgu/pyrsistent/issues/180)
