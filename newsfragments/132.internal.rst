@@ -1,0 +1,1 @@
+bump eth-utils requirement version to >=2
