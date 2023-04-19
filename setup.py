@@ -4,35 +4,33 @@ from setuptools import find_packages, setup
 
 extras_require = {
     "test": [
-        "pytest>=6.2.5,<7",
-        "pytest-xdist>=2.4.0,<3",
-        "tox==3.14.6",
+        "pytest>=7.0.0",
+        "pytest-xdist>=2.4.0",
         "hypothesis==4.54.0",
-        "mypy-extensions>=0.4.1,<1.0.0",
-    ],
-    "yaml": [
-        "ruamel.yaml==0.15.87",
+        "mypy-extensions>=0.4.1",
     ],
     "lint": [
-        "black>=22.6.0,<23",
         "flake8==3.7.9",
         "isort>=5.10.1,<6",
-        "pydocstyle>=5.0.0,<6",
+        "pydocstyle>=6.0.0",
+        "black>=23",
     ],
     "doc": [
-        "Sphinx>=1.6.5,<2",
-        "sphinx_rtd_theme>=0.1.9,<1",
-        "Jinja2<3",
-        "MarkupSafe<2",
+        "sphinx>=5.0.0",
+        "sphinx_rtd_theme>=1.0.0",
         "towncrier>=21,<22",
     ],
     "dev": [
-        "bumpversion>=0.5.3,<1",
+        "bumpversion>=0.5.3",
+        "pytest-watch>=4.1.0",
+        "tox>=4.0.0",
+        "build>=0.9.0",
         "wheel",
         "twine",
         "ipython",
-        "pre-commit==1.18.3",
-        "pytest-watch>=4.1.0,<5",
+    ],
+    "yaml": [
+        "ruamel.yaml>=0.17.0",
     ],
 }
 
@@ -80,13 +78,11 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Operating System :: MacOS",
-        "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: Implementation :: PyPy",
+        "Programming Language :: Python :: 3.11",
     ],
 )

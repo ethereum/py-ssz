@@ -35,7 +35,6 @@ USE_SSZ_CACHE = True
 
 
 class BeaconBlockHeader(ssz.SignedSerializable):
-
     fields = [
         ("slot", uint64),
         ("parent_root", bytes32),
@@ -46,7 +45,6 @@ class BeaconBlockHeader(ssz.SignedSerializable):
 
 
 class Eth1Data(ssz.Serializable):
-
     fields = [
         ("deposit_root", bytes32),
         ("deposit_count", uint64),
