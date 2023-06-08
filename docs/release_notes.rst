@@ -3,6 +3,16 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.3.1 (2023-06-08)
+--------------------------
+
+Internal Changes - for py-ssz Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- pull in most project template updates (`#128 <https://github.com/ethereum/py-ssz/issues/128>`__)
+- bump eth-utils requirement version to >=2 (`#132 <https://github.com/ethereum/py-ssz/issues/132>`__)
+
+
 py-ssz v0.3.0 (2022-08-19)
 --------------------------
 
