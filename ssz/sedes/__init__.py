@@ -1,15 +1,36 @@
-from collections.abc import Iterable
+from collections.abc import (
+    Iterable,
+)
 
-from ssz.abc import HashableStructureAPI
+from ssz.abc import (
+    HashableStructureAPI,
+)
 
-from .base import BaseSedes  # noqa: F401
-from .basic import BasicSedes, ProperCompositeSedes  # noqa: F401
-from .bitlist import Bitlist  # noqa: F401
-from .bitvector import Bitvector  # noqa: F401
-from .boolean import Boolean, boolean  # noqa: F401
-from .byte import Byte, byte  # noqa: F401
-from .byte_list import ByteList  # noqa: F401
-from .byte_vector import (  # noqa: F401
+from .base import (
+    BaseSedes,
+)
+from .basic import (
+    BasicSedes,
+    ProperCompositeSedes,
+)
+from .bitlist import (
+    Bitlist,
+)
+from .bitvector import (
+    Bitvector,
+)
+from .boolean import (
+    Boolean,
+    boolean,
+)
+from .byte import (
+    Byte,
+    byte,
+)
+from .byte_list import (
+    ByteList,
+)
+from .byte_vector import (
     ByteVector,
     bytes1,
     bytes4,
@@ -17,12 +38,30 @@ from .byte_vector import (  # noqa: F401
     bytes48,
     bytes96,
 )
-from .container import Container  # noqa: F401
-from .list import List  # noqa: F401
-from .serializable import Serializable  # noqa: F401
-from .signed_serializable import SignedSerializable  # noqa: F401
-from .uint import UInt, uint8, uint16, uint32, uint64, uint128, uint256  # noqa: F401
-from .vector import Vector  # noqa: F401
+from .container import (
+    Container,
+)
+from .list import (
+    List,
+)
+from .serializable import (
+    Serializable,
+)
+from .signed_serializable import (
+    SignedSerializable,
+)
+from .uint import (
+    UInt,
+    uint8,
+    uint16,
+    uint32,
+    uint64,
+    uint128,
+    uint256,
+)
+from .vector import (
+    Vector,
+)
 
 sedes_by_name = {
     "bool": boolean,

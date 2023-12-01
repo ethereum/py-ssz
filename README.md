@@ -6,7 +6,6 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/ssz.svg)](https://pypi.python.org/pypi/ssz)
 [![Docs build](https://readthedocs.org/projects/ssz/badge/?version=latest)](https://ssz.readthedocs.io/en/latest/?badge=latest)
 
-
 Python implementation of the Simple Serialization encoding and decoding
 
 Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [View the change log](https://ssz.readthedocs.io/en/latest/release_notes.html).

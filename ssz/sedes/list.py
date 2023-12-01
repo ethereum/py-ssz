@@ -1,20 +1,51 @@
-from typing import IO, Any, Iterable, Sequence, Tuple
+from typing import (
+    IO,
+    Any,
+    Iterable,
+    Sequence,
+    Tuple,
+)
 
-from eth_typing import Hash32
-from eth_utils import to_tuple
-from eth_utils.toolz import cons, sliding_window
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_tuple,
+)
+from eth_utils.toolz import (
+    cons,
+    sliding_window,
+)
 
 from ssz.cache.utils import (
     get_merkle_leaves_with_cache,
     get_merkle_leaves_without_cache,
 )
-from ssz.constants import OFFSET_SIZE
-from ssz.exceptions import DeserializationError
-from ssz.hashable_list import HashableList
-from ssz.hashable_structure import BaseHashableStructure
-from ssz.sedes.base import BaseSedes, TSedes
-from ssz.sedes.basic import BasicSedes, HomogeneousProperCompositeSedes
-from ssz.typing import CacheObj, TDeserialized, TSerializable
+from ssz.constants import (
+    OFFSET_SIZE,
+)
+from ssz.exceptions import (
+    DeserializationError,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_structure import (
+    BaseHashableStructure,
+)
+from ssz.sedes.base import (
+    BaseSedes,
+    TSedes,
+)
+from ssz.sedes.basic import (
+    BasicSedes,
+    HomogeneousProperCompositeSedes,
+)
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
+)
 from ssz.utils import (
     merkleize,
     merkleize_with_cache,
@@ -103,7 +134,8 @@ class List(
                 element_data = read_exact(element_length, stream)
                 yield self.element_sedes.deserialize(element_data)
 
-            # simply reading to the end of the current stream gives us all of the final element data
+            # simply reading to the end of the current stream gives us all of the final
+            # element data
             final_element_data = stream.read()
             yield self.element_sedes.deserialize(final_element_data)
 

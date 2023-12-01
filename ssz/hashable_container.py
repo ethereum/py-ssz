@@ -1,6 +1,7 @@
-from abc import ABCMeta
+from abc import (
+    ABCMeta,
+)
 import math
-import sys
 from typing import (
     Any,
     Dict,
@@ -14,24 +15,52 @@ from typing import (
     Union,
 )
 
-from eth_typing import Hash32
-from eth_utils import to_dict, to_tuple
-from eth_utils.toolz import merge
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_dict,
+    to_tuple,
+)
+from eth_utils.toolz import (
+    merge,
+)
 
-from ssz.constants import FIELDS_META_ATTR, SIGNATURE_FIELD_NAME, ZERO_HASHES
-from ssz.hashable_list import HashableList
-from ssz.hashable_structure import BaseHashableStructure, HashableStructureEvolver
-from ssz.hashable_vector import HashableVector
-from ssz.sedes import ByteVector, List, Vector
-from ssz.sedes.base import BaseSedes
-from ssz.sedes.container import Container
+from ssz.constants import (
+    FIELDS_META_ATTR,
+    SIGNATURE_FIELD_NAME,
+    ZERO_HASHES,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_structure import (
+    BaseHashableStructure,
+    HashableStructureEvolver,
+)
+from ssz.hashable_vector import (
+    HashableVector,
+)
+from ssz.sedes import (
+    ByteVector,
+    List,
+    Vector,
+)
+from ssz.sedes.base import (
+    BaseSedes,
+)
+from ssz.sedes.container import (
+    Container,
+)
 
 TStructure = TypeVar("TStructure", bound="HashableContainer")
 TElement = TypeVar("TElement")
 
 
 class FieldDescriptor:
-    """Descriptor translating from __getattr__ to __getitem__ calls for a given attribute."""
+    """
+    Descriptor translating from __getattr__ to __getitem__ calls for a given attribute.
+    """
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -71,7 +100,8 @@ class Meta(NamedTuple):
             field_name: index for index, field_name in enumerate(field_names)
         }
 
-        # create subclass of HashableEvolver that has a settable descriptor for each field
+        # create subclass of HashableEvolver that has a settable descriptor for
+        # each field
         settable_field_descriptors = {
             field_name: SettableFieldDescriptor(field_name)
             for field_name in field_names
@@ -93,7 +123,8 @@ def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
     """
     Return the meta object defined by one of the given base classes.
 
-    Returns None if no base defines a meta object. Raises a TypeError if more than one do.
+    Returns None if no base defines a meta object.
+    Raises a TypeError if more than one do.
     """
     container_bases = tuple(
         base for base in bases if isinstance(base, MetaHashableContainer)
@@ -120,7 +151,8 @@ def get_field_sedes_from_fields(
             yield field
         else:
             raise TypeError(
-                f"Field must either be a sedes object or a hashable container, got {field}"
+                "Field must either be a sedes object or a hashable container, got "
+                f"{field}"
             )
 
 
@@ -136,8 +168,8 @@ class MetaHashableContainer(ABCMeta):
             field_sedes = get_field_sedes_from_fields(fields)
             if not fields:
                 raise TypeError(
-                    "HashableContainer must either define a non-zero number of fields or not "
-                    "define any, but not an empty set."
+                    "HashableContainer must either define a non-zero number of fields "
+                    "or not define any, but not an empty set."
                 )
             container_sedes = Container(field_sedes)
         else:
@@ -207,11 +239,11 @@ class MetaSignedHashableContainer(MetaHashableContainer):
         # check that the signature conventions are abided by
         if cls._meta is not None:
             if len(cls._meta.fields) < 2:
-                raise TypeError(f"Signed containers need to have at least two fields")
+                raise TypeError("Signed containers need to have at least two fields")
             if cls._meta.fields[-1][0] != SIGNATURE_FIELD_NAME:
                 raise TypeError(
-                    f"Last field of signed container must be {SIGNATURE_FIELD_NAME}, but is "
-                    f"{cls._meta.fields[-1][0]}"
+                    f"Last field of signed container must be {SIGNATURE_FIELD_NAME}, "
+                    f"but is {cls._meta.fields[-1][0]}"
                 )
 
         return cls
@@ -221,22 +253,8 @@ BaseSedes.register(MetaHashableContainer)
 BaseSedes.register(MetaSignedHashableContainer)
 
 
-# workaround for https://github.com/python/typing/issues/449 (fixed in python 3.7)
-python_version_info = sys.version_info
-if python_version_info[0] <= 3 and python_version_info[1] <= 6:
-    from typing import GenericMeta
-
-    class GenericMetaHashableContainer(GenericMeta, MetaHashableContainer):
-        pass
-
-    class GenericMetaSignedHashableContainer(
-        GenericMetaHashableContainer, MetaSignedHashableContainer
-    ):
-        pass
-
-else:
-    GenericMetaHashableContainer = MetaHashableContainer  # type: ignore
-    GenericMetaSignedHashableContainer = MetaSignedHashableContainer  # type: ignore
+GenericMetaHashableContainer = MetaHashableContainer
+GenericMetaSignedHashableContainer = MetaSignedHashableContainer
 
 
 def hashablify_value(value: Any, sedes: BaseSedes) -> Any:
@@ -289,11 +307,12 @@ class HashableContainer(
 
         if missing_keys:
             raise ValueError(
-                f"The following keyword arguments are missing: {', '.join(sorted(missing_keys))}"
+                "The following keyword arguments are missing: "
+                f"{', '.join(sorted(missing_keys))}"
             )
         if unexpected_keys:
             raise ValueError(
-                f"The following keyword arguments are unexpected: "
+                "The following keyword arguments are unexpected: "
                 f"{', '.join(sorted(unexpected_keys))}"
             )
 
@@ -333,15 +352,16 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
     """
     Base class for evolvers for hashable containers.
 
-    Subclasses (created dynamically by MetaHashableContainer when creating the corresponding
-    HashableContainer) should add settable field descriptors for all fields.
+    Subclasses (created dynamically by MetaHashableContainer when creating the
+    corresponding HashableContainer) should add settable field descriptors for
+    all fields.
     """
 
     def __setitem__(self, index: Union[str, int], value: TElement) -> None:
         element_index = self._original_structure.normalize_item_index(index)
 
-        # provides some safety by preventing overwriting a hashable list/vector with another kind
-        # of sequence
+        # provides some safety by preventing overwriting a hashable list/vector with
+        # another kind of sequence
         container_sedes = self._original_structure._meta.container_sedes
         field_sedes = container_sedes.field_sedes[element_index]
         hashablified_value = hashablify_value(value, field_sedes)

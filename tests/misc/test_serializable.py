@@ -1,7 +1,10 @@
 import pytest
 
 import ssz
-from ssz.sedes import List, uint8
+from ssz.sedes import (
+    List,
+    uint8,
+)
 
 
 def test_duplicate_fields():

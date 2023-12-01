@@ -1,11 +1,22 @@
 import functools
-from typing import Any, Iterable
+from typing import (
+    Any,
+    Iterable,
+)
 
-from eth_typing import Hash32
-from eth_utils import to_tuple
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_tuple,
+)
 
-from ssz.sedes.base import TSedes
-from ssz.typing import CacheObj
+from ssz.sedes.base import (
+    TSedes,
+)
+from ssz.typing import (
+    CacheObj,
+)
 
 
 def get_key(sedes, value: Any) -> str:

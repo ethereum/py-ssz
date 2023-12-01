@@ -1,8 +1,18 @@
-from eth_utils import decode_hex, encode_hex
+from eth_utils import (
+    decode_hex,
+    encode_hex,
+)
 import pytest
 
 import ssz
-from ssz.sedes import Boolean, Byte, UInt, Vector, boolean, uint8
+from ssz.sedes import (
+    Boolean,
+    Byte,
+    UInt,
+    Vector,
+    boolean,
+    uint8,
+)
 
 
 @pytest.mark.parametrize(("value", "serialized"), ((True, "0x01"), (False, "0x00")))

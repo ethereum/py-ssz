@@ -1,12 +1,21 @@
 import itertools
 
-from eth_utils import decode_hex, encode_hex
+from eth_utils import (
+    decode_hex,
+    encode_hex,
+)
 import pytest
 
 import ssz
-from ssz.exceptions import DeserializationError
-from ssz.hashable_list import HashableList
-from ssz.hashable_vector import HashableVector
+from ssz.exceptions import (
+    DeserializationError,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_vector import (
+    HashableVector,
+)
 from ssz.sedes import (
     Bitlist,
     Bitvector,

@@ -1,12 +1,21 @@
 import itertools
 
-from hypothesis import assume, given
-from hypothesis import strategies as st
-from pyrsistent import get_in
+from hypothesis import (
+    assume,
+    given,
+    strategies as st,
+)
+from pyrsistent import (
+    get_in,
+)
 
 import ssz
-from ssz.hashable_container import SignedHashableContainer
-from ssz.sedes import bytes96
+from ssz.hashable_container import (
+    SignedHashableContainer,
+)
+from ssz.sedes import (
+    bytes96,
+)
 from tests.hashable.hashable_strategies import (
     composite_sedes_and_values_st,
     container_sedes_and_values_st,
@@ -303,8 +312,8 @@ def test_transform(data, sedes_and_values):
 
         new_value = transformation(original_value)
     else:
-        # bail out if the path does not lead to a atomic value (e.g. if there's an empty list on
-        # the path)
+        # bail out if the path does not lead to a atomic value (e.g. if there's an empty
+        # list on the path)
         assume(False)
 
     transform_set = hashable_value.transform(transform_path, new_value)

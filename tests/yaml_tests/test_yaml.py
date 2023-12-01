@@ -1,9 +1,16 @@
 import glob
 import os
 
-from eth_utils import to_tuple
-from ruamel.yaml import YAML
-from yaml_test_execution import execute_ssz_test_case, execute_tree_hash_test_case
+from eth_utils import (
+    to_tuple,
+)
+from ruamel.yaml import (
+    YAML,
+)
+from yaml_test_execution import (
+    execute_ssz_test_case,
+    execute_tree_hash_test_case,
+)
 
 YAML_BASE_DIR = os.path.abspath(os.path.join(__file__, "../../eth2.0-tests/"))
 SSZ_TEST_FILES = glob.glob(

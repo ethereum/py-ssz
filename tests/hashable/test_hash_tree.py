@@ -1,10 +1,19 @@
-from hypothesis import assume, given
-from hypothesis import strategies as st
+from hypothesis import (
+    assume,
+    given,
+    strategies as st,
+)
 import pytest
 
-from ssz.constants import ZERO_HASHES
-from ssz.hash_tree import HashTree
-from ssz.utils import merkleize
+from ssz.constants import (
+    ZERO_HASHES,
+)
+from ssz.hash_tree import (
+    HashTree,
+)
+from ssz.utils import (
+    merkleize,
+)
 from tests.hashable.chunk_strategies import (
     chunk_st,
     chunks_and_chunk_count_st,

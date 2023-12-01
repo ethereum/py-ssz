@@ -5,10 +5,18 @@ import random
 import time
 
 import ssz
-from ssz.cache.cache import SSZCache
-from ssz.hashable_container import HashableContainer
-from ssz.hashable_list import HashableList
-from ssz.hashable_vector import HashableVector
+from ssz.cache.cache import (
+    SSZCache,
+)
+from ssz.hashable_container import (
+    HashableContainer,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_vector import (
+    HashableVector,
+)
 from ssz.sedes import (
     List,
     Serializable,
@@ -159,8 +167,8 @@ class HashableEth1Data(HashableContainer):
 
 def update_tuple_item_with_fn(tuple_data, index, fn, *args):
     """
-    Update the ``index``th item of ``tuple_data`` to the result of calling ``fn`` on the existing
-    value.
+    Update the ``index``th item of ``tuple_data`` to the result of calling ``fn`` on
+    the existing value.
     """
     list_data = list(tuple_data)
 
@@ -169,9 +177,8 @@ def update_tuple_item_with_fn(tuple_data, index, fn, *args):
         list_data[index] = fn(old_value, *args)
     except IndexError:
         raise Exception(
-            "the length of the given tuple_data is {}, the given index {} is out of index".format(
-                len(tuple_data), index
-            )
+            f"The length of the given tuple_data is {len(tuple_data)}, the given index "
+            f"{index} is out of index"
         )
     else:
         return tuple(list_data)
@@ -352,7 +359,6 @@ if __name__ == "__main__":
         raise RuntimeError("state benchmark has not been run")
     elif results["state"] > TOLERABLE_PERFORMANCE:
         raise TimeoutError(
-            "hash_tree_root is not fast enough. Tolerable: {}, Actual: {}".format(
-                TOLERABLE_PERFORMANCE, results["state"]
-            )
+            f"hash_tree_root is not fast enough. Tolerable: {TOLERABLE_PERFORMANCE}, "
+            f"Actual: {results['state']}"
         )

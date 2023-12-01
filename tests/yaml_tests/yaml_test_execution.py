@@ -1,11 +1,26 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 
-from eth_utils import decode_hex
+from eth_utils import (
+    decode_hex,
+)
 
 import ssz
-from ssz.exceptions import SSZException
-from ssz.sedes import Container, List, Vector, sedes_by_name
-from ssz.tools import DefaultCodec, from_formatted_dict
+from ssz.exceptions import (
+    SSZException,
+)
+from ssz.sedes import (
+    Container,
+    List,
+    Vector,
+    sedes_by_name,
+)
+from ssz.tools import (
+    DefaultCodec,
+    from_formatted_dict,
+)
 
 
 class FailedTestCase(Exception):

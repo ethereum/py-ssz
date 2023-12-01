@@ -1,10 +1,21 @@
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import pytest
 
 import ssz
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes import ByteList, ByteVector, List, Vector, byte
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes import (
+    ByteList,
+    ByteVector,
+    List,
+    Vector,
+    byte,
+)
 
 
 @pytest.mark.parametrize(

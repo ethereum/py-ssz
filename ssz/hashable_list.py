@@ -1,14 +1,27 @@
-from typing import TYPE_CHECKING, Iterable, Sequence, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Iterable,
+    Sequence,
+    TypeVar,
+)
 
-from eth_typing import Hash32
+from eth_typing import (
+    Hash32,
+)
 
-from ssz.hashable_structure import BaseResizableHashableStructure
-from ssz.utils import mix_in_length
+from ssz.hashable_structure import (
+    BaseResizableHashableStructure,
+)
+from ssz.utils import (
+    mix_in_length,
+)
 
 TElement = TypeVar("TElement")
 
 if TYPE_CHECKING:
-    from ssz.sedes import List
+    from ssz.sedes import (
+        List,
+    )
 
 
 class HashableList(BaseResizableHashableStructure[TElement], Sequence[TElement]):

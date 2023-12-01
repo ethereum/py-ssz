@@ -1,0 +1,1 @@
+Merge changes from the template, including use ``pre-commit`` for linting and change the name of the ``master`` branch to ``main``

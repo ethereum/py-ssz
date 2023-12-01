@@ -1,24 +1,57 @@
-from abc import abstractmethod
+from abc import (
+    abstractmethod,
+)
 import io
 import operator
-from typing import IO, Any, Generator, Iterable, Sequence, Tuple
+from typing import (
+    IO,
+    Any,
+    Generator,
+    Iterable,
+    Sequence,
+    Tuple,
+)
 
-from eth_typing import Hash32
-from eth_utils import to_tuple
-from eth_utils.toolz import accumulate, concatv
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_tuple,
+)
+from eth_utils.toolz import (
+    accumulate,
+    concatv,
+)
 
-from ssz import constants
-from ssz.cache.utils import get_key
-from ssz.constants import CHUNK_SIZE
-from ssz.exceptions import DeserializationError
+from ssz import (
+    constants,
+)
+from ssz.cache.utils import (
+    get_key,
+)
+from ssz.constants import (
+    CHUNK_SIZE,
+)
+from ssz.exceptions import (
+    DeserializationError,
+)
 from ssz.sedes.base import (
     BaseBitfieldCompositeSedes,
     BaseProperCompositeSedes,
     BaseSedes,
     TSedes,
 )
-from ssz.typing import CacheObj, TDeserialized, TSerializable
-from ssz.utils import encode_offset, merkleize, merkleize_with_cache, pack
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
+)
+from ssz.utils import (
+    encode_offset,
+    merkleize,
+    merkleize_with_cache,
+    pack,
+)
 
 
 class BasicSedes(BaseSedes[TSerializable, TDeserialized]):

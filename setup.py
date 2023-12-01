@@ -31,7 +31,10 @@ extras_require = {
 }
 
 extras_require["dev"] = (
-    extras_require["dev"] + extras_require["docs"] + extras_require["test"] + extras_require["yaml"]
+    extras_require["dev"]
+    + extras_require["docs"]
+    + extras_require["test"]
+    + extras_require["yaml"]
 )
 
 with open("./README.md") as readme:

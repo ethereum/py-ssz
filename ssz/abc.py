@@ -1,11 +1,30 @@
-from abc import ABC, abstractmethod
-from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar, Union
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import (
+    Any,
+    Generic,
+    Iterable,
+    Iterator,
+    Optional,
+    TypeVar,
+    Union,
+)
 
-from eth_typing import Hash32
-from pyrsistent.typing import PVector
+from eth_typing import (
+    Hash32,
+)
+from pyrsistent.typing import (
+    PVector,
+)
 
-from ssz.hash_tree import HashTree
-from ssz.sedes.base import BaseProperCompositeSedes
+from ssz.hash_tree import (
+    HashTree,
+)
+from ssz.sedes.base import (
+    BaseProperCompositeSedes,
+)
 
 TStructure = TypeVar("TStructure")
 TElement = TypeVar("TElement")

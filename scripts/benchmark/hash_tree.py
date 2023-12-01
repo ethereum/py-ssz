@@ -1,10 +1,18 @@
-from contextlib import contextmanager
-from itertools import chain
+from contextlib import (
+    contextmanager,
+)
+from itertools import (
+    chain,
+)
 import random
 import time
 
-from ssz.hash_tree import HashTree
-from ssz.utils import merkleize_with_cache
+from ssz.hash_tree import (
+    HashTree,
+)
+from ssz.utils import (
+    merkleize_with_cache,
+)
 
 NUM_CHUNKS = 1000000
 NUM_UPDATES = 100
@@ -30,28 +38,28 @@ if __name__ == "__main__":
     print()
     print("-- Merkleize --")
     cache = {}
-    with benchmark(f"First root access"):
+    with benchmark("First root access"):
         merkleize_with_cache(chunks, cache)
 
-    with benchmark(f"Second root access"):
+    with benchmark("Second root access"):
         merkleize_with_cache(chunks, cache)
 
     for update_index in update_indices:
         chunks[update_index] = get_random_chunk()
-    with benchmark(f"Update and root access"):
+    with benchmark("Update and root access"):
         merkleize_with_cache(chunks, cache)
 
     print()
     print("-- Hash tree -- ")
 
-    with benchmark(f"First root access"):
+    with benchmark("First root access"):
         hash_tree = HashTree.compute(chunks)
         hash_tree.root
 
-    with benchmark(f"Second root access"):
+    with benchmark("Second root access"):
         hash_tree.root
 
-    with benchmark(f"Update and root access"):
+    with benchmark("Update and root access"):
         updates = chain(
             *((update_index, get_random_chunk()) for update_index in update_indices)
         )

@@ -1,6 +1,8 @@
 import pytest
 
-from ssz.sedes import Bitvector
+from ssz.sedes import (
+    Bitvector,
+)
 
 
 def test_bitvector_instantiation_bound():

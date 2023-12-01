@@ -1,11 +1,27 @@
 import json
 
-from eth_utils import decode_hex, encode_hex
+from eth_utils import (
+    decode_hex,
+    encode_hex,
+)
 
-from ssz.examples.zoo import Animal, Zoo, octopus, zoo
-from ssz.hashable_list import HashableList
-from ssz.sedes import List
-from ssz.tools import DefaultCodec, from_formatted_dict, to_formatted_dict
+from ssz.examples.zoo import (
+    Animal,
+    Zoo,
+    octopus,
+    zoo,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.sedes import (
+    List,
+)
+from ssz.tools import (
+    DefaultCodec,
+    from_formatted_dict,
+    to_formatted_dict,
+)
 
 
 def test_parsing_and_dumping():

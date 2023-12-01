@@ -1,7 +1,13 @@
-from hypothesis import strategies as st
-from pyrsistent import pvector
+from hypothesis import (
+    strategies as st,
+)
+from pyrsistent import (
+    pvector,
+)
 
-from ssz.hash_tree import HashTree
+from ssz.hash_tree import (
+    HashTree,
+)
 
 
 def chunk_count_st():

@@ -1,7 +1,13 @@
 import pytest
 
-from ssz import Serializable, bytes32, uint8
-from ssz.cache.cache import SSZCache
+from ssz import (
+    Serializable,
+    bytes32,
+    uint8,
+)
+from ssz.cache.cache import (
+    SSZCache,
+)
 
 
 class Foo(Serializable):
