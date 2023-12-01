@@ -1,33 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import find_packages, setup
+from setuptools import (
+    find_packages,
+    setup,
+)
 
 extras_require = {
-    "test": [
-        "pytest>=7.0.0",
-        "pytest-xdist>=2.4.0",
-        "hypothesis==4.54.0",
-        "mypy-extensions>=0.4.1",
+    "dev": [
+        "build>=0.9.0",
+        "bumpversion>=0.5.3",
+        "ipython",
+        "pre-commit>=3.4.0",
+        "tox>=4.0.0",
+        "twine",
+        "wheel",
     ],
-    "lint": [
-        "flake8==3.7.9",
-        "isort>=5.10.1,<6",
-        "pydocstyle>=6.0.0",
-        "black>=23",
-    ],
-    "doc": [
-        "sphinx>=5.0.0",
+    "docs": [
+        "sphinx>=6.0.0",
         "sphinx_rtd_theme>=1.0.0",
         "towncrier>=21,<22",
     ],
-    "dev": [
-        "bumpversion>=0.5.3",
-        "pytest-watch>=4.1.0",
-        "tox>=4.0.0",
-        "build>=0.9.0",
-        "wheel",
-        "twine",
-        "ipython",
+    "test": [
+        "hypothesis==4.54.0",
+        "pytest>=7.0.0",
+        "pytest-xdist>=2.4.0",
     ],
     "yaml": [
         "ruamel.yaml>=0.17.0",
@@ -35,11 +31,7 @@ extras_require = {
 }
 
 extras_require["dev"] = (
-    extras_require["dev"]
-    + extras_require["test"]
-    + extras_require["lint"]
-    + extras_require["doc"]
-    + extras_require["yaml"]
+    extras_require["dev"] + extras_require["docs"] + extras_require["test"] + extras_require["yaml"]
 )
 
 with open("./README.md") as readme:
@@ -64,8 +56,7 @@ setup(
         # `transform` expects has not changed (see https://github.com/tobgu/pyrsistent/issues/180)
         "pyrsistent>=0.16.0,<0.17",
     ],
-    setup_requires=[],
-    python_requires=">=3.7, <4",
+    python_requires=">=3.8, <4",
     extras_require=extras_require,
     py_modules=["ssz"],
     license="MIT",
@@ -79,7 +70,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
