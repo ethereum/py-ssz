@@ -3,6 +3,22 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.4.0 (2023-12-07)
+--------------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Drop support for python 3.7 (`#134 <https://github.com/ethereum/py-ssz/issues/134>`__)
+
+
+Internal Changes - for py-ssz Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add ``build.os`` config to readthedocs.yml (`#133 <https://github.com/ethereum/py-ssz/issues/133>`__)
+- Merge changes from the template, including use ``pre-commit`` for linting and change the name of the ``master`` branch to ``main`` (`#134 <https://github.com/ethereum/py-ssz/issues/134>`__)
+
+
 py-ssz v0.3.1 (2023-06-08)
 --------------------------
 
