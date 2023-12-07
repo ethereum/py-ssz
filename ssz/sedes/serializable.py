@@ -118,9 +118,7 @@ class BaseSerializable(collections.abc.Sequence):
         self.cache = LRU(DEFAULT_CACHE_SIZE) if cache is None else cache
 
     def as_dict(self):
-        return dict(
-            (field, value) for field, value in zip(self._meta.field_names, self)
-        )
+        return {field: value for field, value in zip(self._meta.field_names, self)}
 
     def __iter__(self):
         for attr in self._meta.field_attrs:

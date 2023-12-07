@@ -44,3 +44,8 @@ repos:
     -   id: mypy
         # mypy checks are turned off for now, see issue #8
         exclude: 'tests/|scripts/|ssz/'
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py38-plus]
