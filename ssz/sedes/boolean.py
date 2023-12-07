@@ -1,9 +1,17 @@
-from typing import Any
+from typing import (
+    Any,
+)
 
-from eth_utils import encode_hex
+from eth_utils import (
+    encode_hex,
+)
 
-from ssz.exceptions import DeserializationError
-from ssz.sedes.basic import BasicSedes
+from ssz.exceptions import (
+    DeserializationError,
+)
+from ssz.sedes.basic import (
+    BasicSedes,
+)
 
 
 class Boolean(BasicSedes[bool, bool]):

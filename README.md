@@ -5,8 +5,6 @@
 [![PyPI version](https://badge.fury.io/py/ssz.svg)](https://badge.fury.io/py/ssz)
 [![Python versions](https://img.shields.io/pypi/pyversions/ssz.svg)](https://pypi.python.org/pypi/ssz)
 [![Docs build](https://readthedocs.org/projects/ssz/badge/?version=latest)](https://ssz.readthedocs.io/en/latest/?badge=latest)
-   
-
 
 Python implementation of the Simple Serialization encoding and decoding
 
@@ -15,7 +13,7 @@ Read more in the [documentation on ReadTheDocs](https://ssz.readthedocs.io/). [V
 ## Quickstart
 
 ```sh
-pip install ssz
+python -m pip install ssz
 ```
 
 ## Developer Setup
@@ -26,8 +24,12 @@ for information on how we do:
 
 - Testing
 - Pull Requests
-- Code Style
 - Documentation
+
+We use [pre-commit](https://pre-commit.com/) to maintain consistent code style. Once
+installed, it will run automatically with every commit. You can also run it manually
+with `make lint`. If you need to make a commit that skips the `pre-commit` checks, you
+can do so with `git commit --no-verify`.
 
 ### Development Environment Setup
 
@@ -38,7 +40,8 @@ git clone git@github.com:ethereum/py-ssz.git
 cd py-ssz
 virtualenv -p python3 venv
 . venv/bin/activate
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
+pre-commit install
 ```
 
 ### Release setup
@@ -56,7 +59,7 @@ The version format for this repo is `{major}.{minor}.{patch}` for stable, and
 
 To issue the next version in line, specify which part to bump,
 like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
-master branch, except when releasing a beta (in which case the beta is released from master,
+main branch, except when releasing a beta (in which case the beta is released from main,
 and the previous stable branch is released from said branch).
 
 If you are in a beta version, `make release bump=stage` will switch to a stable.

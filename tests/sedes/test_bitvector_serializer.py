@@ -1,7 +1,15 @@
 import pytest
 
-from ssz import decode, encode
-from ssz.sedes import Bitlist, Bitvector, Vector, boolean
+from ssz import (
+    decode,
+    encode,
+)
+from ssz.sedes import (
+    Bitlist,
+    Bitvector,
+    Vector,
+    boolean,
+)
 
 
 @pytest.mark.parametrize(

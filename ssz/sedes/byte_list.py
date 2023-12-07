@@ -1,9 +1,22 @@
-from typing import Union
+from typing import (
+    Union,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.byte import byte
-from ssz.sedes.list import List
-from ssz.utils import merkleize, mix_in_length, pack_bytes
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes.byte import (
+    byte,
+)
+from ssz.sedes.list import (
+    List,
+)
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
+    pack_bytes,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 
@@ -23,7 +36,8 @@ class ByteList(List[BytesOrByteArray, bytes]):
     def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) > self.max_length:
             raise SerializationError(
-                f"Cannot serialize length {len(value)} byte-string as ByteList{self.length}"
+                f"Cannot serialize length {len(value)} byte-string as "
+                f"ByteList{self.length}"
             )
 
         return value

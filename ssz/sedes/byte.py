@@ -1,7 +1,14 @@
-from typing import Any
+from typing import (
+    Any,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.basic import BasicSedes
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes.basic import (
+    BasicSedes,
+)
 
 
 class Byte(BasicSedes[bytes, bytes]):

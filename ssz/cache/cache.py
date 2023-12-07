@@ -1,7 +1,14 @@
-from collections.abc import MutableMapping
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import (
+    MutableMapping,
+)
+from typing import (
+    TYPE_CHECKING,
+    Iterator,
+)
 
-from lru import LRU
+from lru import (
+    LRU,
+)
 
 if TYPE_CHECKING:
     MM = MutableMapping[bytes, bytes]

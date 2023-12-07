@@ -3,10 +3,25 @@ import itertools
 import pytest
 
 import ssz
-from ssz.constants import CHUNK_SIZE, EMPTY_CHUNK
-from ssz.hash import hash_eth2 as h
-from ssz.sedes import Bitlist, Bitvector, ByteVector, Container, List, Vector, uint128
-from ssz.utils import pad_zeros
+from ssz.constants import (
+    CHUNK_SIZE,
+    EMPTY_CHUNK,
+)
+from ssz.hash import (
+    hash_eth2 as h,
+)
+from ssz.sedes import (
+    Bitlist,
+    Bitvector,
+    ByteVector,
+    Container,
+    List,
+    Vector,
+    uint128,
+)
+from ssz.utils import (
+    pad_zeros,
+)
 
 bytes16 = ByteVector(16)
 EMPTY_BYTES = b"\x00" * 16

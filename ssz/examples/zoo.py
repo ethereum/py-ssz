@@ -1,4 +1,7 @@
-from ssz.hashable_container import HashableContainer, SignedHashableContainer
+from ssz.hashable_container import (
+    HashableContainer,
+    SignedHashableContainer,
+)
 from ssz.sedes import (
     Bitlist,
     Bitvector,

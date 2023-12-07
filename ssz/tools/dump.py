@@ -1,10 +1,20 @@
-from typing import Sequence
+from typing import (
+    Sequence,
+)
 
-from eth_utils import to_tuple
+from eth_utils import (
+    to_tuple,
+)
 
-from ssz.hashable_container import HashableContainer
-from ssz.hashable_list import HashableList
-from ssz.hashable_vector import HashableVector
+from ssz.hashable_container import (
+    HashableContainer,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_vector import (
+    HashableVector,
+)
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -18,7 +28,9 @@ from ssz.sedes import (
     Vector,
 )
 
-from .codec import DefaultCodec
+from .codec import (
+    DefaultCodec,
+)
 
 
 def to_formatted_dict(value, sedes=None, codec=DefaultCodec):

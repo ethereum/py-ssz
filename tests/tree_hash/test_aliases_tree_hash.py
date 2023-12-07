@@ -1,9 +1,18 @@
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import pytest
 
 import ssz
-from ssz.sedes import ByteList, ByteVector, List, Vector, byte, uint8
+from ssz.sedes import (
+    ByteList,
+    ByteVector,
+    List,
+    Vector,
+    byte,
+    uint8,
+)
 
 
 @pytest.mark.parametrize(

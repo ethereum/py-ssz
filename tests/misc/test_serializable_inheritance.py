@@ -1,7 +1,9 @@
 import pytest
 
 import ssz
-from ssz.sedes import uint8
+from ssz.sedes import (
+    uint8,
+)
 
 
 def create_inheritance_structure(structure):

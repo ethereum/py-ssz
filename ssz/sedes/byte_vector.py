@@ -1,12 +1,30 @@
-from typing import Tuple, Union
+from typing import (
+    Tuple,
+    Union,
+)
 
-from eth_typing import Hash32
+from eth_typing import (
+    Hash32,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.byte import byte
-from ssz.sedes.vector import Vector
-from ssz.typing import CacheObj
-from ssz.utils import merkleize, merkleize_with_cache, pack_bytes
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes.byte import (
+    byte,
+)
+from ssz.sedes.vector import (
+    Vector,
+)
+from ssz.typing import (
+    CacheObj,
+)
+from ssz.utils import (
+    merkleize,
+    merkleize_with_cache,
+    pack_bytes,
+)
 
 BytesOrByteArray = Union[bytes, bytearray]
 
@@ -20,7 +38,8 @@ class ByteVector(Vector[BytesOrByteArray, bytes]):
     def serialize(self, value: BytesOrByteArray) -> bytes:
         if len(value) != self.length:
             raise SerializationError(
-                f"Cannot serialize length {len(value)} byte-string as bytes{self.length}"
+                f"Cannot serialize length {len(value)} byte-string as "
+                f"bytes{self.length}"
             )
 
         return value

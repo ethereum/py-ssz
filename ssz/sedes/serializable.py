@@ -3,19 +3,50 @@ import collections.abc
 import copy
 import operator
 import re
-from typing import NamedTuple, Optional, Sequence, Tuple, Type
+from typing import (
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+)
 
-from eth_utils import ValidationError, to_dict, to_set, to_tuple
-from eth_utils.toolz import assoc, merge
-from lru import LRU
+from eth_utils import (
+    ValidationError,
+    to_dict,
+    to_set,
+    to_tuple,
+)
+from eth_utils.toolz import (
+    assoc,
+    merge,
+)
+from lru import (
+    LRU,
+)
 
-from ssz.cache.cache import DEFAULT_CACHE_SIZE
-from ssz.cache.utils import get_base_key
-from ssz.constants import FIELDS_META_ATTR
-from ssz.sedes.base import BaseSedes
-from ssz.sedes.container import Container
-from ssz.typing import TSerializable
-from ssz.utils import get_duplicates, is_immutable_field_value
+from ssz.cache.cache import (
+    DEFAULT_CACHE_SIZE,
+)
+from ssz.cache.utils import (
+    get_base_key,
+)
+from ssz.constants import (
+    FIELDS_META_ATTR,
+)
+from ssz.sedes.base import (
+    BaseSedes,
+)
+from ssz.sedes.container import (
+    Container,
+)
+from ssz.typing import (
+    TSerializable,
+)
+from ssz.utils import (
+    get_duplicates,
+    is_immutable_field_value,
+)
 
 
 class Meta(NamedTuple):
@@ -29,24 +60,22 @@ class Meta(NamedTuple):
 def validate_args_and_kwargs(args, kwargs, arg_names):
     duplicate_arg_names = get_duplicates(arg_names)
     if duplicate_arg_names:
-        raise ValueError(
-            "Duplicate argument names: {0}".format(sorted(duplicate_arg_names))
-        )
+        raise ValueError(f"Duplicate argument names: {sorted(duplicate_arg_names)}")
 
     needed_arg_names = set(arg_names[len(args) :])
     used_arg_names = set(arg_names[: len(args)])
 
     duplicate_arg_names = used_arg_names.intersection(kwargs.keys())
     if duplicate_arg_names:
-        raise TypeError("Duplicate kwargs: {0}".format(sorted(duplicate_arg_names)))
+        raise TypeError(f"Duplicate kwargs: {sorted(duplicate_arg_names)}")
 
     unknown_arg_names = set(kwargs.keys()).difference(arg_names)
     if unknown_arg_names:
-        raise TypeError("Unknown kwargs: {0}".format(sorted(unknown_arg_names)))
+        raise TypeError(f"Unknown kwargs: {sorted(unknown_arg_names)}")
 
     missing_arg_names = set(needed_arg_names).difference(kwargs.keys())
     if missing_arg_names:
-        raise TypeError("Missing kwargs: {0}".format(sorted(missing_arg_names)))
+        raise TypeError(f"Missing kwargs: {sorted(missing_arg_names)}")
 
 
 @to_tuple
@@ -78,11 +107,9 @@ class BaseSerializable(collections.abc.Sequence):
         # Ensure that all the fields have been given values in initialization
         if len(field_values) != len(arg_names):
             raise TypeError(
-                "Argument count mismatch. expected {0} - got {1} - missing {2}".format(
-                    len(arg_names),
-                    len(field_values),
-                    ",".join(arg_names[len(field_values) :]),
-                )
+                f"Argument count mismatch. expected {len(arg_names)} - got "
+                f"{len(field_values)} - missing "
+                f"{','.join(arg_names[len(field_values) :])}"
             )
 
         for value, attr in zip(field_values, self._meta.field_attrs or ()):
@@ -91,9 +118,7 @@ class BaseSerializable(collections.abc.Sequence):
         self.cache = LRU(DEFAULT_CACHE_SIZE) if cache is None else cache
 
     def as_dict(self):
-        return dict(
-            (field, value) for field, value in zip(self._meta.field_names, self)
-        )
+        return {field: value for field, value in zip(self._meta.field_names, self)}
 
     def __iter__(self):
         for attr in self._meta.field_attrs:
@@ -109,9 +134,7 @@ class BaseSerializable(collections.abc.Sequence):
         elif isinstance(index, str):
             return getattr(self, index)
         else:
-            raise IndexError(
-                "Unsupported type for __getitem__: {0}".format(type(index))
-            )
+            raise IndexError(f"Unsupported type for __getitem__: {type(index)}")
 
     def __len__(self):
         return len(self._meta.fields)
@@ -129,9 +152,9 @@ class BaseSerializable(collections.abc.Sequence):
     def __getstate__(self):
         state = self.__dict__.copy()
         # The hash() builtin is not stable across processes
-        # (https://docs.python.org/3/reference/datamodel.html#object.__hash__), so we do this here
-        # to ensure pickled instances don't carry the cached hash() as that may cause issues like
-        # https://github.com/ethereum/py-evm/issues/1318
+        # (https://docs.python.org/3/reference/datamodel.html#object.__hash__), so we do
+        # this here to ensure pickled instances don't carry the cached hash() as that
+        # may cause issues like https://github.com/ethereum/py-evm/issues/1318
         state["_hash_cache"] = None
         return state
 
@@ -243,8 +266,7 @@ def _validate_field_names(field_names: Sequence[str]) -> None:
     if duplicate_field_names:
         raise TypeError(
             "The following fields are duplicated in the `fields` "
-            "declaration: "
-            "{0}".format(",".join(sorted(duplicate_field_names)))
+            f"declaration: {','.join(sorted(duplicate_field_names))}"
         )
 
     # check that field names are valid identifiers
@@ -253,9 +275,8 @@ def _validate_field_names(field_names: Sequence[str]) -> None:
     }
     if invalid_field_names:
         raise TypeError(
-            "The following field names are not valid python identifiers: {0}".format(
-                ",".join("`{0}`".format(item) for item in sorted(invalid_field_names))
-            )
+            "The following field names are not valid python identifiers: "
+            f"{','.join(f'`{item}`' for item in sorted(invalid_field_names))}"
         )
 
 
@@ -288,8 +309,8 @@ class MetaSerializable(abc.ABCMeta):
             try:
                 sedes = Container(field_sedes)
             except ValidationError as exception:
-                # catch empty or duplicate fields and reraise as a TypeError as this would be an
-                # invalid class definition
+                # catch empty or duplicate fields and reraise as a TypeError as this
+                # would be an invalid class definition
                 raise TypeError(str(exception)) from exception
 
         else:
@@ -310,12 +331,12 @@ class MetaSerializable(abc.ABCMeta):
                 sedes = bases_with_fields[0]._meta.container_sedes
             else:
                 raise TypeError(
-                    "Fields need to be declared explicitly as class has multiple `Serializable` "
-                    "parents with fields themselves"
+                    "Fields need to be declared explicitly as class has multiple "
+                    "`Serializable` parents with fields themselves"
                 )
 
-        # create the class without any fields as neither the class itself nor any of its ancestors
-        # have defined fields
+        # create the class without any fields as neither the class itself nor any of its
+        # ancestors have defined fields
         if not has_fields:
             meta = Meta(
                 has_fields=False,

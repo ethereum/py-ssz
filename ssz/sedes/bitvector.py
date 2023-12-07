@@ -1,11 +1,27 @@
-from typing import Any, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Sequence,
+    Tuple,
+    Union,
+)
 
-from eth_typing import Hash32
-from eth_utils import to_tuple
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_tuple,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.basic import BitfieldCompositeSedes
-from ssz.typing import CacheObj
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes.basic import (
+    BitfieldCompositeSedes,
+)
+from ssz.typing import (
+    CacheObj,
+)
 from ssz.utils import (
     get_serialized_bytearray,
     merkleize,
@@ -38,7 +54,8 @@ class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def serialize(self, value: Sequence[bool]) -> bytes:
         if len(value) != self.bit_count:
             raise SerializationError(
-                f"Cannot serialize length {len(value)} bit array as Bitvector[{self.bit_count}]"
+                f"Cannot serialize length {len(value)} bit array as "
+                f"Bitvector[{self.bit_count}]"
             )
         return bytes(get_serialized_bytearray(value, self.bit_count, extra_byte=False))
 
@@ -49,7 +66,8 @@ class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     def deserialize(self, data: bytes) -> bytes:
         if len(data) > (self.bit_count + 7) // 8:
             raise DeserializationError(
-                f"Cannot deserialize length {len(data)} bytes data as Bitvector[{self.bit_count}]"
+                f"Cannot deserialize length {len(data)} bytes data as "
+                f"Bitvector[{self.bit_count}]"
             )
 
         for bit_index in range(self.bit_count):

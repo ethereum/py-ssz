@@ -1,11 +1,20 @@
-from .cache import SSZCache  # noqa: F401
-from .codec import decode, encode  # noqa: F401
-from .exceptions import (  # noqa: F401
+from importlib.metadata import (
+    version as __version,
+)
+
+from .cache import (
+    SSZCache,
+)
+from .codec import (
+    decode,
+    encode,
+)
+from .exceptions import (
     DeserializationError,
     SerializationError,
     SSZException,
 )
-from .sedes import (  # noqa: F401
+from .sedes import (
     BaseSedes,
     BasicSedes,
     Bitlist,
@@ -34,4 +43,8 @@ from .sedes import (  # noqa: F401
     uint128,
     uint256,
 )
-from .tree_hash import get_hash_tree_root  # noqa: F401
+from .tree_hash import (
+    get_hash_tree_root,
+)
+
+__version__ = __version("ssz")

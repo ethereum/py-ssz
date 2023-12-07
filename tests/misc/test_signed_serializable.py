@@ -1,7 +1,10 @@
 import pytest
 
 import ssz
-from ssz.sedes import bytes1, uint8
+from ssz.sedes import (
+    bytes1,
+    uint8,
+)
 
 
 def test_field_number_check():

@@ -1,1 +1,3 @@
-from .cache import SSZCache  # noqa: F401
+from .cache import (
+    SSZCache,
+)

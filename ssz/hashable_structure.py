@@ -14,12 +14,27 @@ from typing import (
     Union,
 )
 
-from eth_typing import Hash32
-from eth_utils import to_dict, to_tuple
-from eth_utils.toolz import groupby, partition, pipe
-from pyrsistent import pvector
-from pyrsistent._transformations import transform
-from pyrsistent.typing import PVector
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    to_dict,
+    to_tuple,
+)
+from eth_utils.toolz import (
+    groupby,
+    partition,
+    pipe,
+)
+from pyrsistent import (
+    pvector,
+)
+from pyrsistent._transformations import (
+    transform,
+)
+from pyrsistent.typing import (
+    PVector,
+)
 
 from ssz.abc import (
     HashableStructureAPI,
@@ -27,9 +42,16 @@ from ssz.abc import (
     ResizableHashableStructureAPI,
     ResizableHashableStructureEvolverAPI,
 )
-from ssz.constants import CHUNK_SIZE, ZERO_BYTES32
-from ssz.hash_tree import HashTree
-from ssz.sedes.base import BaseProperCompositeSedes
+from ssz.constants import (
+    CHUNK_SIZE,
+    ZERO_BYTES32,
+)
+from ssz.hash_tree import (
+    HashTree,
+)
+from ssz.sedes.base import (
+    BaseProperCompositeSedes,
+)
 
 TStructure = TypeVar("TStructure", bound="BaseHashableStructure")
 TResizableStructure = TypeVar(
@@ -44,11 +66,11 @@ def update_element_in_chunk(
     """
     Replace part of a chunk with a given element.
 
-    The chunk is interpreted as a concatenated sequence of equally sized elements. This function
-    replaces the element given by its index in the chunk with the given data.
+    The chunk is interpreted as a concatenated sequence of equally sized elements. This
+    function replaces the element given by its index in the chunk with the given data.
 
-    If the length of the element is zero or not a divisor of the chunk size, a `ValueError` is
-    raised. If the index is out of range, an `IndexError` is raised.
+    If the length of the element is zero or not a divisor of the chunk size, a
+    `ValueError` is raised. If the index is out of range, an `IndexError` is raised.
 
     .. doctest::
 
@@ -60,7 +82,7 @@ def update_element_in_chunk(
     chunk_size = len(original_chunk)
 
     if element_size == 0:
-        raise ValueError(f"Element size is zero")
+        raise ValueError("Element size is zero")
     if chunk_size % element_size != 0:
         raise ValueError(f"Element size is not a divisor of chunk size: {element_size}")
     if not 0 <= index < chunk_size // element_size:
@@ -80,8 +102,8 @@ def update_elements_in_chunk(
     """
     Update multiple elements in a chunk.
 
-    The set of updates is given by a dictionary mapping indices to elements. The items of the
-    dictionary will be passed one by one to `update_element_in_chunk`.
+    The set of updates is given by a dictionary mapping indices to elements. The items
+    of the dictionary will be passed one by one to `update_element_in_chunk`.
     """
     return pipe(
         original_chunk,
@@ -95,7 +117,10 @@ def update_elements_in_chunk(
 def get_num_padding_elements(
     *, num_original_elements: int, num_original_chunks: int, element_size: int
 ) -> int:
-    """Compute the number of elements that would still fit in the empty space of the last chunk."""
+    """
+    Compute the number of elements that would still fit in the empty space of the
+    last chunk.
+    """
     total_size = num_original_chunks * CHUNK_SIZE
     used_size = num_original_elements * element_size
     padding_size = total_size - used_size
@@ -114,13 +139,15 @@ def get_updated_chunks(
     num_padding_elements: int,
 ) -> Generator[Tuple[int, Hash32], None, None]:
     """
-    For an element changeset, compute the updates that have to be applied to the existing chunks.
+    For an element changeset, compute the updates that have to be applied to the
+    existing chunks.
 
-    The changeset is given as a dictionary of element indices to updated elements and a sequence of
-    appended elements. Note that appended elements that do not affect existing chunks are ignored.
+    The changeset is given as a dictionary of element indices to updated elements and a
+    sequence of appended elements. Note that appended elements that do not affect
+    existing chunks are ignored.
 
-    The pre-existing state is given by the sequence of original chunks and the number of elements
-    represented by these chunks.
+    The pre-existing state is given by the sequence of original chunks and the number of
+    elements represented by these chunks.
 
     The return value is a dictionary mapping chunk indices to chunks.
     """
@@ -191,7 +218,8 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         elements = pvector(iterable)
         if max_length and len(elements) > max_length:
             raise ValueError(
-                f"Number of elements {len(elements)} exceeds maximum length {max_length}"
+                f"Number of elements {len(elements)} exceeds maximum length "
+                f"{max_length}"
             )
 
         serialized_elements = [
@@ -240,7 +268,8 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return hash((self.sedes, self.hash_tree_root))
 
     def __eq__(self, other: Any) -> bool:
-        # hashable structures are equal if they use the same sedes and have the same root
+        # hashable structures are equal if they use the same sedes and have the
+        # same root
         if isinstance(other, BaseHashableStructure):
             sedes_equal = self.sedes == other.sedes
             roots_equal = self.hash_tree_root == other.hash_tree_root
@@ -287,9 +316,9 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
     def __init__(self, hashable_structure: TStructure) -> None:
         self._original_structure = hashable_structure
         self._updated_elements: Dict[int, TElement] = {}
-        # `self._appended_elements` is only used in the subclass ResizableHashableStructureEvolver,
-        # but the implementation of `persistent` already processes it so that it does not have to
-        # be implemented twice.
+        # `self._appended_elements` is only used in the subclass
+        # ResizableHashableStructureEvolver, but the implementation of `persistent`
+        # already processes it so that it does not have to be implemented twice.
         self._appended_elements: List[TElement] = []
 
     def __getitem__(self, index: int) -> TElement:

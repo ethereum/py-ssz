@@ -1,15 +1,44 @@
-from typing import IO, Any, Iterable, Sequence, Tuple
+from typing import (
+    IO,
+    Any,
+    Iterable,
+    Sequence,
+    Tuple,
+)
 
-from eth_typing import Hash32
-from eth_utils import ValidationError, to_tuple
-from eth_utils.toolz import sliding_window
+from eth_typing import (
+    Hash32,
+)
+from eth_utils import (
+    ValidationError,
+    to_tuple,
+)
+from eth_utils.toolz import (
+    sliding_window,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.hashable_structure import BaseHashableStructure
-from ssz.sedes.base import BaseSedes, TSedes
-from ssz.sedes.basic import ProperCompositeSedes
-from ssz.typing import CacheObj
-from ssz.utils import merkleize, read_exact, s_decode_offset
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.hashable_structure import (
+    BaseHashableStructure,
+)
+from ssz.sedes.base import (
+    BaseSedes,
+    TSedes,
+)
+from ssz.sedes.basic import (
+    ProperCompositeSedes,
+)
+from ssz.typing import (
+    CacheObj,
+)
+from ssz.utils import (
+    merkleize,
+    read_exact,
+    s_decode_offset,
+)
 
 
 @to_tuple
@@ -59,7 +88,8 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     def _validate_serializable(self, value: Sequence[Any]) -> None:
         if len(value) != len(self.field_sedes):
             raise SerializationError(
-                f"Incorrect element count: Expected: {len(self.field_sedes)} / Got: {len(value)}"
+                f"Incorrect element count: Expected: {len(self.field_sedes)} / "
+                f"Got: {len(value)}"
             )
 
     #
@@ -95,7 +125,8 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
             field_data = read_exact(field_length, stream)
             yield sedes.deserialize(field_data)
 
-        # simply reading to the end of the current stream gives us all of the final element data
+        # simply reading to the end of the current stream gives us all of the final
+        # element data
         final_field_data = stream.read()
         yield last_field.deserialize(final_field_data)
 

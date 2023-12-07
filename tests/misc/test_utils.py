@@ -1,10 +1,24 @@
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import pytest
 
-from ssz.constants import CHUNK_SIZE, EMPTY_CHUNK, MAX_ZERO_HASHES_LAYER
-from ssz.hash import hash_eth2
-from ssz.utils import merkleize, mix_in_length, pack, pack_bytes, pad_zeros
+from ssz.constants import (
+    CHUNK_SIZE,
+    EMPTY_CHUNK,
+    MAX_ZERO_HASHES_LAYER,
+)
+from ssz.hash import (
+    hash_eth2,
+)
+from ssz.utils import (
+    merkleize,
+    mix_in_length,
+    pack,
+    pack_bytes,
+    pad_zeros,
+)
 
 HALF_CHUNK_SIZE = CHUNK_SIZE // 2
 A_CHUNK = b"\xaa" * CHUNK_SIZE

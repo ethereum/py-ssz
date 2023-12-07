@@ -1,9 +1,23 @@
-from abc import ABC, abstractmethod
-from typing import Any, Generic, Optional, Tuple
+from abc import (
+    ABC,
+    abstractmethod,
+)
+from typing import (
+    Any,
+    Generic,
+    Optional,
+    Tuple,
+)
 
-from eth_typing import Hash32
+from eth_typing import (
+    Hash32,
+)
 
-from ssz.typing import CacheObj, TDeserialized, TSerializable
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
+)
 
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):

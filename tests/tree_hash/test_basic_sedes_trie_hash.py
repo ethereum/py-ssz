@@ -1,11 +1,20 @@
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import pytest
 
 import ssz
-from ssz.constants import CHUNK_SIZE
-from ssz.sedes import UInt, boolean
-from ssz.utils import pad_zeros
+from ssz.constants import (
+    CHUNK_SIZE,
+)
+from ssz.sedes import (
+    UInt,
+    boolean,
+)
+from ssz.utils import (
+    pad_zeros,
+)
 
 
 @st.composite

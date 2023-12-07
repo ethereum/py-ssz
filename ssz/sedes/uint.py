@@ -1,7 +1,14 @@
-from typing import Any
+from typing import (
+    Any,
+)
 
-from ssz.exceptions import DeserializationError, SerializationError
-from ssz.sedes.basic import BasicSedes
+from ssz.exceptions import (
+    DeserializationError,
+    SerializationError,
+)
+from ssz.sedes.basic import (
+    BasicSedes,
+)
 
 
 class UInt(BasicSedes[int, int]):
@@ -27,7 +34,8 @@ class UInt(BasicSedes[int, int]):
     def deserialize(self, data: bytes) -> int:
         if len(data) != self.size:
             raise DeserializationError(
-                f"Cannot deserialize length {len(data)} byte-string as uint{self.size*8}"
+                f"Cannot deserialize length {len(data)} byte-string as "
+                f"uint{self.size*8}"
             )
         return int.from_bytes(data, "little")
 

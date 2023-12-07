@@ -1,13 +1,32 @@
 import collections
 import functools
-from typing import IO, Any, Sequence, Tuple
+from typing import (
+    IO,
+    Any,
+    Sequence,
+    Tuple,
+)
 
-from eth_typing import Hash32
+from eth_typing import (
+    Hash32,
+)
 
-from ssz.constants import BASE_TYPES, CHUNK_SIZE, EMPTY_CHUNK, OFFSET_SIZE, ZERO_HASHES
-from ssz.exceptions import DeserializationError
-from ssz.hash import hash_eth2
-from ssz.typing import CacheObj
+from ssz.constants import (
+    BASE_TYPES,
+    CHUNK_SIZE,
+    EMPTY_CHUNK,
+    OFFSET_SIZE,
+    ZERO_HASHES,
+)
+from ssz.exceptions import (
+    DeserializationError,
+)
+from ssz.hash import (
+    hash_eth2,
+)
+from ssz.typing import (
+    CacheObj,
+)
 
 
 def get_duplicates(values):
@@ -53,7 +72,8 @@ def get_items_per_chunk(item_size: int) -> int:
 def pad_zeros(value: bytes) -> bytes:
     if len(value) >= CHUNK_SIZE:
         raise ValueError(
-            f"The length of given value {len(value)} should be less than CHUNK_SIZE ({CHUNK_SIZE})"
+            f"The length of given value {len(value)} should be less than CHUNK_SIZE "
+            f"({CHUNK_SIZE})"
         )
     return value.ljust(CHUNK_SIZE, b"\x00")
 

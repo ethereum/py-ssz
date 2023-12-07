@@ -1,8 +1,18 @@
 import pytest
 
-from ssz import decode, encode
-from ssz.exceptions import DeserializationError
-from ssz.sedes import Bitlist, Bitvector, List, boolean
+from ssz import (
+    decode,
+    encode,
+)
+from ssz.exceptions import (
+    DeserializationError,
+)
+from ssz.sedes import (
+    Bitlist,
+    Bitvector,
+    List,
+    boolean,
+)
 
 
 @pytest.mark.parametrize(
@@ -42,7 +52,8 @@ def test_bitlist_deserialize_values(size, value, expected):
         (8, b"\xff\x00"),  # should not be accepted for the same reason
     ),
 )
-#   Test that exception is raised when trying to deserialise illegal seq of bytes into bitlists.
+# Test that exception is raised when trying to deserialise illegal seq of bytes
+# into bitlists.
 def test_bitlist_deserialize_illegal_values(size, illegal_value):
     foo = Bitlist(size)
     with pytest.raises(DeserializationError):

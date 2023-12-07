@@ -1,10 +1,23 @@
-from typing import NamedTuple, Optional, Tuple
+from typing import (
+    NamedTuple,
+    Optional,
+    Tuple,
+)
 
 import ssz
-from ssz.constants import SIGNATURE_FIELD_NAME
-from ssz.sedes.base import BaseSedes
-from ssz.sedes.container import Container
-from ssz.sedes.serializable import BaseSerializable, MetaSerializable
+from ssz.constants import (
+    SIGNATURE_FIELD_NAME,
+)
+from ssz.sedes.base import (
+    BaseSedes,
+)
+from ssz.sedes.container import (
+    Container,
+)
+from ssz.sedes.serializable import (
+    BaseSerializable,
+    MetaSerializable,
+)
 
 
 class SignedMeta(NamedTuple):
@@ -22,13 +35,11 @@ class MetaSignedSerializable(MetaSerializable):
 
         if cls._meta.has_fields:
             if len(cls._meta.fields) < 2:
-                raise TypeError(
-                    f"Signed serializables need to have at least two fields"
-                )
+                raise TypeError("Signed serializables need to have at least two fields")
             if cls._meta.field_names[-1] != SIGNATURE_FIELD_NAME:
                 raise TypeError(
-                    f"Last field of signed serializable must be {SIGNATURE_FIELD_NAME}, but is "
-                    f"{cls._meta.field_names[-1]}"
+                    f"Last field of signed serializable must be {SIGNATURE_FIELD_NAME},"
+                    f" but is {cls._meta.field_names[-1]}"
                 )
 
             signed_container_sedes = Container(

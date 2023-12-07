@@ -1,11 +1,23 @@
-from collections.abc import Mapping
-from typing import Sequence
+from collections.abc import (
+    Mapping,
+)
+from typing import (
+    Sequence,
+)
 
-from eth_utils import to_tuple
+from eth_utils import (
+    to_tuple,
+)
 
-from ssz.hashable_container import MetaHashableContainer
-from ssz.hashable_list import HashableList
-from ssz.hashable_vector import HashableVector
+from ssz.hashable_container import (
+    MetaHashableContainer,
+)
+from ssz.hashable_list import (
+    HashableList,
+)
+from ssz.hashable_vector import (
+    HashableVector,
+)
 from ssz.sedes import (
     BaseSedes,
     Bitlist,
@@ -17,9 +29,13 @@ from ssz.sedes import (
     UInt,
     Vector,
 )
-from ssz.sedes.serializable import MetaSerializable
+from ssz.sedes.serializable import (
+    MetaSerializable,
+)
 
-from .codec import DefaultCodec
+from .codec import (
+    DefaultCodec,
+)
 
 
 def from_formatted_dict(value, sedes, codec=DefaultCodec):
