@@ -10,7 +10,7 @@ from typing import (
 TSerializable = TypeVar("TSerializable")
 TDeserialized = TypeVar("TDeserialized")
 
-TSerializableElement = TypeVar("TSerializable")
-TDeserializedElement = TypeVar("TDeserialized")
+TSerializableElement = TypeVar("TSerializableElement")
+TDeserializedElement = TypeVar("TDeserializedElement")
 
 CacheObj = NewType("CacheObj", Union[MutableMapping, dict])
