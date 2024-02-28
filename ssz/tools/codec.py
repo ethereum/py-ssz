@@ -1,3 +1,6 @@
+from eth_typing import (
+    HexStr,
+)
 from eth_utils import (
     decode_hex,
     encode_hex,
@@ -6,15 +9,15 @@ from eth_utils import (
 
 class DefaultCodec:
     @staticmethod
-    def encode_integer(value: int, sedes):
+    def encode_integer(value: int, sedes) -> int:
         return value
 
     @staticmethod
-    def encode_bool(value: bool, sedes):
+    def encode_bool(value: bool, sedes) -> bool:
         return value
 
     @staticmethod
-    def encode_bytes(value: bytes, sedes):
+    def encode_bytes(value: bytes, sedes) -> HexStr:
         return encode_hex(value)
 
     @staticmethod
