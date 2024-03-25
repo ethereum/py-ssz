@@ -1,8 +1,9 @@
+import pytest
+
 from hypothesis import (
     given,
     strategies as st,
 )
-import pytest
 
 import ssz
 from ssz.constants import (

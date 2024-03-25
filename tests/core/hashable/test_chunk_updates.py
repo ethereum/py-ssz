@@ -10,7 +10,7 @@ from ssz.hashable_structure import (
     update_element_in_chunk,
     update_elements_in_chunk,
 )
-from tests.hashable.chunk_strategies import (
+from tests.core.hashable.chunk_strategies import (
     chunk_st,
     chunk_updates_st,
     element_size_st,

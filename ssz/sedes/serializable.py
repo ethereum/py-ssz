@@ -426,7 +426,7 @@ class Serializable(BaseSerializable, metaclass=MetaSerializable):
     """
 
     def __str__(self) -> str:
-        return f"[{', '.join((str(v) for v in self))}]"
+        return f"[{', '.join(str(v) for v in self)}]"
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: {str(self)}>"

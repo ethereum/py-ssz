@@ -255,7 +255,7 @@ define: &all_jobs
   - py312-wheel
   - py311-windows-wheel
   - py312-windows-wheel
-  - yaml
+  # - yaml
   - benchmark
 
 workflows:

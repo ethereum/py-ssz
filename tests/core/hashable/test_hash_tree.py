@@ -1,9 +1,10 @@
+import pytest
+
 from hypothesis import (
     assume,
     given,
     strategies as st,
 )
-import pytest
 
 from ssz.constants import (
     ZERO_HASHES,
@@ -14,7 +15,7 @@ from ssz.hash_tree import (
 from ssz.utils import (
     merkleize,
 )
-from tests.hashable.chunk_strategies import (
+from tests.core.hashable.chunk_strategies import (
     chunk_st,
     chunks_and_chunk_count_st,
     hash_tree_st,
