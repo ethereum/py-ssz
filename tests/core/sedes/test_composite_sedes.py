@@ -1,10 +1,10 @@
 import itertools
+import pytest
 
 from eth_utils import (
     decode_hex,
     encode_hex,
 )
-import pytest
 
 import ssz
 from ssz.exceptions import (
