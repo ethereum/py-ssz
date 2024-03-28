@@ -16,7 +16,7 @@ from ssz.hashable_container import (
 from ssz.sedes import (
     bytes96,
 )
-from tests.hashable.hashable_strategies import (
+from tests.core.hashable.hashable_strategies import (
     composite_sedes_and_values_st,
     container_sedes_and_values_st,
     list_sedes_and_values_st,
