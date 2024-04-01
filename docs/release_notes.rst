@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.5.0 (2024-04-01)
+--------------------------
+
+Internal Changes - for py-ssz Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add ``python 3.12`` support, add all doc type tests and night runs to CI, add blocklint to linting, turned off ``yaml`` tests in CI (`#136 <https://github.com/ethereum/py-ssz/issues/136>`__)
+
+
 py-ssz v0.4.0 (2023-12-07)
 --------------------------
 
