@@ -54,9 +54,7 @@ setup(
     install_requires=[
         "eth-utils>=2",
         "lru-dict>=1.1.6",
-        # When updating to a newer version of pyrsistent, please check that the interface
-        # `transform` expects has not changed (see https://github.com/tobgu/pyrsistent/issues/180)
-        "pyrsistent>=0.18.0",
+        "pyrsistent>=0.16.0",
     ],
     python_requires=">=3.8, <4",
     extras_require=extras_require,
