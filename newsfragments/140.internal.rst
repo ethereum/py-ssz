@@ -1,1 +1,0 @@
-Bump to ``pyrsistent>=0.18.0`` and remove upper pin

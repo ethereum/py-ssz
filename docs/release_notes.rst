@@ -3,6 +3,21 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.5.1 (2024-12-09)
+--------------------------
+
+Internal Changes - for py-ssz Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Bump to ``pyrsistent>=0.18.0`` and remove upper pin (`#140 <https://github.com/ethereum/py-ssz/issues/140>`__)
+
+
+Miscellaneous Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#139 <https://github.com/ethereum/py-ssz/issues/139>`__
+
+
 py-ssz v0.5.0 (2024-04-01)
 --------------------------
 
