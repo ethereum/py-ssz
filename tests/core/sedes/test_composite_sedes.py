@@ -1,5 +1,5 @@
-import itertools
 import pytest
+import itertools
 
 from eth_utils import (
     decode_hex,

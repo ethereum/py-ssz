@@ -1,0 +1,1 @@
+Merge template, adding ``py313`` support, replace ``bumpversion`` with ``bump-my-version``, bump ``hypothesis`` dep up to work with ``py313``.
