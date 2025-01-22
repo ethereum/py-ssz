@@ -151,12 +151,11 @@ def general_list_sedes_and_values_st(draw, element_sedes_and_elements, size=None
     return sedes, values
 
 
-@st.composite
-def general_container_sedes_and_values_st(draw, element_sedes_and_elements_sequence):
+def general_container_sedes_and_values_st(element_sedes_and_elements_sequence):
     element_sedes, elements = zip(*element_sedes_and_elements_sequence)
     sedes = Container(element_sedes)
     values = st.tuples(*elements)
-    return sedes, values
+    return st.tuples(st.just(sedes), st.just(values))
 
 
 #
