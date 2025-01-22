@@ -44,7 +44,7 @@ with open("./README.md") as readme:
 setup(
     name="ssz",
     # *IMPORTANT*: Don't manually change the version here. See Contributing docs for the release process.
-    version="0.5.1",
+    version="0.5.2",
     description="""ssz: Python implementation of the Simple Serialization encoding and decoding""",
     long_description=long_description,
     long_description_content_type="text/markdown",
