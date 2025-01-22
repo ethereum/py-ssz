@@ -3,18 +3,24 @@ py-ssz
 
 Python implementation of the Simple Serialization encoding and decoding
 
-Contents
---------
+Installation
+------------
+
+.. code-block:: bash
+
+    python -m pip install py-ssz
+
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
+    :caption: General
 
-    ssz
+    Usage<ssz>
     release_notes
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Community
 
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
+    contributing
+    code_of_conduct
