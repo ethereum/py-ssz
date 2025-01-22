@@ -276,14 +276,14 @@ jobs:
   yaml:
     <<: *common
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.13
         environment:
           TOXENV: yaml
 
   benchmark:
     <<: *common
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.13
         environment:
           TOXENV: benchmark
 
