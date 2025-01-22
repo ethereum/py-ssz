@@ -8,6 +8,7 @@ from typing import (
     Iterable,
     Iterator,
     Optional,
+    Tuple,
     TypeVar,
     Union,
 )
@@ -25,6 +26,10 @@ from ssz.hash_tree import (
 from ssz.sedes.base import (
     BaseProperCompositeSedes,
 )
+from ssz.typing import (
+    TDeserialized,
+    TSerializable,
+)
 
 TStructure = TypeVar("TStructure")
 TElement = TypeVar("TElement")
@@ -36,9 +41,9 @@ class HashableStructureAPI(ABC, Generic[TElement]):
     def from_iterable_and_sedes(
         cls,
         iterable: Iterable[TElement],
-        sedes: BaseProperCompositeSedes,
+        sedes: BaseProperCompositeSedes[TSerializable, TDeserialized],
         max_length: Optional[int],
-    ):
+    ) -> "HashableStructureAPI[TElement]":
         ...
 
     #
@@ -93,7 +98,9 @@ class HashableStructureAPI(ABC, Generic[TElement]):
         ...
 
     @abstractmethod
-    def transform(self, *transformations):
+    def transform(
+        self, *transformations: Tuple[Tuple[Any, ...], Any]
+    ) -> "HashableStructureAPI[TElement]":
         ...
 
     @abstractmethod

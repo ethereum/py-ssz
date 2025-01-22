@@ -30,7 +30,7 @@ from ssz.typing import (
 )
 
 
-def get_duplicates(values):
+def get_duplicates(values: Any) -> Tuple[Any, ...]:
     counts = collections.Counter(values)
     return tuple(item for item, num in counts.items() if num > 1)
 
@@ -114,7 +114,7 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
 
 
 @functools.lru_cache(maxsize=2**12)
-def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
+def pack_bits(values: Sequence[bool]) -> Tuple[Hash32, ...]:
     as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)
     return to_chunks(packed)
@@ -124,7 +124,7 @@ def get_next_power_of_two(value: int) -> int:
     if value <= 0:
         return 1
     else:
-        return 2 ** (value - 1).bit_length()
+        return int(2 ** (value - 1).bit_length())
 
 
 def _get_chunk_and_max_depth(
@@ -145,7 +145,7 @@ def _get_merkleized_result(
     max_depth: int,
     cache: CacheObj,
 ) -> Tuple[Hash32, CacheObj]:
-    merkleized_result_per_layers = [None for _ in range(max_depth + 1)]
+    merkleized_result_per_layers = [b"" for _ in range(max_depth + 1)]
 
     def merge(leaf: bytes, leaf_index: int) -> None:
         node = leaf

@@ -7,6 +7,7 @@ from typing import (
     Generic,
     Optional,
     Tuple,
+    TypeVar,
 )
 
 from eth_typing import (
@@ -15,9 +16,10 @@ from eth_typing import (
 
 from ssz.typing import (
     CacheObj,
-    TDeserialized,
-    TSerializable,
 )
+
+TSerializable = TypeVar("TSerializable")
+TDeserialized = TypeVar("TDeserialized")
 
 
 class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
@@ -83,14 +85,17 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
 TSedes = BaseSedes[Any, Any]
 
 
-class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseProperCompositeSedes(
+    BaseSedes[TSerializable, TDeserialized],
+    Generic[TSerializable, TDeserialized],
+):
     @property
     @abstractmethod
     def is_packing(self) -> bool:
         ...
 
     @abstractmethod
-    def get_element_sedes(self, index: int) -> BaseSedes:
+    def get_element_sedes(self, index: int) -> BaseSedes[TSerializable, TDeserialized]:
         ...
 
     @property
@@ -108,5 +113,8 @@ class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
         ...
 
 
-class BaseBitfieldCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
+class BaseBitfieldCompositeSedes(
+    BaseSedes[TSerializable, TDeserialized],
+    Generic[TSerializable, TDeserialized],
+):
     ...

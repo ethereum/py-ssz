@@ -48,7 +48,15 @@ repos:
     -   id: mypy-local
         name: run mypy with all dev dependencies present
         # entry: python -m mypy -p ssz
-        entry: python -m mypy --follow-imports=skip ssz/cache
+        entry: >
+            python -m mypy --follow-imports=skip
+            ssz/cache
+            ssz/sedes/__init__.py
+            ssz/sedes/base.py
+            ssz/sedes/basic.py
+            ssz/utils.py
+            ssz/constants.py
+            ssz/abc.py
         language: system
         always_run: true
         pass_filenames: false
