@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.5.2 (2025-01-22)
+--------------------------
+
+Features
+~~~~~~~~
+
+- Merge template, adding ``py313`` support, replace ``bumpversion`` with ``bump-my-version``, bump ``hypothesis`` dep up to work with ``py313``. (`#142 <https://github.com/ethereum/py-ssz/issues/142>`__)
+
+
 py-ssz v0.5.1 (2024-12-09)
 --------------------------
 
