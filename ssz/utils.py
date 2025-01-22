@@ -3,6 +3,7 @@ import functools
 from typing import (
     IO,
     Any,
+    Optional,
     Sequence,
     Tuple,
 )
@@ -192,7 +193,7 @@ def _get_merkleized_result(
 
 
 def merkleize_with_cache(
-    chunks: Sequence[Hash32], cache: CacheObj, limit: int = None
+    chunks: Sequence[Hash32], cache: CacheObj, limit: Optional[int] = None
 ) -> Tuple[Hash32, CacheObj]:
     chunk_len = len(chunks)
     if limit is None:
@@ -211,7 +212,7 @@ def merkleize_with_cache(
     )
 
 
-def merkleize(chunks: Sequence[Hash32], limit: int = None) -> Hash32:
+def merkleize(chunks: Sequence[Hash32], limit: Optional[int] = None) -> Hash32:
     root, _ = merkleize_with_cache(chunks, {}, limit)
     return root
 

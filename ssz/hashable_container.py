@@ -66,7 +66,9 @@ class FieldDescriptor:
         self.name = name
 
     def __get__(
-        self, instance: "HashableContainer", owner: Type["HashableContainer"] = None
+        self,
+        instance: "HashableContainer",
+        owner: Optional[Type["HashableContainer"]] = None,
     ) -> Any:
         return instance[self.name]
 

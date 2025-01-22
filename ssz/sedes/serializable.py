@@ -187,7 +187,7 @@ class BaseSerializable(collections.abc.Sequence):
 
         return result
 
-    def reset_cache(self):
+    def reset_cache(self) -> None:
         self.cache.clear()
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
