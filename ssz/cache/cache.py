@@ -10,12 +10,12 @@ from lru import (
     LRU,
 )
 
+DEFAULT_CACHE_SIZE = 2**10
+
 if TYPE_CHECKING:
     MM = MutableMapping[bytes, bytes]
 else:
     MM = MutableMapping
-
-DEFAULT_CACHE_SIZE = 2**10
 
 
 class SSZCache(MM):
@@ -24,12 +24,14 @@ class SSZCache(MM):
         self.clear()
 
     def clear(self) -> None:
-        self._cached_values = LRU(self._cache_size)
+        self._cached_values: LRU[bytes, bytes] = LRU(self._cache_size)
 
     def _exists(self, key: bytes) -> bool:
         return key in self._cached_values
 
-    def __contains__(self, key: bytes) -> bool:
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, bytes):
+            return False
         return self._exists(key)
 
     def __getitem__(self, key: bytes) -> bytes:
@@ -42,7 +44,7 @@ class SSZCache(MM):
         if key in self._cached_values:
             del self._cached_values[key]
         else:
-            raise KeyError(f"key: {key} not found")
+            raise KeyError(f"key: {key.decode()} not found")
 
     def __iter__(self) -> Iterator[bytes]:
         raise NotImplementedError("By default, DB classes cannot be iterated.")

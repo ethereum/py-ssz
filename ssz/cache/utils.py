@@ -19,7 +19,7 @@ from ssz.typing import (
 )
 
 
-def get_key(sedes, value: Any) -> str:
+def get_key(sedes: TSedes, value: Any) -> str:
     key = get_base_key(sedes, value).hex()
     if len(key) == 0:
         key = ""
@@ -28,7 +28,7 @@ def get_key(sedes, value: Any) -> str:
 
 @functools.lru_cache(maxsize=2**12)
 def get_base_key(sedes: TSedes, value: Any) -> bytes:
-    return sedes.serialize(value)
+    return bytes(sedes.serialize(value))
 
 
 @to_tuple

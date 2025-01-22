@@ -1,5 +1,6 @@
 from typing import (
     Any,
+    Optional,
 )
 
 from eth_typing import (
@@ -14,7 +15,7 @@ from ssz.sedes.base import (
 )
 
 
-def get_hash_tree_root(value: Any, sedes: BaseSedes = None) -> Hash32:
+def get_hash_tree_root(value: Any, sedes: Optional[BaseSedes] = None) -> Hash32:
     if sedes is None:
         sedes = infer_sedes(value)
 
