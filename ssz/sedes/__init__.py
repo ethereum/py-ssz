@@ -1,12 +1,22 @@
 from collections.abc import (
     Iterable,
 )
+from typing import (
+    Any,
+    Union,
+    cast,
+)
 
-from ssz.abc import (
-    HashableStructureAPI,
+from ssz.hashable_structure import (
+    BaseHashableStructure,
+)
+from ssz.typing import (
+    TDeserialized,
+    TSerializable,
 )
 
 from .base import (
+    BaseProperCompositeSedes,
     BaseSedes,
 )
 from .basic import (
@@ -79,16 +89,22 @@ sedes_by_name = {
 }
 
 
-def infer_sedes(value):
+def infer_sedes(
+    value: Any,
+) -> Union[
+    BaseSedes[TSerializable, TDeserialized],
+    BaseProperCompositeSedes[TSerializable, TDeserialized],
+    bool,
+]:
     """
     Try to find a sedes objects suitable for a given Python object.
     """
     if isinstance(value.__class__, BaseSedes):
         return value.__class__
-    elif isinstance(value, HashableStructureAPI):
-        return value.sedes
+    elif isinstance(value, BaseHashableStructure):
+        return cast(BaseProperCompositeSedes[TSerializable, TDeserialized], value.sedes)
     elif isinstance(value, bool):
-        return boolean
+        return cast(BaseSedes[bool, bool], boolean)
     elif isinstance(value, int):
         raise TypeError(
             "uint sedes object or uint string needs to be specified for ints"

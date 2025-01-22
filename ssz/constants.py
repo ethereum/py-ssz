@@ -10,7 +10,7 @@ from ssz.hash import (
     hash_eth2,
 )
 
-CHUNK_SIZE = 32  # named BYTES_PER_CHUNK in the spec
+CHUNK_SIZE: int = 32  # named BYTES_PER_CHUNK in the spec
 EMPTY_CHUNK = Hash32(b"\x00" * CHUNK_SIZE)
 
 SIGNATURE_FIELD_NAME = "signature"

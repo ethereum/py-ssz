@@ -10,6 +10,7 @@ from typing import (
     Iterable,
     Sequence,
     Tuple,
+    cast,
 )
 
 from eth_typing import (
@@ -66,7 +67,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     is_fixed_sized = True
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> int:
         return self.size
 
     #
@@ -176,7 +177,7 @@ class ProperCompositeSedes(BaseProperCompositeSedes[TSerializable, TDeserialized
         if self.is_packing:
             return sedes.serialize(element)
         else:
-            return sedes.get_hash_tree_root(element)
+            return cast(bytes, sedes.get_hash_tree_root(element))
 
     @property
     def element_size_in_tree(self) -> int:
@@ -203,8 +204,13 @@ class ProperCompositeSedes(BaseProperCompositeSedes[TSerializable, TDeserialized
 
 
 class HomogeneousProperCompositeSedes(
-    ProperCompositeSedes[TSerializable, TDeserialized]
+    # type ignored because type vars not used within this class, but
+    # must be present for classes further down the inheritance chain
+    ProperCompositeSedes[TSerializable, TDeserialized]  # type: ignore
 ):
+    element_sedes: TSedes
+    max_length: int
+
     def get_sedes_id(self) -> str:
         sedes_name = self.__class__.__name__
         return f"{sedes_name}({self.element_sedes.get_sedes_id()},{self.max_length})"
@@ -216,7 +222,7 @@ class HomogeneousProperCompositeSedes(
     @property
     def chunk_count(self) -> int:
         if self.is_packing:
-            element_size = self.element_sedes.get_fixed_size()
+            element_size: int = self.element_sedes.get_fixed_size()
             return (element_size * self.max_length + CHUNK_SIZE - 1) // CHUNK_SIZE
         else:
             return self.max_length

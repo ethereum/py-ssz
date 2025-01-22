@@ -4,7 +4,7 @@ from pyrsistent._transformations import (
     transform,
 )
 
-# transform is an internal function, so techinally could be changed without a breaking
+# transform is an internal function, so technically could be changed without a breaking
 # release. It's been stable for years, so we're testing it here to ensure it doesn't
 # change rather than continuing to use an upper pin in dependencies.
 # https://github.com/tobgu/pyrsistent/issues/180

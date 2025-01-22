@@ -12,6 +12,7 @@ from lru import (
 
 DEFAULT_CACHE_SIZE = 2**10
 
+# conditional import not needed after py38 is removed
 if TYPE_CHECKING:
     MM = MutableMapping[bytes, bytes]
 else:
