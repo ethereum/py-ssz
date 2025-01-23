@@ -52,6 +52,11 @@ from ssz.sedes.base import (
 from ssz.sedes.container import (
     Container,
 )
+from ssz.typing import (
+    CacheObj,
+    TDeserialized,
+    TSerializable,
+)
 
 TStructure = TypeVar("TStructure", bound="HashableContainer")
 TElement = TypeVar("TElement")
@@ -204,16 +209,16 @@ class MetaHashableContainer(ABCMeta):
     # Sedes interface
     #
     @property
-    def is_fixed_sized(cls):
+    def is_fixed_sized(cls) -> bool:
         return cls._meta.container_sedes.is_fixed_sized
 
-    def get_fixed_size(cls):
+    def get_fixed_size(cls) -> int:
         return cls._meta.container_sedes.get_fixed_size()
 
-    def serialize(cls, value):
+    def serialize(cls, value: TSerializable) -> bytes:
         return cls._meta.container_sedes.serialize(value)
 
-    def deserialize(cls, data):
+    def deserialize(cls, data: bytes) -> TDeserialized:
         field_values = cls._meta.container_sedes.deserialize(data)
         kwargs = {
             field_name: field_value
@@ -221,16 +226,18 @@ class MetaHashableContainer(ABCMeta):
         }
         return cls.create(**kwargs)
 
-    def get_hash_tree_root(cls, value):
+    def get_hash_tree_root(cls, value: TSerializable) -> Hash32:
         return cls._meta.container_sedes.get_hash_tree_root(value)
 
-    def get_hash_tree_root_and_leaves(cls, value, cache):
+    def get_hash_tree_root_and_leaves(
+        cls, value: TSerializable, cache: CacheObj
+    ) -> Tuple[Hash32, CacheObj]:
         return cls._meta.container_sedes.get_hash_tree_root_and_leaves(value, cache)
 
-    def get_sedes_id(cls):
+    def get_sedes_id(cls) -> str:
         return cls._meta.container_sedes.get_sedes_id()
 
-    def get_key(cls, value):
+    def get_key(cls, value: Any) -> str:
         return cls._meta.container_sedes.get_key(value)
 
 

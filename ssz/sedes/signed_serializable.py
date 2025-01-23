@@ -4,6 +4,10 @@ from typing import (
     Tuple,
 )
 
+from eth_typing import (
+    Hash32,
+)
+
 import ssz
 from ssz.constants import (
     SIGNATURE_FIELD_NAME,
@@ -66,5 +70,5 @@ BaseSedes.register(MetaSignedSerializable)
 
 class SignedSerializable(BaseSerializable, metaclass=MetaSignedSerializable):
     @property
-    def signing_root(self):
+    def signing_root(self) -> Hash32:
         return ssz.get_hash_tree_root(self, self._meta.signed_container_sedes)

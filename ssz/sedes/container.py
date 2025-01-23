@@ -62,10 +62,10 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     # Size
     #
     @property
-    def is_fixed_sized(self):
+    def is_fixed_sized(self) -> bool:
         return all(field.is_fixed_sized for field in self.field_sedes)
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> int:
         if not self.is_fixed_sized:
             raise ValueError("Container contains dynamically sized elements")
 

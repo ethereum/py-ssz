@@ -42,7 +42,7 @@ class SSZCache(MM):
         if key in self._cached_values:
             del self._cached_values[key]
         else:
-            raise KeyError(f"key: {key} not found")
+            raise KeyError(f"key: {key.decode()} not found")
 
     def __iter__(self) -> Iterator[bytes]:
         raise NotImplementedError("By default, DB classes cannot be iterated.")
