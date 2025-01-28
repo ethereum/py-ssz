@@ -1,5 +1,6 @@
 from typing import (
     Any,
+    NoReturn,
     Sequence,
     Tuple,
     Union,
@@ -44,7 +45,7 @@ class Bitlist(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     #
     is_fixed_sized = False
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> NoReturn:
         raise ValueError("byte list has no static size")
 
     #

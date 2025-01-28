@@ -66,7 +66,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
     #
     is_fixed_sized = True
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> int:
         return self.size
 
     #

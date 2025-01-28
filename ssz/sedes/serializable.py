@@ -160,7 +160,7 @@ class BaseSerializable(collections.abc.Sequence):
 
     _hash_cache = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if self._hash_cache is None:
             self._hash_cache = hash(self.__class__) * int.from_bytes(
                 self.hash_tree_root, "little"
@@ -187,7 +187,7 @@ class BaseSerializable(collections.abc.Sequence):
 
         return result
 
-    def reset_cache(self):
+    def reset_cache(self) -> None:
         self.cache.clear()
         self._fixed_size_section_length_cache = None
         self._serialize_cache = None
@@ -409,10 +409,10 @@ class MetaSerializable(abc.ABCMeta):
             return cls._meta.container_sedes.get_hash_tree_root(value)
 
     @property
-    def is_fixed_sized(cls):
+    def is_fixed_sized(cls) -> bool:
         return cls._meta.container_sedes.is_fixed_sized
 
-    def get_fixed_size(cls):
+    def get_fixed_size(cls) -> int:
         return cls._meta.container_sedes.get_fixed_size()
 
 

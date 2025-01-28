@@ -2,6 +2,7 @@ from typing import (
     IO,
     Any,
     Iterable,
+    NoReturn,
     Sequence,
     Tuple,
 )
@@ -74,7 +75,7 @@ class List(
     #
     is_fixed_sized = False
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> NoReturn:
         raise ValueError("List has no static size")
 
     #

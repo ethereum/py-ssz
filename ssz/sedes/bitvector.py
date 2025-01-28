@@ -45,7 +45,7 @@ class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
     #
     is_fixed_sized = True
 
-    def get_fixed_size(self):
+    def get_fixed_size(self) -> int:
         return (self.bit_count + 7) // 8
 
     #
