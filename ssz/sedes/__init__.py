@@ -94,7 +94,6 @@ def infer_sedes(
 ) -> Union[
     BaseSedes[TSerializable, TDeserialized],
     BaseProperCompositeSedes[TSerializable, TDeserialized],
-    bool,
 ]:
     """
     Try to find a sedes objects suitable for a given Python object.
@@ -102,7 +101,7 @@ def infer_sedes(
     if isinstance(value.__class__, BaseSedes):
         return value.__class__
     elif isinstance(value, BaseHashableStructure):
-        return cast(BaseProperCompositeSedes[TSerializable, TDeserialized], value.sedes)
+        return value.sedes
     elif isinstance(value, bool):
         return cast(BaseSedes[bool, bool], boolean)
     elif isinstance(value, int):

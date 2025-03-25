@@ -2,15 +2,17 @@ from functools import (
     partial,
 )
 import itertools
-from numbers import (
-    Integral,
-)
 from typing import (
     Any,
+    Callable,
     Generator,
     Iterable,
     Optional,
+    Tuple,
+    TypeVar,
     Union,
+    cast,
+    overload,
 )
 
 # `transform` comes from a non-public API which is considered stable, but future changes
@@ -37,6 +39,7 @@ from pyrsistent._transformations import (
 from pyrsistent.typing import (
     PMap,
     PVector,
+    PVectorEvolver,
 )
 
 from ssz.constants import (
@@ -51,6 +54,8 @@ from ssz.utils import (
 
 RawHashTreeLayer = PVector[Hash32]
 RawHashTree = PVector[RawHashTreeLayer]
+
+T = TypeVar("T")
 
 
 def validate_chunk_count(chunk_count: Optional[int]) -> None:
@@ -105,10 +110,13 @@ class HashTree(PVector[Hash32]):
     def root(self) -> Hash32:
         return self.raw_hash_tree[-1][0]
 
-    def transform(self, *transformations):
-        return transform(self, transformations)
+    def transform(
+        self: "HashTree",
+        *transformations: Tuple[Tuple[Tuple[int, ...], Callable[[T], T]], ...],
+    ) -> "HashTree":
+        return cast("HashTree", transform(self, transformations))
 
-    def evolver(self):
+    def evolver(self) -> "HashTreeEvolver":
         return HashTreeEvolver(self)
 
     #
@@ -133,7 +141,7 @@ class HashTree(PVector[Hash32]):
     def __getitem__(self, index: Union[int, slice]) -> Hash32:
         return self.chunks[index]
 
-    def index(self, value: Hash32, *args, **kwargs) -> Hash32:
+    def index(self, value: Hash32, *args: Any, **kwargs: Any) -> Hash32:
         return self.chunks.index(value, *args, **kwargs)
 
     def count(self, value: Hash32) -> int:
@@ -155,7 +163,9 @@ class HashTree(PVector[Hash32]):
     def __add__(self, other: Iterable[Hash32]) -> "HashTree":
         return self.extend(other)
 
-    def __mul__(self, times: int) -> "HashTree":
+    # we override __mul__ to allow for a more natural syntax
+    # when using the evolver
+    def __mul__(self, times: int) -> "HashTree":  # type: ignore[override]
         if times <= 0:
             raise ValueError(f"Multiplier must be greater or equal to 1, got {times}")
 
@@ -194,7 +204,7 @@ class HashTree(PVector[Hash32]):
         return self.__class__.compute(chunks, self.chunk_count)
 
 
-class HashTreeEvolver:
+class HashTreeEvolver(PVectorEvolver[Hash32]):
     def __init__(self, hash_tree: "HashTree") -> None:
         self.original_hash_tree = hash_tree
         self.updated_chunks: PMap[int, Hash32] = pmap()
@@ -203,7 +213,18 @@ class HashTreeEvolver:
     #
     # Getters
     #
+    @overload
     def __getitem__(self, index: int) -> Hash32:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> "HashTreeEvolver":
+        ...
+
+    def __getitem__(self, index: Union[int, slice]) -> Union[Hash32, "HashTreeEvolver"]:
+        if isinstance(index, slice):
+            raise NotImplementedError("Slicing not implemented.")
+
         if index < 0:
             index += len(self)
 
@@ -222,15 +243,16 @@ class HashTreeEvolver:
         return len(self.original_hash_tree) + len(self.appended_chunks)
 
     def is_dirty(self) -> bool:
-        return self.updated_chunks or self.appended_chunks
+        return any([self.updated_chunks, self.appended_chunks])
 
     #
     # Setters
     #
-    def set(self, index: Integral, value: Hash32) -> None:
+    def set(self, index: int, value: Hash32) -> "HashTreeEvolver":
         self[index] = value
+        return self
 
-    def __setitem__(self, index: Integral, value: Hash32) -> None:
+    def __setitem__(self, index: int, value: Hash32) -> None:
         if index < 0:
             index += len(self)
 
@@ -245,13 +267,15 @@ class HashTreeEvolver:
     #
     # Length changing modifiers
     #
-    def append(self, value: Hash32) -> None:
+    def append(self, value: Hash32) -> "HashTreeEvolver":
         self.appended_chunks = self.appended_chunks.append(value)
         self._check_chunk_count()
+        return self
 
-    def extend(self, values: Iterable[Hash32]) -> None:
+    def extend(self, values: Iterable[Hash32]) -> "HashTreeEvolver":
         self.appended_chunks = self.appended_chunks.extend(values)
         self._check_chunk_count()
+        return self
 
     def _check_chunk_count(self) -> None:
         chunk_count = self.original_hash_tree.chunk_count
@@ -261,13 +285,13 @@ class HashTreeEvolver:
     #
     # Not implemented
     #
-    def delete(self, index, stop=None):
+    def delete(self, index: int, stop: Optional[int] = None) -> None:  # type: ignore[override] # noqa: E501
         raise NotImplementedError()
 
-    def __delitem__(self, index):
+    def __delitem__(self, index: Union[int, slice]) -> None:
         raise NotImplementedError()
 
-    def remove(self, value):
+    def remove(self, value: Hash32) -> None:
         raise NotImplementedError()
 
     #
@@ -422,7 +446,7 @@ def set_chunk_in_tree(hash_tree: RawHashTree, index: int, chunk: Hash32) -> RawH
         for layer_index, hash_index in zip(parent_layer_indices, parent_hash_indices)
     )
 
-    hash_tree_with_updated_branch = pipe(
+    hash_tree_with_updated_branch: RawHashTree = pipe(
         hash_tree_with_updated_chunk, *update_functions
     )
 
