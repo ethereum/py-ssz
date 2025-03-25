@@ -4,6 +4,7 @@ from abc import (
 )
 from typing import (
     Any,
+    Callable,
     Generic,
     Iterable,
     Iterator,
@@ -31,6 +32,7 @@ from ssz.typing import (
     TSerializable,
 )
 
+T = TypeVar("T")
 TStructure = TypeVar("TStructure")
 TElement = TypeVar("TElement")
 
@@ -99,7 +101,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
 
     @abstractmethod
     def transform(
-        self, *transformations: Tuple[Tuple[Any, ...], Any]
+        self, *transformations: Tuple[Tuple[Tuple[int, ...], Callable[[T], T]], ...]
     ) -> "HashableStructureAPI[TElement]":
         ...
 

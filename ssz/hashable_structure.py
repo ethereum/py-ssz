@@ -2,8 +2,10 @@ import functools
 import itertools
 from typing import (
     Any,
+    Callable,
     Dict,
     Generator,
+    Generic,
     Iterable,
     Iterator,
     List,
@@ -12,6 +14,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
 )
 
 from eth_typing import (
@@ -53,11 +56,12 @@ from ssz.sedes.base import (
     BaseProperCompositeSedes,
 )
 
-TStructure = TypeVar("TStructure", bound="BaseHashableStructure")
-TResizableStructure = TypeVar(
-    "TResizableStructure", bound="BaseResizableHashableStructure"
-)
+T = TypeVar("T")
 TElement = TypeVar("TElement")
+TStructure = TypeVar("TStructure", bound="BaseHashableStructure[Any]")
+TResizableStructure = TypeVar(
+    "TResizableStructure", bound="BaseResizableHashableStructure[Any]"
+)
 
 
 def update_element_in_chunk(
@@ -195,12 +199,12 @@ def get_appended_chunks(
         yield Hash32(b"".join(elements_in_chunk))
 
 
-class BaseHashableStructure(HashableStructureAPI[TElement]):
+class BaseHashableStructure(HashableStructureAPI[TElement], Generic[TElement]):
     def __init__(
-        self,
+        self: TStructure,
         elements: PVector[TElement],
         hash_tree: HashTree,
-        sedes: BaseProperCompositeSedes,
+        sedes: BaseProperCompositeSedes[TElement, TElement],
         max_length: Optional[int] = None,
     ) -> None:
         self._elements = elements
@@ -212,9 +216,9 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     def from_iterable_and_sedes(
         cls,
         iterable: Iterable[TElement],
-        sedes: BaseProperCompositeSedes,
+        sedes: BaseProperCompositeSedes[TElement, TElement],
         max_length: Optional[int] = None,
-    ):
+    ) -> "BaseHashableStructure[TElement]":
         elements = pvector(iterable)
         if max_length and len(elements) > max_length:
             raise ValueError(
@@ -257,7 +261,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return self.hash_tree.root
 
     @property
-    def sedes(self) -> BaseProperCompositeSedes:
+    def sedes(self) -> BaseProperCompositeSedes[TElement, TElement]:
         return self._sedes
 
     #
@@ -289,8 +293,11 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     def __iter__(self) -> Iterator[TElement]:
         return iter(self.elements)
 
-    def transform(self, *transformations):
-        return transform(self, transformations)
+    def transform(
+        self: TStructure,
+        *transformations: Tuple[Tuple[Tuple[int, ...], Callable[[T], T]], ...],
+    ) -> TStructure:
+        return cast(TStructure, transform(self, transformations))
 
     def mset(self: TStructure, *args: Union[int, TElement]) -> TStructure:
         if len(args) % 2 != 0:
@@ -308,13 +315,15 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
 
     def evolver(
         self: TStructure,
-    ) -> "HashableStructureEvolverAPI[TStructure, TElement]":
-        return HashableStructureEvolver(self)
+    ) -> "HashableStructureEvolver[TStructure, TElement]":
+        return HashableStructureEvolver[TStructure, TElement](self)
 
 
-class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]):
+class HashableStructureEvolver(
+    HashableStructureEvolverAPI[TStructure, TElement], Generic[TStructure, TElement]
+):
     def __init__(self, hashable_structure: TStructure) -> None:
-        self._original_structure = hashable_structure
+        self._original_structure: TStructure = hashable_structure
         self._updated_elements: Dict[int, TElement] = {}
         # `self._appended_elements` is only used in the subclass
         # ResizableHashableStructureEvolver, but the implementation of `persistent`
@@ -328,7 +337,7 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
         if index in self._updated_elements:
             return self._updated_elements[index]
         elif 0 <= index < len(self._original_structure):
-            return self._original_structure[index]
+            return cast(TElement, self._original_structure[index])
         elif 0 <= index < len(self):
             return self._appended_elements[index - len(self._original_structure)]
         else:
@@ -399,16 +408,21 @@ class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]
             )
         ).extend(self._appended_elements)
         hash_tree = self._original_structure.hash_tree.mset(
-            *itertools.chain.from_iterable(updated_chunks.items())  # type: ignore
+            *itertools.chain.from_iterable(updated_chunks.items())
         ).extend(appended_chunks)
 
-        return self._original_structure.__class__(
-            elements, hash_tree, self._original_structure.sedes
+        # Use class_ variable to avoid direct instantiation
+        class_ = self._original_structure.__class__
+        return class_(
+            elements,
+            hash_tree,
+            self._original_structure.sedes,
+            self._original_structure.max_length,
         )
 
 
 class BaseResizableHashableStructure(
-    BaseHashableStructure, ResizableHashableStructureAPI[TElement]
+    BaseHashableStructure[TElement], ResizableHashableStructureAPI[TElement]
 ):
     def append(self: TResizableStructure, value: TElement) -> TResizableStructure:
         evolver = self.evolver()
@@ -437,12 +451,14 @@ class BaseResizableHashableStructure(
 
     def evolver(
         self: TResizableStructure,
-    ) -> "ResizableHashableStructureEvolverAPI[TResizableStructure, TElement]":
-        return ResizableHashableStructureEvolver(self)
+    ) -> "ResizableHashableStructureEvolver[TResizableStructure, TElement]":
+        return ResizableHashableStructureEvolver[TResizableStructure, TElement](self)
 
 
 class ResizableHashableStructureEvolver(
-    HashableStructureEvolver, ResizableHashableStructureEvolverAPI[TStructure, TElement]
+    HashableStructureEvolver[TStructure, TElement],
+    ResizableHashableStructureEvolverAPI[TStructure, TElement],
+    Generic[TStructure, TElement],
 ):
     def append(self, element: TElement) -> None:
         max_length = self._original_structure.max_length

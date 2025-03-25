@@ -57,6 +57,11 @@ repos:
             ssz/utils.py
             ssz/constants.py
             ssz/abc.py
+            ssz/exceptions.py
+            ssz/hash.py
+            ssz/hash_tree.py
+            ssz/hashable_structure.py
+            ssz/codec.py
         language: system
         always_run: true
         pass_filenames: false

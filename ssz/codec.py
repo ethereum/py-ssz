@@ -1,3 +1,8 @@
+from typing import (
+    Optional,
+    Union,
+)
+
 from eth_utils import (
     is_bytes,
 )
@@ -9,38 +14,76 @@ from ssz.sedes import (
 from ssz.sedes.base import (
     BaseSedes,
 )
+from ssz.typing import (
+    TDeserialized,
+    TSerializable,
+)
 
 
-def encode(value, sedes=None):
+def encode(
+    value: TSerializable,
+    sedes: Optional[Union[BaseSedes[TSerializable, TDeserialized], str]] = None,
+) -> bytes:
     """
     Encode object in SSZ format.
-    `sedes` needs to be explicitly mentioned for encode/decode
-    of integers(as of now).
-    `sedes` parameter could be given as a string or as the
-    actual sedes object itself.
+
+    Args
+    ----
+        value: TSerializable: Object to encode in SSZ format.
+
+        sedes: BaseSedes: Optional sedes object or string to use for encoding.
+        If not given, the default sedes object for the given object is used.
+
+    Returns
+    -------
+        bytes: Encoded object in SSZ format.
+
+    Raises
+    ------
+        TypeError: If the given sedes object is not a subclass of BaseSedes.
+
+    Note: The sedes argument is required for int objects at this time.
+
     """
-    if sedes is not None:
-        if sedes in sedes_by_name:
-            # Get the actual sedes object from string representation
-            sedes_obj = sedes_by_name[sedes]
-        else:
-            sedes_obj = sedes
+    if sedes is None:
+        sedes = infer_sedes(value)
 
-        if not isinstance(sedes_obj, BaseSedes):
-            raise TypeError("Invalid sedes object")
+    if isinstance(sedes, str):
+        if sedes not in sedes_by_name:
+            raise TypeError(f"Unknown sedes name: {sedes}")
+        sedes = sedes_by_name[sedes]
 
-    else:
-        sedes_obj = infer_sedes(value)
+    if not isinstance(sedes, BaseSedes):
+        raise TypeError("Invalid sedes object")
 
-    return sedes_obj.serialize(value)
+    return sedes.serialize(value)
 
 
-def decode(ssz, sedes):
+def decode(ssz: bytes, sedes: BaseSedes[TSerializable, TDeserialized]) -> TDeserialized:
     """
     Decode a SSZ encoded object.
+
+    Args
+    ----
+        ssz: bytes: SSZ encoded object to decode.
+
+        sedes: BaseSedes: sedes object to use for decoding.
+
+    Returns
+    -------
+        TDeserialized: Decoded object.
+
+    Raises
+    ------
+        TypeError: If the ssz object is not bytes or the given sedes object is not a
+        subclass of BaseSedes
+
     """
     if not is_bytes(ssz):
         raise TypeError(f"Can only decode SSZ bytes, got type {type(ssz).__name__}")
+
+    if not isinstance(sedes, BaseSedes):
+        raise TypeError("Invalid sedes object")
 
     value = sedes.deserialize(ssz)
     return value
