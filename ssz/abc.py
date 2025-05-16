@@ -12,6 +12,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    overload,
 )
 
 from eth_typing import (
@@ -84,7 +85,19 @@ class HashableStructureAPI(ABC, Generic[TElement]):
         ...
 
     @abstractmethod
+    @overload
     def __getitem__(self, index: int) -> TElement:
+        ...
+
+    @abstractmethod
+    @overload
+    def __getitem__(self, index: slice) -> PVector[TElement]:
+        ...
+
+    @abstractmethod
+    def __getitem__(
+        self, index: Union[int, slice]
+    ) -> Union[TElement, PVector[TElement]]:
         ...
 
     @abstractmethod

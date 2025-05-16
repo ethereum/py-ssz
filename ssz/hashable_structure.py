@@ -12,9 +12,11 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     TypeVar,
     Union,
     cast,
+    overload,
 )
 
 from eth_typing import (
@@ -214,11 +216,11 @@ class BaseHashableStructure(HashableStructureAPI[TElement], Generic[TElement]):
 
     @classmethod
     def from_iterable_and_sedes(
-        cls,
+        cls: Type[TStructure],
         iterable: Iterable[TElement],
         sedes: BaseProperCompositeSedes[TElement, TElement],
         max_length: Optional[int] = None,
-    ) -> "BaseHashableStructure[TElement]":
+    ) -> TStructure:
         elements = pvector(iterable)
         if max_length and len(elements) > max_length:
             raise ValueError(
@@ -287,8 +289,25 @@ class BaseHashableStructure(HashableStructureAPI[TElement], Generic[TElement]):
     def __len__(self) -> int:
         return len(self.elements)
 
+    @overload
     def __getitem__(self, index: int) -> TElement:
-        return self.elements[index]
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> PVector[TElement]:
+        ...
+
+    def __getitem__(
+        self, index: Union[int, slice]
+    ) -> Union[TElement, PVector[TElement]]:
+        if isinstance(index, int):
+            return self.elements[index]
+        elif isinstance(index, slice):
+            return pvector(self.elements[index])
+        else:
+            raise TypeError(
+                f"Indices must be integers or slices, not {type(index).__name__}"
+            )
 
     def __iter__(self) -> Iterator[TElement]:
         return iter(self.elements)
