@@ -5,8 +5,6 @@ from abc import (
 from typing import (
     Any,
     Generic,
-    Optional,
-    Tuple,
 )
 
 from eth_typing import (
@@ -57,7 +55,7 @@ class BaseSedes(ABC, Generic[TSerializable, TDeserialized]):
     @abstractmethod
     def get_hash_tree_root_and_leaves(
         self, value: TSerializable, cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+    ) -> tuple[Hash32, CacheObj]:
         ...
 
     @abstractmethod
@@ -104,7 +102,7 @@ class BaseProperCompositeSedes(BaseSedes[TSerializable, TDeserialized]):
 
     @property
     @abstractmethod
-    def chunk_count(self) -> Optional[int]:
+    def chunk_count(self) -> int | None:
         ...
 
 

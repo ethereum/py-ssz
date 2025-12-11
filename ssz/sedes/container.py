@@ -1,9 +1,10 @@
+from collections.abc import (
+    Iterable,
+    Sequence,
+)
 from typing import (
     IO,
     Any,
-    Iterable,
-    Sequence,
-    Tuple,
 )
 
 from eth_typing import (
@@ -52,7 +53,7 @@ def _deserialize_fixed_size_items_and_offsets(stream, field_sedes):
             yield (s_decode_offset(stream), sedes)
 
 
-class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
+class Container(ProperCompositeSedes[Sequence[Any], tuple[Any, ...]]):
     def __init__(self, field_sedes: Sequence[TSedes]) -> None:
         if len(field_sedes) == 0:
             raise ValidationError("Cannot define container without any fields")
@@ -97,7 +98,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     def deserialize_fixed_size_parts(
         self, stream: IO[bytes]
-    ) -> Iterable[Tuple[Tuple[Any], Tuple[int, TSedes]]]:
+    ) -> Iterable[tuple[tuple[Any], tuple[int, TSedes]]]:
         fixed_items_and_offets = _deserialize_fixed_size_items_and_offsets(
             stream, self.field_sedes
         )
@@ -113,7 +114,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
 
     @to_tuple
     def deserialize_variable_size_parts(
-        self, offset_pairs: Tuple[Tuple[int, TSedes], ...], stream: IO[bytes]
+        self, offset_pairs: tuple[tuple[int, TSedes], ...], stream: IO[bytes]
     ) -> Iterable[Any]:
         offsets, fields = zip(*offset_pairs)
 
@@ -130,7 +131,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         final_field_data = stream.read()
         yield last_field.deserialize(final_field_data)
 
-    def _deserialize_stream(self, stream: IO[bytes]) -> Tuple[Any, ...]:
+    def _deserialize_stream(self, stream: IO[bytes]) -> tuple[Any, ...]:
         if not self.field_sedes:
             # TODO: likely remove once
             # https://github.com/ethereum/eth2.0-specs/issues/854 is resolved
@@ -175,7 +176,7 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
     #
     # Tree hashing
     #
-    def get_hash_tree_root(self, value: Tuple[Any, ...]) -> bytes:
+    def get_hash_tree_root(self, value: tuple[Any, ...]) -> bytes:
         if isinstance(value, BaseHashableStructure) and value.sedes == self:
             return value.hash_tree_root
 
@@ -186,8 +187,8 @@ class Container(ProperCompositeSedes[Sequence[Any], Tuple[Any, ...]]):
         return merkleize(merkle_leaves)
 
     def get_hash_tree_root_and_leaves(
-        self, value: Tuple[Any, ...], cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+        self, value: tuple[Any, ...], cache: CacheObj
+    ) -> tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         for element, sedes in zip(value, self.field_sedes):
             key = sedes.get_key(element)

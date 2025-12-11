@@ -1,7 +1,9 @@
+from collections.abc import (
+    Iterable,
+)
 import functools
 from typing import (
     Any,
-    Iterable,
 )
 
 from eth_typing import (

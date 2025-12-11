@@ -1,10 +1,11 @@
 import collections
+from collections.abc import (
+    Sequence,
+)
 import functools
 from typing import (
     IO,
     Any,
-    Sequence,
-    Tuple,
 )
 
 from eth_typing import (
@@ -79,7 +80,7 @@ def pad_zeros(value: bytes) -> bytes:
 
 
 @functools.lru_cache(maxsize=2**12)
-def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
+def to_chunks(packed_data: bytes) -> tuple[bytes, ...]:
     size = len(packed_data)
     number_of_full_chunks = size // CHUNK_SIZE
     last_chunk_is_full = size % CHUNK_SIZE == 0
@@ -96,7 +97,7 @@ def to_chunks(packed_data: bytes) -> Tuple[bytes, ...]:
 
 
 @functools.lru_cache(maxsize=2**12)
-def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
+def pack(serialized_values: Sequence[bytes]) -> tuple[Hash32, ...]:
     if len(serialized_values) == 0:
         return (EMPTY_CHUNK,)
 
@@ -105,7 +106,7 @@ def pack(serialized_values: Sequence[bytes]) -> Tuple[Hash32, ...]:
 
 
 @functools.lru_cache(maxsize=2**12)
-def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
+def pack_bytes(byte_string: bytes) -> tuple[bytes, ...]:
     if len(byte_string) == 0:
         return (EMPTY_CHUNK,)
 
@@ -113,7 +114,7 @@ def pack_bytes(byte_string: bytes) -> Tuple[bytes, ...]:
 
 
 @functools.lru_cache(maxsize=2**12)
-def pack_bits(values: Sequence[bool]) -> Tuple[Hash32]:
+def pack_bits(values: Sequence[bool]) -> tuple[Hash32]:
     as_bytearray = get_serialized_bytearray(values, len(values), extra_byte=False)
     packed = bytes(as_bytearray)
     return to_chunks(packed)
@@ -128,7 +129,7 @@ def get_next_power_of_two(value: int) -> int:
 
 def _get_chunk_and_max_depth(
     chunks: Sequence[Hash32], limit: int, chunk_len: int
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     chunk_depth = max(chunk_len - 1, 0).bit_length()
     max_depth = max(chunk_depth, (limit - 1).bit_length())
     if max_depth > len(ZERO_HASHES):
@@ -143,7 +144,7 @@ def _get_merkleized_result(
     chunk_depth: int,
     max_depth: int,
     cache: CacheObj,
-) -> Tuple[Hash32, CacheObj]:
+) -> tuple[Hash32, CacheObj]:
     merkleized_result_per_layers = [None for _ in range(max_depth + 1)]
 
     def merge(leaf: bytes, leaf_index: int) -> None:
@@ -193,7 +194,7 @@ def _get_merkleized_result(
 
 def merkleize_with_cache(
     chunks: Sequence[Hash32], cache: CacheObj, limit: int = None
-) -> Tuple[Hash32, CacheObj]:
+) -> tuple[Hash32, CacheObj]:
     chunk_len = len(chunks)
     if limit is None:
         limit = chunk_len

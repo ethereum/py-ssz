@@ -1,3 +1,7 @@
+from collections.abc import (
+    Generator,
+    Iterable,
+)
 from functools import (
     partial,
 )
@@ -7,10 +11,6 @@ from numbers import (
 )
 from typing import (
     Any,
-    Generator,
-    Iterable,
-    Optional,
-    Union,
 )
 
 # `transform` comes from a non-public API which is considered stable, but future changes
@@ -53,14 +53,14 @@ RawHashTreeLayer = PVector[Hash32]
 RawHashTree = PVector[RawHashTreeLayer]
 
 
-def validate_chunk_count(chunk_count: Optional[int]) -> None:
+def validate_chunk_count(chunk_count: int | None) -> None:
     if chunk_count is not None:
         if chunk_count <= 0:
             raise ValueError(f"Chunk count is not positive: {chunk_count}")
 
 
 def validate_raw_hash_tree(
-    raw_hash_tree: RawHashTree, chunk_count: Optional[int] = None
+    raw_hash_tree: RawHashTree, chunk_count: int | None = None
 ) -> None:
     if len(raw_hash_tree) == 0:
         raise ValueError("Hash tree is empty")
@@ -82,7 +82,7 @@ def validate_raw_hash_tree(
 
 class HashTree(PVector[Hash32]):
     def __init__(
-        self, raw_hash_tree: RawHashTree, chunk_count: Optional[int] = None
+        self, raw_hash_tree: RawHashTree, chunk_count: int | None = None
     ) -> None:
         validate_chunk_count(chunk_count)
         validate_raw_hash_tree(raw_hash_tree, chunk_count)
@@ -92,7 +92,7 @@ class HashTree(PVector[Hash32]):
 
     @classmethod
     def compute(
-        cls, chunks: Iterable[Hash32], chunk_count: Optional[int] = None
+        cls, chunks: Iterable[Hash32], chunk_count: int | None = None
     ) -> "HashTree":
         raw_hash_tree = compute_hash_tree(chunks, chunk_count)
         return cls(raw_hash_tree, chunk_count)
@@ -130,7 +130,7 @@ class HashTree(PVector[Hash32]):
     def __len__(self) -> int:
         return len(self.chunks)
 
-    def __getitem__(self, index: Union[int, slice]) -> Hash32:
+    def __getitem__(self, index: int | slice) -> Hash32:
         return self.chunks[index]
 
     def index(self, value: Hash32, *args, **kwargs) -> Hash32:
@@ -166,7 +166,7 @@ class HashTree(PVector[Hash32]):
 
         return evolver.persistent()
 
-    def mset(self, *args: Union[int, Hash32]) -> "HashTree":
+    def mset(self, *args: int | Hash32) -> "HashTree":
         if len(args) % 2 != 0:
             raise TypeError(
                 f"mset must be called with an even number of arguments, got {len(args)}"
@@ -183,7 +183,7 @@ class HashTree(PVector[Hash32]):
     #
     # Removal of chunks
     #
-    def delete(self, index: int, stop: Optional[int] = None) -> "HashTree":
+    def delete(self, index: int, stop: int | None = None) -> "HashTree":
         if stop is None:
             stop = index + 1
         chunks = self.chunks.delete(index, stop)
@@ -325,7 +325,7 @@ def generate_hash_tree_layers(
         previous_layer = next_layer
 
 
-def get_num_layers(num_chunks: int, chunk_count: Optional[int]) -> int:
+def get_num_layers(num_chunks: int, chunk_count: int | None) -> int:
     if chunk_count is not None:
         virtual_size = chunk_count
     else:
@@ -335,7 +335,7 @@ def get_num_layers(num_chunks: int, chunk_count: Optional[int]) -> int:
 
 
 def generate_chunk_tree_padding(
-    unpadded_chunk_tree: PVector[Hash32], chunk_count: Optional[int]
+    unpadded_chunk_tree: PVector[Hash32], chunk_count: int | None
 ) -> Generator[Hash32, None, None]:
     if chunk_count is None:
         return
@@ -357,14 +357,14 @@ def generate_chunk_tree_padding(
 
 
 def pad_hash_tree(
-    unpadded_chunk_tree: RawHashTree, chunk_count: Optional[int] = None
+    unpadded_chunk_tree: RawHashTree, chunk_count: int | None = None
 ) -> RawHashTree:
     padding = pvector(generate_chunk_tree_padding(unpadded_chunk_tree, chunk_count))
     return unpadded_chunk_tree + padding
 
 
 def compute_hash_tree(
-    chunks: Iterable[Hash32], chunk_count: Optional[int] = None
+    chunks: Iterable[Hash32], chunk_count: int | None = None
 ) -> RawHashTree:
     validate_chunk_count(chunk_count)
 

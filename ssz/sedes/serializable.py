@@ -1,14 +1,13 @@
 import abc
 import collections.abc
+from collections.abc import (
+    Sequence,
+)
 import copy
 import operator
 import re
 from typing import (
     NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
 )
 
 from eth_utils import (
@@ -51,10 +50,10 @@ from ssz.utils import (
 
 class Meta(NamedTuple):
     has_fields: bool
-    fields: Optional[Tuple[Tuple[str, BaseSedes], ...]]
-    container_sedes: Optional[Container]
-    field_names: Optional[Tuple[str, ...]]
-    field_attrs: Optional[Tuple[str, ...]]
+    fields: tuple[tuple[str, BaseSedes], ...] | None
+    container_sedes: Container | None
+    field_names: tuple[str, ...] | None
+    field_attrs: tuple[str, ...] | None
 
 
 def validate_args_and_kwargs(args, kwargs, arg_names):
@@ -385,19 +384,19 @@ class MetaSerializable(abc.ABCMeta):
     #
     # Implement BaseSedes methods as pass-throughs to the container sedes
     #
-    def serialize(cls: Type[TSerializable], value: TSerializable) -> bytes:
+    def serialize(cls: type[TSerializable], value: TSerializable) -> bytes:
         # return cls._meta.container_sedes.serialize(value)
         if value._serialize_cache is None:
             value._serialize_cache = cls._meta.container_sedes.serialize(value)
         return value._serialize_cache
 
-    def deserialize(cls: Type[TSerializable], data: bytes) -> TSerializable:
+    def deserialize(cls: type[TSerializable], data: bytes) -> TSerializable:
         deserialized_fields = cls._meta.container_sedes.deserialize(data)
         deserialized_field_dict = dict(zip(cls._meta.field_names, deserialized_fields))
         return cls(**deserialized_field_dict)
 
     def get_hash_tree_root(
-        cls: Type[TSerializable], value: TSerializable, cache: bool = True
+        cls: type[TSerializable], value: TSerializable, cache: bool = True
     ) -> bytes:
         if cache:
             root, cache = cls._meta.container_sedes.get_hash_tree_root_and_leaves(

@@ -1,9 +1,10 @@
+from collections.abc import (
+    Iterable,
+    Sequence,
+)
 from typing import (
     IO,
     Any,
-    Iterable,
-    Sequence,
-    Tuple,
 )
 
 from eth_typing import (
@@ -50,15 +51,15 @@ from ssz.utils import (
     s_decode_offset,
 )
 
-TSedesPairs = Tuple[
-    Tuple[BaseSedes[TSerializableElement, TDeserializedElement], TSerializableElement],
+TSedesPairs = tuple[
+    tuple[BaseSedes[TSerializableElement, TDeserializedElement], TSerializableElement],
     ...,
 ]
 
 
 class Vector(
     HomogeneousProperCompositeSedes[
-        Sequence[TSerializableElement], Tuple[TDeserializedElement, ...]
+        Sequence[TSerializableElement], tuple[TDeserializedElement, ...]
     ]
 ):
     def __init__(self, element_sedes: TSedes, length: int) -> None:
@@ -151,7 +152,7 @@ class Vector(
 
     def get_hash_tree_root_and_leaves(
         self, value: Sequence[Any], cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+    ) -> tuple[Hash32, CacheObj]:
         merkle_leaves = ()
         if isinstance(self.element_sedes, BasicSedes):
             serialized_elements = tuple(

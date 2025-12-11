@@ -1,9 +1,9 @@
 from collections.abc import (
+    Iterator,
     MutableMapping,
 )
 from typing import (
     TYPE_CHECKING,
-    Iterator,
 )
 
 from lru import (
