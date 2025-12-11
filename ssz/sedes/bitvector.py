@@ -1,7 +1,8 @@
+from collections.abc import (
+    Sequence,
+)
 from typing import (
     Any,
-    Sequence,
-    Tuple,
     Union,
 )
 
@@ -81,7 +82,7 @@ class Bitvector(BitfieldCompositeSedes[BytesOrByteArray, bytes]):
 
     def get_hash_tree_root_and_leaves(
         self, value: Sequence[bool], cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+    ) -> tuple[Hash32, CacheObj]:
         return merkleize_with_cache(
             pack_bits(value), cache=cache, limit=self.chunk_count
         )

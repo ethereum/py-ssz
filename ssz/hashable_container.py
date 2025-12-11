@@ -1,18 +1,15 @@
 from abc import (
     ABCMeta,
 )
+from collections.abc import (
+    Generator,
+    Sequence,
+)
 import math
 from typing import (
     Any,
-    Dict,
-    Generator,
     NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
     TypeVar,
-    Union,
 )
 
 from eth_typing import (
@@ -66,7 +63,7 @@ class FieldDescriptor:
         self.name = name
 
     def __get__(
-        self, instance: "HashableContainer", owner: Type["HashableContainer"] = None
+        self, instance: "HashableContainer", owner: type["HashableContainer"] = None
     ) -> Any:
         return instance[self.name]
 
@@ -78,19 +75,19 @@ class SettableFieldDescriptor(FieldDescriptor):
         instance[self.name] = value
 
 
-Field = Tuple[str, BaseSedes]
+Field = tuple[str, BaseSedes]
 
 
 class Meta(NamedTuple):
-    fields: Tuple[Field, ...]
-    field_names: Tuple[str, ...]
-    field_names_to_element_indices: Dict[str, int]
+    fields: tuple[Field, ...]
+    field_names: tuple[str, ...]
+    field_names_to_element_indices: dict[str, int]
     container_sedes: Container
-    evolver_class: Type["HashableContainerEvolver"]
+    evolver_class: type["HashableContainerEvolver"]
 
     @classmethod
     def from_fields(
-        cls, fields: Tuple[Tuple[str, BaseSedes], ...], container: Container, name: str
+        cls, fields: tuple[tuple[str, BaseSedes], ...], container: Container, name: str
     ) -> "Meta":
         if not fields:
             raise TypeError("Containers must define at least one field")
@@ -119,7 +116,7 @@ class Meta(NamedTuple):
         )
 
 
-def get_meta_from_bases(bases: Tuple[Type, ...]) -> Optional[Meta]:
+def get_meta_from_bases(bases: tuple[type, ...]) -> Meta | None:
     """
     Return the meta object defined by one of the given base classes.
 
@@ -159,8 +156,8 @@ def get_field_sedes_from_fields(
 class MetaHashableContainer(ABCMeta):
     """Metaclass which creates HashableContainers."""
 
-    def __new__(mcls, name: str, bases: Tuple[Type, ...], namespace: Dict[str, Any]):
-        container_sedes: Optional[Container]
+    def __new__(mcls, name: str, bases: tuple[type, ...], namespace: dict[str, Any]):
+        container_sedes: Container | None
 
         # get fields defined in the class or by one of its bases
         if FIELDS_META_ATTR in namespace:
@@ -274,8 +271,8 @@ def hashablify_value(value: Any, sedes: BaseSedes) -> Any:
 
 @to_dict
 def hashablify_field_kwargs(
-    field_kwargs: Dict[str, Any], fields: Sequence[Field]
-) -> Generator[Tuple[str, Any], None, None]:
+    field_kwargs: dict[str, Any], fields: Sequence[Field]
+) -> Generator[tuple[str, Any], None, None]:
     for field_name, field_sedes in fields:
         field_value = field_kwargs[field_name]
         hashablified_field_value = hashablify_value(field_value, field_sedes)
@@ -296,7 +293,7 @@ class HashableContainer(
             super().__init__(*args, **kwargs)
 
     @classmethod
-    def create(cls, **field_kwargs: Dict[str, Any]):
+    def create(cls, **field_kwargs: dict[str, Any]):
         if cls._meta is None:
             raise TypeError("HashableContainer does not define any fields")
 
@@ -332,7 +329,7 @@ class HashableContainer(
     def hash_tree_root(self) -> Hash32:
         return self.raw_root
 
-    def normalize_item_index(self, index: Union[str, int]) -> int:
+    def normalize_item_index(self, index: str | int) -> int:
         if isinstance(index, str):
             return self._meta.field_names_to_element_indices[index]
         elif isinstance(index, int):
@@ -340,7 +337,7 @@ class HashableContainer(
         else:
             raise TypeError("Index must be either int or str")
 
-    def __getitem__(self, index: Union[str, int]) -> TElement:
+    def __getitem__(self, index: str | int) -> TElement:
         element_index = self.normalize_item_index(index)
         return super().__getitem__(element_index)
 
@@ -357,7 +354,7 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
     all fields.
     """
 
-    def __setitem__(self, index: Union[str, int], value: TElement) -> None:
+    def __setitem__(self, index: str | int, value: TElement) -> None:
         element_index = self._original_structure.normalize_item_index(index)
 
         # provides some safety by preventing overwriting a hashable list/vector with
@@ -368,7 +365,7 @@ class HashableContainerEvolver(HashableStructureEvolver[TStructure, TElement]):
 
         super().__setitem__(element_index, hashablified_value)
 
-    def __getitem__(self, index: Union[str, int]) -> TElement:
+    def __getitem__(self, index: str | int) -> TElement:
         element_index = self._original_structure.normalize_item_index(index)
         return super().__getitem__(element_index)
 

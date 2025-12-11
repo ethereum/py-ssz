@@ -1,7 +1,5 @@
 from typing import (
     NamedTuple,
-    Optional,
-    Tuple,
 )
 
 import ssz
@@ -22,11 +20,11 @@ from ssz.sedes.serializable import (
 
 class SignedMeta(NamedTuple):
     has_fields: bool
-    fields: Optional[Tuple[Tuple[str, BaseSedes]]]
-    container_sedes: Optional[Container]
-    signed_container_sedes: Optional[Container]
-    field_names: Optional[Tuple[str, ...]]
-    field_attrs: Optional[Tuple[str, ...]]
+    fields: tuple[tuple[str, BaseSedes]] | None
+    container_sedes: Container | None
+    signed_container_sedes: Container | None
+    field_names: tuple[str, ...] | None
+    field_attrs: tuple[str, ...] | None
 
 
 class MetaSignedSerializable(MetaSerializable):

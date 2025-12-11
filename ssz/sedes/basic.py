@@ -1,15 +1,16 @@
 from abc import (
     abstractmethod,
 )
+from collections.abc import (
+    Generator,
+    Iterable,
+    Sequence,
+)
 import io
 import operator
 from typing import (
     IO,
     Any,
-    Generator,
-    Iterable,
-    Sequence,
-    Tuple,
 )
 
 from eth_typing import (
@@ -78,7 +79,7 @@ class BasicSedes(BaseSedes[TSerializable, TDeserialized]):
 
     def get_hash_tree_root_and_leaves(
         self, value: TSerializable, cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+    ) -> tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack((serialized_value,)), cache=cache)
 
@@ -102,7 +103,7 @@ class ProperCompositeSedes(BaseProperCompositeSedes[TSerializable, TDeserialized
     @to_tuple
     def _get_item_sedes_pairs(
         self, value: Sequence[TSerializable]
-    ) -> Generator[Tuple[TSerializable, TSedes], None, None]:
+    ) -> Generator[tuple[TSerializable, TSedes], None, None]:
         for index, element in enumerate(value):
             yield element, self.get_element_sedes(index)
 

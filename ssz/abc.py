@@ -2,14 +2,14 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import (
+    Iterable,
+    Iterator,
+)
 from typing import (
     Any,
     Generic,
-    Iterable,
-    Iterator,
-    Optional,
     TypeVar,
-    Union,
 )
 
 from eth_typing import (
@@ -37,7 +37,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
         cls,
         iterable: Iterable[TElement],
         sedes: BaseProperCompositeSedes,
-        max_length: Optional[int],
+        max_length: int | None,
     ):
         ...
 
@@ -97,7 +97,7 @@ class HashableStructureAPI(ABC, Generic[TElement]):
         ...
 
     @abstractmethod
-    def mset(self: TStructure, *args: Union[int, TElement]) -> TStructure:
+    def mset(self: TStructure, *args: int | TElement) -> TStructure:
         ...
 
     @abstractmethod

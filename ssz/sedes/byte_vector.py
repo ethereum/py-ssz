@@ -1,5 +1,4 @@
 from typing import (
-    Tuple,
     Union,
 )
 
@@ -65,7 +64,7 @@ class ByteVector(Vector[BytesOrByteArray, bytes]):
 
     def get_hash_tree_root_and_leaves(
         self, value: bytes, cache: CacheObj
-    ) -> Tuple[Hash32, CacheObj]:
+    ) -> tuple[Hash32, CacheObj]:
         serialized_value = self.serialize(value)
         return merkleize_with_cache(pack_bytes(serialized_value), cache=cache)
 

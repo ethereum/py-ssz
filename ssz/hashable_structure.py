@@ -1,17 +1,14 @@
+from collections.abc import (
+    Generator,
+    Iterable,
+    Iterator,
+    Sequence,
+)
 import functools
 import itertools
 from typing import (
     Any,
-    Dict,
-    Generator,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 from eth_typing import (
@@ -97,7 +94,7 @@ def update_element_in_chunk(
 
 
 def update_elements_in_chunk(
-    original_chunk: Hash32, updated_elements: Dict[int, bytes]
+    original_chunk: Hash32, updated_elements: dict[int, bytes]
 ) -> Hash32:
     """
     Update multiple elements in a chunk.
@@ -131,13 +128,13 @@ def get_num_padding_elements(
 @to_dict
 def get_updated_chunks(
     *,
-    updated_elements: Dict[int, bytes],
+    updated_elements: dict[int, bytes],
     appended_elements: Sequence[bytes],
     original_chunks: Sequence[Hash32],
     element_size: int,
     num_original_elements: int,
     num_padding_elements: int,
-) -> Generator[Tuple[int, Hash32], None, None]:
+) -> Generator[tuple[int, Hash32], None, None]:
     """
     For an element changeset, compute the updates that have to be applied to the
     existing chunks.
@@ -201,7 +198,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         elements: PVector[TElement],
         hash_tree: HashTree,
         sedes: BaseProperCompositeSedes,
-        max_length: Optional[int] = None,
+        max_length: int | None = None,
     ) -> None:
         self._elements = elements
         self._hash_tree = hash_tree
@@ -213,7 +210,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         cls,
         iterable: Iterable[TElement],
         sedes: BaseProperCompositeSedes,
-        max_length: Optional[int] = None,
+        max_length: int | None = None,
     ):
         elements = pvector(iterable)
         if max_length and len(elements) > max_length:
@@ -249,7 +246,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
         return self.hash_tree.chunks
 
     @property
-    def max_length(self) -> Optional[int]:
+    def max_length(self) -> int | None:
         return self._max_length
 
     @property
@@ -292,7 +289,7 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
     def transform(self, *transformations):
         return transform(self, transformations)
 
-    def mset(self: TStructure, *args: Union[int, TElement]) -> TStructure:
+    def mset(self: TStructure, *args: int | TElement) -> TStructure:
         if len(args) % 2 != 0:
             raise TypeError(
                 f"mset must be called with an even number of arguments, got {len(args)}"
@@ -315,11 +312,11 @@ class BaseHashableStructure(HashableStructureAPI[TElement]):
 class HashableStructureEvolver(HashableStructureEvolverAPI[TStructure, TElement]):
     def __init__(self, hashable_structure: TStructure) -> None:
         self._original_structure = hashable_structure
-        self._updated_elements: Dict[int, TElement] = {}
+        self._updated_elements: dict[int, TElement] = {}
         # `self._appended_elements` is only used in the subclass
         # ResizableHashableStructureEvolver, but the implementation of `persistent`
         # already processes it so that it does not have to be implemented twice.
-        self._appended_elements: List[TElement] = []
+        self._appended_elements: list[TElement] = []
 
     def __getitem__(self, index: int) -> TElement:
         if index < 0:
