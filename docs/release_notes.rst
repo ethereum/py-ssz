@@ -3,6 +3,21 @@ Release Notes
 
 .. towncrier release notes start
 
+py-ssz v0.6.0-beta.1 (2025-12-17)
+---------------------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Drop support for Python 3.8 and 3.9 (`#148 <https://github.com/ethereum/py-ssz/issues/148>`__)
+
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.14 (`#148 <https://github.com/ethereum/py-ssz/issues/148>`__)
+
+
 py-ssz v0.5.2 (2025-01-22)
 --------------------------
 
